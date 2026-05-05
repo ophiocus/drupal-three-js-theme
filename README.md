@@ -27,22 +27,38 @@ menus, Commerce, GTM — three.js is the presentation layer.
 
 ## Status
 
-Greenfield. No code yet. Next steps (TBD, in rough order):
+Past greenfield. The project's philosophy and architectural commitments
+are now documented:
 
-1. Decide the integration shape: full-viewport canvas with Drupal
-   chrome overlaid, vs. embedded canvases inside otherwise-normal Drupal
-   pages, vs. per-region (Twig hooks pick which regions get a
-   three.js render target).
-2. Pick a starter scaffold for the theme PHP/YAML side
-   (`drupal/theme_generator` or hand-rolled from a contrib base like
-   `stable9` / `olivero`).
-3. Decide asset pipeline — Vite is the obvious 2026 choice; produces
-   the bundle that Drupal's `*.libraries.yml` references.
-4. Prototype: a single Drupal page that renders a three.js scene,
-   reads node fields, and does something visually non-trivial with them
-   (e.g., a node's `field_image` becomes a texture on a mesh).
-5. Performance budget: target Lighthouse scores comparable to a flat
-   Drupal theme on first paint; defer the WebGL layer until idle.
+- **[THESIS.md](THESIS.md)** — *Site as World*: the philosophical
+  thesis. A site is a place; URIs are coordinates; geography is a
+  function of the corpus.
+- **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** — normative
+  architecture. Establishes the two-side spine (PHP cypher + JS
+  renderer), the descriptor contract, and the rule that **every 3D
+  theme under this thesis MUST require the `world_signature` module.**
+- **[docs/PROTOCOL.md](docs/PROTOCOL.md)** — development and
+  prototyping protocol. Repo shape, test split, decision log, sandbox
+  workflow.
+
+What exists in code:
+
+- The renderer-side spine (`src/world/`): pure-TS `vantage(url, snapshot)`
+  with seven invariant tests (`test/vantage.test.ts`, all green).
+
+What's next, in rough order:
+
+1. Scaffold the `world_signature` module — the metaphor cypher.
+   `Signature` value object, `EntityFactsReader` interface, pure
+   `SignatureExtractor::extract()`, unit tests covering the seven PHP
+   invariants.
+2. Wire entity hooks + `drupal/advancedqueue` worker; kernel-test the
+   pipeline end to end.
+3. Snapshot publisher (drush command) emitting the corpus JSON the
+   renderer already knows how to consume.
+4. Olivero child theme skeleton (`theme/`) with `page.html.twig`
+   override that emits the canvas + descriptor outlet.
+5. Turbo wiring + scene reconciler on the renderer side.
 
 ## Relationship to webrunners
 
