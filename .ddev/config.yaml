@@ -1,0 +1,38 @@
+name: drupal-three-js-theme
+type: drupal
+docroot: web
+php_version: "8.3"
+webserver_type: nginx-fpm
+xdebug_enabled: false
+additional_hostnames: []
+additional_fqdns: []
+database:
+    type: mariadb
+    version: "11.4"
+use_dns_when_possible: true
+composer_version: "2"
+performance_mode: "mutagen"
+nodejs_version: "20"
+corepack_enable: false
+
+# Atlas access is via HTTPS (Guzzle) rather than the PHP MongoDB
+# driver, so no ext-mongodb is required in the web image.
+
+# Vite dev server exposure (npm run dev runs on container port 5173,
+# DDEV-router exposes it on https://drupal-three-js-theme.ddev.site:5173)
+web_extra_exposed_ports:
+    - name: vite
+      container_port: 5173
+      http_port: 5172
+      https_port: 5173
+
+# Sandbox property credentials. Empty in committed config; engineer
+# overrides locally via .ddev/.env or `ddev config --web-environment-add`.
+web_environment:
+    - ANTHROPIC_API_KEY=
+    - MONGODB_ATLAS_URI=
+    - WORLD_SIGNATURE_DATABASE=drupal_three_js_theme_world
+
+hooks:
+    post-start:
+        - exec: composer install --no-interaction

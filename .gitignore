@@ -1,6 +1,39 @@
+# JS toolchain
 node_modules/
 dist/
-*.log
-.DS_Store
 .vite/
 coverage/
+
+# Composer-managed Drupal core/contrib
+/vendor/
+/web/core/
+/web/modules/contrib/
+/web/themes/contrib/
+/web/profiles/contrib/
+/web/libraries/
+
+# Drupal runtime
+/web/sites/default/files/
+/web/sites/default/private/
+/web/sites/*/settings.local.php
+/web/sites/*/services.local.yml
+/web/sites/default/settings.php
+
+# Local env / DDEV runtime
+.env
+.env.local
+/.ddev/.env
+/.ddev/db_snapshots/
+/.ddev/.dbimports/
+/.ddev/import-db/
+/.ddev/mutagen/
+/.ddev/.global_commands/
+
+# OS / editor
+*.log
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+/.editorconfig
+/.gitattributes
