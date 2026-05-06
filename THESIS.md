@@ -84,6 +84,38 @@ The shape of the world is the shape of the editorial team's
 attention. Where editors work, the world thickens. Where they don't,
 it thins. Authorship is care, and care produces world.
 
+## The document, in situ
+
+A reader does not read in 3D. The world is for inhabiting; reading
+is a head-down, slow activity that needs the still page, not the
+flowing scene. The world model honors this with **cards** — the
+document representation of an entity, surfaced *in situ* on its
+world object, accessed by activation.
+
+Cards exist in three states. *Hidden* — the default — costs nothing;
+the card is a row in the descriptor, no DOM, no geometry, no fetch.
+*Bloomed* — surfaced by a small interactive trigger pad attached to
+the object — is an in-world preview, light visual cost, summoned by
+either user action or world event (a schedule, a proximity, a search
+match). *FullView* — the document overlaid on the canvas — pauses
+the engine entirely. The world stops to honor the read.
+
+The world contains the document. It does not run parallel to it.
+What a screen reader receives, what a crawler indexes, what a
+copy-paste reader copies — all served from the same HTML the
+inhabitant reads when they activate an object. SEO and a11y are not
+a parallel system bolted on to please non-WebGL clients; they are
+cards, served from the same content-negotiated URI the spec already
+defined.
+
+A natural-language search query becomes a wave of blooms across the
+world. Cards bloom on every object whose vector matches; the
+inhabitant sees the world light up where their question is being
+answered, walks to the one that calls them, and reads. The compass
+the thesis promised is no longer metaphorical — it is the same
+embedding that drives within-sector geometry, used for the second
+purpose it has always quietly afforded.
+
 ## What is kept. What is given up.
 
 **Kept — the web's gifts.**
