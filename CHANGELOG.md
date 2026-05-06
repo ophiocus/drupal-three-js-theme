@@ -88,8 +88,24 @@ this project adheres to [Semantic Versioning](https://semver.org/).
   spine, descriptor schema with cards + model-version, cards
   three-state lifecycle, language model.
 - `docs/PROTOCOL.md` — DDEV-only environment, test split, decision
-  log expanded with 1–5, E1–E7, C1–C13.
+  log expanded with 1–5, E1–E7, C1–C13. Added §4a (external
+  version notes — Atlas-recommended PHP driver pins) and §4b
+  (development MCP tooling — MongoDB MCP server, user-level config,
+  read-only-by-policy).
 - `CHANGELOG.md` — this file.
+- `docs/EDITORIAL.md` — editor-facing guide to the eight axes of
+  content richness; per-content-type recipes; pre-publish
+  checklist. Lands before any editor sees the model.
+
+### Development tooling
+
+- **MongoDB MCP server registered at user level.** Each engineer
+  configures `~/.claude.json` with `mongodb-mcp-server@latest` in
+  read-only mode, scoped to a per-engineer `mcp_readonly` Atlas
+  user. Gives Claude Code agents a direct, side-effect-free window
+  into the cluster for verifying writes and inspecting vector
+  indexes during development. Not a production tool. See
+  `docs/PROTOCOL.md` §4b for setup.
 
 ## [Pre-history]
 

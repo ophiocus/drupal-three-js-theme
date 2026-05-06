@@ -148,6 +148,75 @@ PR.
 | C12 | Multi-card simultaneous bloom | Allowed, capped at 3 visible. Excess queue. | "This object has several reasons to look at it right now." |
 | C13 | Engine-pause granularity | Full pause. | Throttle is a half-measure that loses most of the battery win. |
 
+## 4b. Development tooling — MCP servers
+
+Claude Code agents working on this project benefit from a direct
+window into Atlas. The dev environment expects (but does not
+require) the **MongoDB MCP server** registered at the user level.
+
+### What it gives us
+
+- Inspect the `descriptors` collection without going through Drupal.
+- Verify a queue worker's Atlas write actually landed.
+- Run `$vectorSearch` aggregations during search-tuning (Sprint 3b-2+).
+- Inspect vector index definitions Atlas auto-creates.
+
+### Configuration
+
+The MCP server is **user-level, not project-level**. Each engineer
+configures it in their own `~/.claude.json` against a personal
+read-only credential. No MCP config is committed to this repo.
+
+Setup (per-engineer, one-time):
+
+1. **In Atlas:** create a database user `mcp_readonly` (or similar)
+   with `read` role scoped to `drupal_three_js_theme_world` only.
+   Do **not** reuse the cluster's admin user (`csantanad_db_user`).
+2. **In WSL:** run `npx mongodb-mcp-server@latest setup`. Pick
+   *Claude Code* as the client, paste the connection string for
+   the `mcp_readonly` user, **enable read-only mode** (the
+   wizard's recommended default).
+3. **Restart Claude Code** to register the MCP server.
+
+The resulting config block in `~/.claude.json`:
+
+```json
+{
+  "mcpServers": {
+    "MongoDB": {
+      "command": "npx",
+      "args": ["-y", "mongodb-mcp-server@latest", "--readOnly"],
+      "env": {
+        "MDB_MCP_CONNECTION_STRING": "mongodb+srv://mcp_readonly:<password>@<cluster-host>/drupal_three_js_theme_world"
+      }
+    }
+  }
+}
+```
+
+### Boundaries
+
+- **Read-only by policy.** The `--readOnly` arg + the user's
+  scoped `read` role are belt-and-suspenders. Don't grant the
+  MCP user write access; if you need to clear test data, use
+  Drupal-side or the Atlas web UI.
+- **Not a production tool.** Production Drupal writes via the
+  cypher's queue worker; MCP is for development verification
+  only.
+- **Credential hygiene.** Never paste the `mcp_readonly`
+  password into chat or commit messages. The password lives
+  in `~/.claude.json` (gitignored at the user level by Claude
+  Code itself).
+
+### Verifying the MCP is wired
+
+After restarting Claude Code, the agent should see tools prefixed
+with `mcp__MongoDB__*` (e.g. `mcp__MongoDB__find`,
+`mcp__MongoDB__aggregate`, `mcp__MongoDB__list_collections`).
+A simple sanity query: list collections in
+`drupal_three_js_theme_world` — should return `[]` until Sprint
+3b-2 writes the first descriptor.
+
 ## 4a. External service version notes
 
 Versions recommended or required by the services we integrate with.
