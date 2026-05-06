@@ -4,6 +4,10 @@ dist/
 .vite/
 coverage/
 
+# PHPUnit cache
+.phpunit.cache/
+.phpunit.result.cache
+
 # Composer-managed Drupal core/contrib
 /vendor/
 /web/core/

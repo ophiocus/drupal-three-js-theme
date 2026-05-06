@@ -1,0 +1,19 @@
+<?php
+
+/**
+ * @file
+ * The metaphor cypher.
+ *
+ * The world_signature module is the single source of truth for the
+ * dimensional re-orientation of content into 3D elements. See
+ * docs/ARCHITECTURE.md for the normative architecture and THESIS.md
+ * for the philosophical commitments.
+ *
+ * Hooks live here. Most actual work is delegated to services
+ * registered in world_signature.services.yml.
+ */
+
+declare(strict_types=1);
+
+// Entity hooks (insert / update / delete) land here in Sprint 3,
+// dispatching signature-extraction jobs to the queue worker.

@@ -1,0 +1,11 @@
+<?php
+
+/**
+ * @file
+ * Install / update / uninstall hooks for world_signature.
+ *
+ * The computed field that holds the per-entity signature
+ * (`field_world_signature`) is created here in Sprint 3.
+ */
+
+declare(strict_types=1);

@@ -1,0 +1,11 @@
+name: 'World Signature'
+type: module
+description: 'The metaphor cypher: translates Drupal entities into dimensional signatures and descriptors for the three.js world. Required by any 3D theme under the Site-as-World thesis.'
+package: 'World'
+core_version_requirement: ^11
+dependencies:
+  - drupal:node
+  - drupal:taxonomy
+  - drupal:field
+  - drupal:paragraphs
+  - drupal:advancedqueue

@@ -1,0 +1,11 @@
+services:
+  # The metaphor plugin manager — discovers per-bundle metaphor plugins.
+  # Wired in Sprint 3 when the first concrete plugin lands.
+  plugin.manager.world_signature.metaphor:
+    class: Drupal\world_signature\Plugin\MetaphorPluginManager
+    parent: default_plugin_manager
+
+  # The signature extractor — pure-ish; computes a Signature value
+  # object from EntityFacts. Stateless; no dependencies.
+  world_signature.signature_extractor:
+    class: Drupal\world_signature\Signature\SignatureExtractor

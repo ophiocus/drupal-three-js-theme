@@ -82,7 +82,17 @@
             ]
         }
     },
+    "autoload": {
+        "psr-4": {
+            "Drupal\\world_signature\\": "web/modules/custom/world_signature/src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Drupal\\Tests\\world_signature\\": "web/modules/custom/world_signature/tests/src/"
+        }
+    },
     "scripts": {
-        "test:unit": "phpunit --testsuite=unit web/modules/custom"
+        "test:unit": "phpunit --testsuite=unit"
     }
 }
