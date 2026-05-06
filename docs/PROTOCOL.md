@@ -148,6 +148,41 @@ PR.
 | C12 | Multi-card simultaneous bloom | Allowed, capped at 3 visible. Excess queue. | "This object has several reasons to look at it right now." |
 | C13 | Engine-pause granularity | Full pause. | Throttle is a half-measure that loses most of the battery win. |
 
+## 4a. External service version notes
+
+Versions recommended or required by the services we integrate with.
+Recorded for future reference even when we don't currently consume
+the listed dependency, so a future pivot has the verified pin in hand.
+
+### MongoDB Atlas
+
+Captured from the Atlas UI's "Connecting with MongoDB Driver" panel
+on **2026-05-06**, project's first M0 cluster:
+
+| Driver | Recommended version |
+| --- | --- |
+| **PHP (PHPLIB)** | `mongodb/mongodb` ^1.11 |
+| **PHP extension (PECL)** | `ext-mongodb` ^1.10 |
+
+**We do not currently consume these.** Sprint 1 deliberately dropped
+`mongodb/mongodb` from `composer.json` and `ext-mongodb` from the
+DDEV web image — Atlas access goes via HTTPS (Guzzle) to an Atlas
+App Services Function endpoint instead, avoiding the PECL install
+dance and the Sury-repo GPG-key fight. The pinned versions above are
+recorded only for the contingency that we ever pivot to direct
+driver access (post-BETA, if HTTPS proves insufficient).
+
+If pivoting:
+
+1. Add `mongodb/mongodb: ^1.11` to `composer.json`.
+2. Add `php8.3-mongodb` to DDEV's `webimage_extra_packages` (or
+   `pecl install mongodb` via `.ddev/web-build/Dockerfile.example` —
+   pick whichever the Sury repo isn't currently failing on).
+3. Replace `WorldSearchClient`'s Guzzle calls with `MongoDB\Client`
+   instantiation against `MONGODB_ATLAS_URI`.
+4. The `EmbedderInterface`-style contract stays; only the
+   transport changes.
+
 ## 5. Prototyping a new metaphor
 
 The protocol for trying a new mapping (e.g. *what if a `news_alert`
