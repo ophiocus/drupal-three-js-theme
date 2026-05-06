@@ -2,18 +2,79 @@
 
 /**
  * @file
- * The metaphor cypher.
+ * world_signature module hooks.
  *
- * The world_signature module is the single source of truth for the
- * dimensional re-orientation of content into 3D elements. See
- * docs/ARCHITECTURE.md for the normative architecture and THESIS.md
- * for the philosophical commitments.
+ * The cypher's entity-event surface. Insert/update/delete of any
+ * entity that has a registered Metaphor plugin enqueues an
+ * `extract_signature` job; the worker (ExtractSignature plugin)
+ * runs the actual extraction asynchronously.
  *
- * Hooks live here. Most actual work is delegated to services
- * registered in world_signature.services.yml.
+ * Async — by design. Editor saves are fast; the signature lands
+ * seconds later when cron runs the queue. Atlas embedding cost
+ * never blocks the editor.
  */
 
 declare(strict_types=1);
 
-// Entity hooks (insert / update / delete) land here in Sprint 3,
-// dispatching signature-extraction jobs to the queue worker.
+use Drupal\advancedqueue\Entity\Queue;
+use Drupal\advancedqueue\Job;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\world_signature\Service\SignatureWriter;
+
+/**
+ * Implements hook_entity_insert().
+ */
+function world_signature_entity_insert(EntityInterface $entity): void {
+  _world_signature_enqueue($entity, 'insert');
+}
+
+/**
+ * Implements hook_entity_update().
+ *
+ * Skip the re-entry case — when SignatureWriter saves the entity
+ * to persist `field_world_signature`, hook_entity_update fires
+ * again. The static guard prevents an infinite loop.
+ */
+function world_signature_entity_update(EntityInterface $entity): void {
+  if (SignatureWriter::$writing) {
+    return;
+  }
+  _world_signature_enqueue($entity, 'update');
+}
+
+/**
+ * Implements hook_entity_delete().
+ */
+function world_signature_entity_delete(EntityInterface $entity): void {
+  _world_signature_enqueue($entity, 'delete');
+}
+
+/**
+ * Internal: enqueue an extract_signature job for an entity, *if*
+ * a metaphor plugin is registered for its bundle. No metaphor =
+ * not part of the world; skip cleanly.
+ */
+function _world_signature_enqueue(EntityInterface $entity, string $op): void {
+  $manager = \Drupal::service('plugin.manager.world_signature.metaphor');
+  $pluginId = sprintf('%s:%s', $entity->getEntityTypeId(), $entity->bundle());
+
+  if (!$manager->hasDefinition($pluginId)) {
+    return;
+  }
+
+  $queue = Queue::load('world_signature_extract');
+  if (!$queue) {
+    \Drupal::logger('world_signature')->error(
+      'Queue world_signature_extract not found; install the module to create it.',
+    );
+    return;
+  }
+
+  $job = Job::create('world_signature_extract', [
+    'entity_type' => $entity->getEntityTypeId(),
+    'entity_id' => (string) $entity->id(),
+    'op' => $op,
+    'enqueued_at' => \Drupal::time()->getRequestTime(),
+  ]);
+  $queue->enqueueJob($job);
+}

@@ -1,0 +1,18 @@
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - world_signature
+id: world_signature_extract
+label: 'World Signature: extract'
+backend: database
+backend_configuration:
+  lease_time: 300
+processor: cron
+processing_time: 90
+threshold:
+  state: success
+  type: queue_size
+  number: 100
+locked: false

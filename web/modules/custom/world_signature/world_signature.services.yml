@@ -1,12 +1,10 @@
 services:
-  # Logger channel for the cypher. Inject as
-  # `@logger.channel.world_signature`.
+  # Logger channel — inject as `@logger.channel.world_signature`.
   logger.channel.world_signature:
     parent: logger.channel_base
     arguments: ['world_signature']
 
-  # The metaphor plugin manager — discovers per-bundle metaphor
-  # plugins under each module's src/Plugin/Metaphor/ tree.
+  # Metaphor plugin manager — discovers per-bundle metaphor plugins.
   plugin.manager.world_signature.metaphor:
     class: Drupal\world_signature\Plugin\MetaphorPluginManager
     parent: default_plugin_manager
@@ -21,4 +19,11 @@ services:
     class: Drupal\world_signature\Service\EntityFactsReader
     arguments:
       - '@plugin.manager.world_signature.metaphor'
+      - '@logger.channel.world_signature'
+
+  # Writes the JSON-encoded Signature onto the entity's
+  # `field_world_signature` field.
+  world_signature.signature_writer:
+    class: Drupal\world_signature\Service\SignatureWriter
+    arguments:
       - '@logger.channel.world_signature'
