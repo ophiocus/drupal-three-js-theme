@@ -1,11 +1,24 @@
 services:
-  # The metaphor plugin manager — discovers per-bundle metaphor plugins.
-  # Wired in Sprint 3 when the first concrete plugin lands.
+  # Logger channel for the cypher. Inject as
+  # `@logger.channel.world_signature`.
+  logger.channel.world_signature:
+    parent: logger.channel_base
+    arguments: ['world_signature']
+
+  # The metaphor plugin manager — discovers per-bundle metaphor
+  # plugins under each module's src/Plugin/Metaphor/ tree.
   plugin.manager.world_signature.metaphor:
     class: Drupal\world_signature\Plugin\MetaphorPluginManager
     parent: default_plugin_manager
 
-  # The signature extractor — pure-ish; computes a Signature value
-  # object from EntityFacts. Stateless; no dependencies.
+  # Pure-PHP signature extractor. Stateless. No deps.
   world_signature.signature_extractor:
     class: Drupal\world_signature\Signature\SignatureExtractor
+
+  # Drupal-coupled facts reader. Bridges EntityInterface ->
+  # EntityFacts via the matching Metaphor plugin.
+  world_signature.entity_facts_reader:
+    class: Drupal\world_signature\Service\EntityFactsReader
+    arguments:
+      - '@plugin.manager.world_signature.metaphor'
+      - '@logger.channel.world_signature'
