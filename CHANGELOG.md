@@ -107,6 +107,28 @@ this project adheres to [Semantic Versioning](https://semver.org/).
   indexes during development. Not a production tool. See
   `docs/PROTOCOL.md` §4b for setup.
 
+### Architecture pivot — RESTHeart gateway (2026-05-07)
+
+- **Atlas App Services was sunset on 2025-09-30.** Custom HTTPS
+  Endpoints and Functions are gone. The original Sprint 3b-2 plan
+  to bridge Drupal → Atlas Function → cluster is dead.
+- **Replaced by RESTHeart as a self-hosted data gateway.** Drupal
+  speaks Guzzle/HTTPS to RESTHeart; RESTHeart routes per-tenant
+  to the correct Atlas cluster.
+- **Multi-tenant from day one.** *One Atlas cluster per client /
+  per theme deployment.* RESTHeart is the routing and auth
+  surface; Drupal never holds a MongoDB connection string.
+- **Productization-ready.** When the cypher becomes a service
+  offering, RESTHeart is the API surface clients address; their
+  cluster is invisible behind a tenant slug.
+- **Operational simplicity for Drupal stays intact.** No
+  `ext-mongodb` in DDEV web image; no PECL build; no Sury PHP-repo
+  GPG fight. The fallback recipe (PHP driver direct) is preserved
+  in PROTOCOL §4a as a second option.
+- **Decision-log entries** updated: PROTOCOL E2 amended, new E2a
+  added explicitly recording the access path. ARCHITECTURE gains
+  §9 *Data gateway — RESTHeart, multi-tenant by design.*
+
 ## [Pre-history]
 
 - 2026-04-27 — Repo greenfielded with README sketching the project's

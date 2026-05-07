@@ -94,14 +94,17 @@ Save the current sandbox state as the new fixture:
 ddev drush sql:dump > fixtures/sandbox.sql
 ```
 
-### 2.5 Required DDEV add-ons
+### 2.5 External services (sandbox vs production)
 
-- **MongoDB** — vector storage. Installed via
-  `ddev get ddev/ddev-mongo` (or equivalent). Production gets a
-  sibling container in compose; sandbox uses the same image.
-- **Embedder sidecar (sandbox)** — local sentence-transformers
-  Python service, exposed as a DDEV service on a private port.
-  Production swaps to Voyage AI via the same `EmbedderInterface`.
+The cypher writes through a gateway, not directly to a database.
+Local development and production use the same shape:
+
+| Service | Sandbox (DDEV) | Production (tecnocratica VPS) |
+| --- | --- | --- |
+| **MongoDB Atlas cluster** | M0 free tier (one shared sandbox cluster) | One cluster per client/theme deployment |
+| **RESTHeart gateway** | Container in DDEV (`ddev get` add-on or custom service in `.ddev/docker-compose.restheart.yaml`) | Sidecar container in the property's compose stack |
+| **Embedding generation** | Atlas-managed (Voyage) — fires on insert into a Vector Search-indexed collection. No separate embedder service. | Same — Atlas handles it server-side. |
+| **LLM operations** (chatvatars, query translation in v0.0.3+) | `drupal/ai` + `drupal/ai_provider_anthropic` from Drupal | Same |
 
 ## 3. Test split
 
@@ -127,7 +130,8 @@ PR.
 | 5 | All code operations under DDEV | No bare-host fallback. | Single source of truth for tool versions; matches the webrunners stack working norm. |
 | **Embedding epic** | | | |
 | E1 | Embedding source | Voyage AI for production (`voyage-multilingual-2`); local sentence-transformers for sandbox. Both behind the same `EmbedderInterface`. *Pending user confirmation that "Claude" was shorthand for "Anthropic-aligned" — Anthropic does not offer first-party embeddings as of 2026-05-05.* | Closest-to-Claude posture that exists today; ships free in dev, paid in prod with a swap. |
-| E2 | Vector storage | **MongoDB** (`$vectorSearch` aggregation; self-hosted Community Edition or Atlas, per-property choice). | Purpose-built filter/projection language; scales independently of MariaDB. |
+| E2 | Vector storage | **MongoDB Atlas** (`$vectorSearch` aggregation, Atlas-managed Voyage embeddings on insert). One cluster per client / per theme deployment for tenant isolation. | Purpose-built filter/projection language; scales independently of MariaDB; per-tenant isolation is a hard requirement once the cypher becomes a service offering. |
+| E2a | Atlas access path | **RESTHeart sidecar** as the gateway. Drupal speaks Guzzle/HTTPS to RESTHeart; RESTHeart routes per-tenant to the right Atlas cluster. *(Pivot recorded 2026-05-07; Atlas App Services was sunset 2025-09-30, killing the original Function-as-bridge plan.)* | Multi-tenant routing, central auth, observability gateway, no `ext-mongodb` in DDEV. Direct `mongodb/mongodb` PHP driver kept on file as the second-fallback. |
 | E3 | Indexing strategy | Async via `advancedqueue`. | Editor save is fast; vector arrives seconds later; resilient to embedder outages. |
 | E4 | Search API surface | Both — Drupal route (`/api/world/search?q=...`) + JSON:API resource. | One backend, two surfaces. |
 | E5 | Search type | Hybrid (BM25 + vector rerank). | Modern default; better recall on uncommon proper nouns. |
@@ -217,40 +221,51 @@ A simple sanity query: list collections in
 `drupal_three_js_theme_world` — should return `[]` until Sprint
 3b-2 writes the first descriptor.
 
-## 4a. External service version notes
+## 4a. External service version notes — RESTHeart-mediated stack
 
-Versions recommended or required by the services we integrate with.
-Recorded for future reference even when we don't currently consume
-the listed dependency, so a future pivot has the verified pin in hand.
+> **Architecture pivot recorded 2026-05-07.** Atlas App Services
+> (and its Custom HTTPS Endpoints + Functions) was sunset on
+> **2025-09-30**. The original Sprint 3b-2 design that bridged
+> Drupal → Guzzle HTTPS → Atlas Function → cluster is dead. We
+> pivoted to **RESTHeart** as the data gateway. See
+> [docs/ARCHITECTURE.md §9](ARCHITECTURE.md) for the full pattern.
 
-### MongoDB Atlas
+### Stack pinned at the pivot
 
-Captured from the Atlas UI's "Connecting with MongoDB Driver" panel
-on **2026-05-06**, project's first M0 cluster:
+| Layer | Component | Notes |
+| --- | --- | --- |
+| **Drupal-side data access** | Guzzle (already in Drupal core) | No PHP MongoDB driver, no `ext-mongodb`. Drupal sees only HTTPS to RESTHeart. |
+| **Gateway** | RESTHeart (Java/Kotlin, OSS, Apache 2.0) | Self-hosted on the tecnocratica VPS as a Docker sidecar. |
+| **Vector store** | MongoDB Atlas — one cluster per client / per theme deployment | Atlas-managed embeddings (Voyage-powered, post-MongoDB-acquisition) trigger on insert; no separate embedder service needed. |
+| **Auth Drupal → RESTHeart** | JWT or scoped API key issued by RESTHeart | Per-property credential. Token leak compromises one property, not all clusters. |
+| **Auth RESTHeart → Atlas** | MongoDB connection string per cluster, configured in RESTHeart's `restheart.yml` | One credential per managed cluster. RESTHeart never exposes the connection strings outward. |
 
-| Driver | Recommended version |
+### Versions worth recording
+
+Captured 2026-05-07 from upstream sources:
+
+| Component | Version line |
 | --- | --- |
-| **PHP (PHPLIB)** | `mongodb/mongodb` ^1.11 |
-| **PHP extension (PECL)** | `ext-mongodb` ^1.10 |
+| **RESTHeart** | track latest 8.x; pin to a specific tag in production compose for reproducibility |
+| **MongoDB Atlas Vector Search** | M0+ supports `$vectorSearch`; managed embeddings GA per Atlas docs |
+| **Drupal `guzzlehttp/guzzle`** | tracks Drupal core's pin (^7.x as of D11.3) |
 
-**We do not currently consume these.** Sprint 1 deliberately dropped
-`mongodb/mongodb` from `composer.json` and `ext-mongodb` from the
-DDEV web image — Atlas access goes via HTTPS (Guzzle) to an Atlas
-App Services Function endpoint instead, avoiding the PECL install
-dance and the Sury-repo GPG-key fight. The pinned versions above are
-recorded only for the contingency that we ever pivot to direct
-driver access (post-BETA, if HTTPS proves insufficient).
+### Fallback path (kept on file)
 
-If pivoting:
+If RESTHeart turns out to be operationally unsuitable in the future
+(unlikely but possible; the pivot's escape hatch is the same one we
+nearly took before App Services died):
 
-1. Add `mongodb/mongodb: ^1.11` to `composer.json`.
-2. Add `php8.3-mongodb` to DDEV's `webimage_extra_packages` (or
-   `pecl install mongodb` via `.ddev/web-build/Dockerfile.example` —
-   pick whichever the Sury repo isn't currently failing on).
-3. Replace `WorldSearchClient`'s Guzzle calls with `MongoDB\Client`
-   instantiation against `MONGODB_ATLAS_URI`.
-4. The `EmbedderInterface`-style contract stays; only the
-   transport changes.
+| Driver | Version |
+| --- | --- |
+| `mongodb/mongodb` (PHPLIB) | ^1.11 |
+| `ext-mongodb` (PECL) | ^1.10 |
+
+The fallback recipe — install `ext-mongodb` via PECL in
+`.ddev/web-build/Dockerfile.example`, add `mongodb/mongodb` to
+`composer.json`, replace `WorldSearchClient`'s HTTPS calls with
+direct `MongoDB\Client` calls — is the same shape we documented
+pre-pivot. Recorded here as the second-fallback option only.
 
 ## 5. Prototyping a new metaphor
 

@@ -327,6 +327,97 @@ The non-pure surface (animations, render loop, DOM overlay,
 BloomEventBus, History API) lives in `src/world/runtime/` — exercised
 by integration tests, not unit tests.
 
+## 9. Data gateway — RESTHeart, multi-tenant by design
+
+> **Status:** locked 2026-05-07. Replaces the original
+> Atlas-App-Services-Function plan, which became unviable when
+> MongoDB sunset App Services on 2025-09-30.
+
+### 9.1 The shape
+
+```
+Drupal property A ─┐
+Drupal property B ─┤  Guzzle/HTTPS  ┌─→ Atlas cluster A
+Drupal property C ─┼──────────────→ RESTHeart ──→ cluster B
+…                  ┘   (one URL)    └─→ cluster C
+                                       (per-tenant routing)
+```
+
+Drupal never holds a MongoDB connection string. RESTHeart does.
+Each property holds only a per-property API key (or JWT) and the
+gateway URL. RESTHeart maps `/clients/<slug>/...` (or auth-claim-derived
+routing) to the correct Atlas cluster.
+
+### 9.2 Why this shape
+
+- **Multi-tenancy from day one.** *One cluster per client / per
+  theme deployment* is a strategic commitment (per PROTOCOL E2).
+  Without a gateway each property would carry its own cluster
+  credential, multiplying the credential-leak surface and making
+  cross-tenant operations awkward.
+- **Productization.** When the cypher + theme become a service
+  offering, RESTHeart is the API surface clients address. They
+  see one URL with their tenant slug; the per-tenant cluster is
+  invisible.
+- **App Services replacement.** RESTHeart is MongoDB's listed
+  recommended replacement for the deprecated Custom HTTPS
+  Endpoints + Data API. We're inside that wave, not outside it.
+- **Operational simplicity for Drupal.** No `ext-mongodb` in the
+  DDEV web image. No PECL build. No Sury PHP-repo GPG-key fight.
+  Drupal stays pure-Guzzle.
+
+### 9.3 What the gateway exposes
+
+A small, deliberately-narrow REST surface — not a generic data
+API. The cypher needs three operations:
+
+| HTTP | Path | Purpose |
+| --- | --- | --- |
+| `PUT` / `POST` | `/clients/<slug>/descriptors` | Upsert a skinny descriptor (the queue worker writes here on entity save) |
+| `DELETE` | `/clients/<slug>/descriptors/<id>` | Remove a descriptor (entity delete) |
+| `POST` | `/clients/<slug>/search` | Hybrid search (BM25 + vector rerank); returns ranked descriptors |
+
+RESTHeart's general MongoDB access (find/aggregate/admin) is
+**disabled at the gateway level** for client-facing routes. Only
+these three project-specific endpoints are exposed. RESTHeart's
+configuration locks the rest down.
+
+### 9.4 Auth model
+
+| Boundary | Mechanism |
+| --- | --- |
+| **Drupal property → RESTHeart** | Per-property API key in `Authorization: Bearer …` header. Issued by RESTHeart at provisioning time. |
+| **RESTHeart → Atlas cluster** | MongoDB connection string per managed cluster, configured server-side in RESTHeart's `restheart.yml`. Never exposed outward. |
+| **Token rotation** | Drupal-side: per-property env var; rotation = redeploy. RESTHeart-side: standard hot-reload. |
+
+### 9.5 Observability
+
+RESTHeart logs every request. One pane of glass for:
+
+- per-property request rate
+- per-tenant query latency
+- failed auth attempts (cross-tenant probe attempts)
+- search-result-empty alarms (potential editorial-coverage signal)
+
+This is a side-benefit of choosing the gateway pattern; it costs
+nothing extra.
+
+### 9.6 Local development (DDEV) shape
+
+The sandbox property runs a RESTHeart container alongside the web
+container in DDEV, configured against the M0 sandbox Atlas cluster.
+The Drupal-side `WORLD_GATEWAY_URL` env var points at
+`http://restheart:8080/clients/sandbox/` (DDEV-internal hostname).
+End-to-end same as production, only the cluster size and the URL
+differ.
+
+### 9.7 Fallback (recorded but not chosen)
+
+If RESTHeart proves operationally unsuitable later, the documented
+fallback is direct `mongodb/mongodb` PHP driver access from Drupal,
+with `ext-mongodb` installed in the DDEV web image via PECL. See
+PROTOCOL §4a for the exact recipe.
+
 ## 8. Language model — English core, translation as completeness
 
 > **Rule.** All content's source language is English. Translations
