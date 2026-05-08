@@ -4,6 +4,14 @@
 > **Scope:** normative architectural facts that apply to any project
 > built under the Site-as-World thesis. New constraints land here;
 > they cannot be relaxed by an individual theme or property.
+>
+> **Companion documents:**
+> [THESIS.md](../THESIS.md) (philosophy) ·
+> [docs/MANIFESTO.md](MANIFESTO.md) (the world's configurable surface — every
+> item type, every component type, every per-instance config object) ·
+> [docs/EDITORIAL.md](EDITORIAL.md) (editor-facing: the eight axes) ·
+> [docs/PROTOCOL.md](PROTOCOL.md) (development & decision log) ·
+> [docs/SUBJECT.md](SUBJECT.md) (per-property: `atlas_coffee`).
 
 ## 1. The three-module PHP spine + the JS renderer
 

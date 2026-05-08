@@ -48,3 +48,35 @@ function world_signature_update_10001(): string {
   $config->setData($defaults)->save(TRUE);
   return 'Installed default world_signature.palette (pastel greens + light blue).';
 }
+
+/**
+ * Install the world manifesto for sites that had the module enabled
+ * before the manifesto landed. Reads the canonical YAML the module
+ * ships and writes it to active config.
+ */
+function world_signature_update_10002(): string {
+  $config = \Drupal::configFactory()->getEditable('world_signature.manifesto');
+  if (!$config->isNew() && $config->get('version')) {
+    return 'world_signature.manifesto already populated; nothing to do.';
+  }
+
+  $module_path = \Drupal::service('extension.list.module')
+    ->getPath('world_signature');
+  $yaml_file = $module_path . '/config/install/world_signature.manifesto.yml';
+  if (!file_exists($yaml_file)) {
+    throw new \RuntimeException(sprintf(
+      'Cannot install manifesto: %s missing.',
+      $yaml_file,
+    ));
+  }
+
+  $data = \Symfony\Component\Yaml\Yaml::parseFile($yaml_file);
+  $config->setData($data)->save(TRUE);
+
+  return sprintf(
+    'Installed world_signature.manifesto v%d (%d component types, %d item types).',
+    (int) ($data['version'] ?? 0),
+    count($data['component_types'] ?? []),
+    count($data['item_types'] ?? []),
+  );
+}

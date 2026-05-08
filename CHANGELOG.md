@@ -96,6 +96,20 @@ this project adheres to [Semantic Versioning](https://semver.org/).
 - `docs/EDITORIAL.md` — editor-facing guide to the eight axes of
   content richness; per-content-type recipes; pre-publish
   checklist. Lands before any editor sees the model.
+- `docs/MANIFESTO.md` + `world_signature.manifesto` config — the
+  world's master registry of *every kind of thing the world
+  contains* and *every kind of property a thing can expose*.
+  Eight component types (color_slot, texture_slot, animation_slot,
+  hitbox, physics, sound_slot, light_emitter, trigger_event) and
+  five item types (`world.global` implemented; `sector.region`,
+  `trigger_pad.bookmark`, `chatvatar.barista` planned;
+  `metaphor.node.article` partially implemented). Read-only
+  service `world_signature.manifesto` exposes `getItemTypes()`,
+  `componentsOf()`, `itemTypesWithComponentType()` etc. Forward-
+  compat by design: properties can author config against
+  `status: planned` types today; runtimes catch up later without
+  invalidating data. The palette landing in `8a6c203` is now
+  framed as one instance of this pattern.
 - `docs/SUBJECT.md` — **`atlas_coffee` locked as the sandbox
   property** (2026-05-08). Atmospheric Latin American coffee
   culture, tuned for the medium-curious reader (discovery of the

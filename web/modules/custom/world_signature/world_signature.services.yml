@@ -53,3 +53,10 @@ services:
     arguments:
       - '@world_signature.world_search_client'
       - '@config.factory'
+
+  # World manifesto — read-only API over the registry of item
+  # types and component types. See docs/MANIFESTO.md.
+  world_signature.manifesto:
+    class: Drupal\world_signature\Service\WorldManifesto
+    arguments:
+      - '@config.factory'

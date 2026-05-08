@@ -1,3 +1,72 @@
+# ─── Manifesto — the world's master registry ──────────────────────
+# See docs/MANIFESTO.md for the canonical thinking. This config is
+# module-shipped (config/install/) and rarely edited per-property;
+# it is the source of truth for what's configurable, not where
+# property values live.
+
+world_signature.manifesto:
+  type: config_object
+  label: 'World manifesto'
+  mapping:
+    version:
+      type: integer
+      label: 'Manifesto schema version'
+    component_types:
+      type: sequence
+      label: 'Vocabulary of properties items can carry'
+      sequence:
+        type: mapping
+        mapping:
+          label:
+            type: label
+          description:
+            type: text
+          value_schema:
+            type: ignore
+            label: 'Descriptive shape of values for this component (free-form for now; future versions may formalise)'
+          examples:
+            type: sequence
+            sequence:
+              type: string
+    item_types:
+      type: sequence
+      label: 'Kinds of things the world contains'
+      sequence:
+        type: mapping
+        mapping:
+          id:
+            type: string
+            label: 'Item type identifier (dotted; e.g. world.global, metaphor.node.article)'
+          label:
+            type: label
+          description:
+            type: text
+          instance_cardinality:
+            type: string
+            label: 'singleton | singleton-per-bundle | per-bundle | per-taxonomy-term | per-instance'
+          config_object:
+            type: string
+            label: 'Drupal config path where instances of this item type land (may include {placeholder} segments)'
+          components:
+            type: sequence
+            label: 'Component slots this item type exposes'
+            sequence:
+              type: mapping
+              mapping:
+                type:
+                  type: string
+                  label: 'Component type (must match a key in component_types)'
+                name:
+                  type: string
+                  label: 'Slot name within this item type'
+          status:
+            type: string
+            label: 'implemented | partially_implemented | planned'
+
+# ─── Per-instance config schemas ──────────────────────────────────
+# Each item type's config_object lands here. Properties override
+# these via standard Drupal config_sync.
+
 world_signature.palette:
   type: config_object
   label: 'World palette'

@@ -1,0 +1,223 @@
+# world_signature.manifesto
+#
+# The world's master registry: every kind of thing the world contains,
+# every kind of property a thing can expose, what schema a property's
+# config must conform to. See docs/MANIFESTO.md for the canonical
+# thinking. Properties don't override this file — they author
+# instances of the item types it declares (e.g. world_signature.palette
+# is an instance of world.global).
+#
+# Append-only at the top level: new component_types and new item_types
+# land here without breaking existing properties. status:planned
+# entries are deliberately ahead of runtime — properties can begin
+# authoring against them today.
+
+version: 1
+
+# ─── Component types ────────────────────────────────────────────────
+# The vocabulary of properties items can carry. Universal, fixed at
+# any moment, append-only over time. Each entry's `value_schema` is
+# descriptive — it tells future code what shape the values take. The
+# actual typed-config validation lives in
+# config/schema/world_signature.schema.yml against the per-instance
+# config objects.
+
+component_types:
+
+  color_slot:
+    label: 'Color slot'
+    description: 'A nameable color. CSS hex string.'
+    value_schema:
+      type: string
+      format: css-hex
+    examples:
+      - background
+      - accent
+      - glow
+      - ground
+
+  texture_slot:
+    label: 'Texture slot'
+    description: 'A nameable texture map.'
+    value_schema:
+      type: mapping
+      keys:
+        path: string
+        repeat: 'sequence<float, 2>'
+        wrap: 'enum: clamp | repeat | mirror'
+    examples:
+      - diffuse
+      - normal
+      - ao
+      - emissive
+
+  animation_slot:
+    label: 'Animation slot'
+    description: 'A nameable animation clip applied to the item.'
+    value_schema:
+      type: mapping
+      keys:
+        clip: string
+        duration_ms: integer
+        easing: 'enum: linear | ease-in | ease-out | ease-in-out | spring'
+        loop: boolean
+    examples:
+      - idle
+      - hover
+      - activate
+      - dismiss
+
+  hitbox:
+    label: 'Hitbox'
+    description: 'A clickable / collidable volume on the item.'
+    value_schema:
+      type: mapping
+      keys:
+        shape: 'enum: box | sphere | cylinder | mesh'
+        dimensions: 'sequence<float>'
+        offset: 'sequence<float, 3>'
+    examples:
+      - activation
+      - collision
+
+  physics:
+    label: 'Physics body'
+    description: 'Mass, friction, restitution; whether kinematic. Reserved for v0.0.4+ when a physics integrator joins.'
+    value_schema:
+      type: mapping
+      keys:
+        mass: float
+        friction: float
+        restitution: float
+        kinematic: boolean
+
+  sound_slot:
+    label: 'Sound slot'
+    description: 'An audio source attached to the item.'
+    value_schema:
+      type: mapping
+      keys:
+        source: string
+        volume: 'float (0–1)'
+        loop: boolean
+        spatial: boolean
+    examples:
+      - ambient
+      - hover
+      - activate
+
+  light_emitter:
+    label: 'Light emitter'
+    description: 'A light source rooted on the item.'
+    value_schema:
+      type: mapping
+      keys:
+        type: 'enum: point | spot | directional'
+        color: string
+        intensity: float
+        decay: float
+        position: 'sequence<float, 3>'
+
+  trigger_event:
+    label: 'Trigger event'
+    description: 'An event the item emits or responds to. Drives the card-runtime three-state machine (Hidden -> Bloomed -> FullView).'
+    value_schema:
+      type: mapping
+      keys:
+        on: 'enum: click | hover | gaze | proximity | search-match | schedule | world-event'
+        action: string
+        ttl_ms: integer
+    examples:
+      - user_click
+      - search_match
+      - schedule_release
+
+
+# ─── Item types ─────────────────────────────────────────────────────
+# Kinds of things the world contains. Each declares which component
+# slots it exposes (named slots, not values), the Drupal config object
+# where instances of this type land, and a status marking where in
+# the implementation lifecycle the item type is.
+
+# item_types is a sequence — Drupal config rejects dots in keys, so
+# each entry carries an explicit `id` string. The service exposes
+# id-keyed lookup as a convenience.
+item_types:
+
+  - id: 'world.global'
+    label: 'The world'
+    description: 'The encompassing world configuration; one instance per property.'
+    instance_cardinality: singleton
+    config_object: world_signature.palette
+    components:
+      - { type: color_slot, name: background }
+      - { type: color_slot, name: fog }
+      - { type: color_slot, name: ambient }
+      - { type: color_slot, name: sun }
+      - { type: color_slot, name: fill }
+      - { type: color_slot, name: ground }
+      - { type: light_emitter, name: sun }
+      - { type: light_emitter, name: fill }
+    status: implemented
+
+  - id: 'sector.region'
+    label: 'Sector / region'
+    description: 'A taxonomy-derived region of the world. One instance per top-level region term. Holds biome lighting tints, ground material overrides, ambient sound.'
+    instance_cardinality: per-taxonomy-term
+    config_object: 'world_signature.sector.{termId}'
+    components:
+      - { type: color_slot, name: ground }
+      - { type: color_slot, name: ambient_tint }
+      - { type: color_slot, name: fog_tint }
+      - { type: sound_slot, name: ambient }
+      - { type: light_emitter, name: overhead }
+    status: planned
+
+  - id: 'metaphor.node.article'
+    label: 'Article (room metaphor)'
+    description: 'A node:article rendered as a room. Cypher already extracts the descriptor; full config-driven rendering of walls / floor / cards is Sprint 5.'
+    instance_cardinality: singleton-per-bundle
+    config_object: world_signature.metaphor.node.article
+    components:
+      - { type: color_slot, name: walls }
+      - { type: color_slot, name: floor }
+      - { type: texture_slot, name: diffuse }
+      - { type: hitbox, name: activation }
+      - { type: animation_slot, name: hover }
+      - { type: animation_slot, name: activate }
+      - { type: sound_slot, name: ambient }
+      - { type: sound_slot, name: activate }
+      - { type: trigger_event, name: user_click }
+      - { type: trigger_event, name: proximity }
+    status: partially_implemented
+
+  - id: 'trigger_pad.bookmark'
+    label: 'Bookmark trigger pad'
+    description: 'Per-content-type pad surfaced next to entities; activation summons a card. atlas_coffee uses a ceramic-cup variant.'
+    instance_cardinality: per-bundle
+    config_object: 'world_signature.trigger_pad.{bundleId}'
+    components:
+      - { type: color_slot, name: pad }
+      - { type: color_slot, name: pad_glow }
+      - { type: texture_slot, name: diffuse }
+      - { type: hitbox, name: activation }
+      - { type: animation_slot, name: hover }
+      - { type: animation_slot, name: click }
+      - { type: sound_slot, name: click }
+    status: planned
+
+  - id: 'chatvatar.barista'
+    label: 'Lobby chatvatar'
+    description: 'AI-grounded chat agent in the lobby. Uses drupal/ai_provider_anthropic for grounded answers. v0.0.3+ feature. Schema is forward-declared so atlas_coffee can author its barista today.'
+    instance_cardinality: per-instance
+    config_object: 'world_signature.chatvatar.{instanceId}'
+    components:
+      - { type: color_slot, name: robe_primary }
+      - { type: color_slot, name: robe_accent }
+      - { type: texture_slot, name: face }
+      - { type: animation_slot, name: idle }
+      - { type: animation_slot, name: speaking }
+      - { type: sound_slot, name: voice }
+      - { type: trigger_event, name: hover }
+      - { type: trigger_event, name: click }
+    status: planned
