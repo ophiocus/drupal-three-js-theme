@@ -135,6 +135,25 @@ this project adheres to [Semantic Versioning](https://semver.org/).
   brief. Property-specific; future properties get their own
   SUBJECT.md.
 
+### Added (Sprint 5c — trigger pads, click-to-bloom)
+
+- **`src/world/runtime/TriggerSystem.ts`** — per-entity activation
+  surfaces and the raycaster that resolves canvas pointer events.
+  Each entity owns a `CardRecord { pad, surface, homePosition,
+  homeScale, bloomed }`. Click the pad → bloom the surface (push
+  toward camera, scale ×1.8, face the camera). Click empty space
+  → collapse the bloomed card. Single-bloom invariant: only one
+  card surfaced at a time. Pointer events listened on the canvas
+  with `pointerdown`; NDC mapping uses `getBoundingClientRect()`
+  so the system works under any canvas sizing strategy.
+- **`SceneManager.attachHtmlSurface()`** now also creates a
+  bundle-tinted disc pad on the ground (8 world-units in front of
+  the cube) and registers a `CardRecord` with the TriggerSystem.
+  Hover affordances and tweened bloom motion are deferred to 5d/5e.
+- This is the first interactive moment in the world — the user
+  clicks a pad, the article surfaces. Foundation for the
+  Hidden→Bloomed→FullView state machine in 5e.
+
 ### Added (Sprint 5a + 5b — HTML surfaces, painted)
 
 - **`src/world/runtime/HtmlSurface.ts`** — abstract `HtmlSurface`
