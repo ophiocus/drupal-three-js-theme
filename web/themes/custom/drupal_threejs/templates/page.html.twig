@@ -1,0 +1,33 @@
+{#
+/**
+ * @file
+ * Page template for drupal_threejs.
+ *
+ * Replaces Olivero's chrome-heavy page shell with a full-bleed
+ * canvas. The traditional content tree still renders into
+ * `region:hidden_seo` so crawlers and screen readers receive the
+ * document-representation per THESIS.md "The document, in situ" —
+ * just visually hidden so the world fills the viewport.
+ *
+ * Sprint 4c minimum: a canvas + a hidden DOM render. Sprint 5
+ * lays the card-runtime DOM overlay on top.
+ */
+#}
+
+<canvas data-world-canvas
+        class="world__canvas"
+        aria-hidden="true"></canvas>
+
+{# Document representation, off-canvas. Same content the renderer
+   exposes through cards, served here for non-WebGL clients. #}
+<div class="world__seo-outlet" hidden>
+  {{ page.hidden_seo }}
+  {{ page.content }}
+</div>
+
+{# A small, accessible noscript fallback. #}
+<noscript>
+  <p>This site renders as a 3D world. Enable JavaScript to inhabit it,
+  or follow the standard text version below.</p>
+  {{ page.content }}
+</noscript>

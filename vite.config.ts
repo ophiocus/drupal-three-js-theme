@@ -10,7 +10,11 @@ export default defineConfig({
   root: ".",
   publicDir: false,
   build: {
-    outDir: "dist",
+    // Build into the theme so libraries.yml can reference the
+    // bundle via a theme-relative path. The whole dist/ tree is
+    // gitignored; engineers run `ddev npm run build` after a
+    // fresh clone.
+    outDir: "web/themes/custom/drupal_threejs/dist",
     emptyOutDir: true,
     sourcemap: true,
     rollupOptions: {

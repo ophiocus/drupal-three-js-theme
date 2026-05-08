@@ -1,0 +1,15 @@
+name: 'Drupal three.js'
+type: theme
+description: 'Renders the site as a persistent three.js world. See THESIS.md for the philosophical commitments. Olivero child — inherits accessibility + standards markup; overrides the page shell to mount the canvas + descriptor outlet.'
+package: 'World'
+core_version_requirement: ^11
+base theme: olivero
+dependencies:
+  - world_signature:world_signature
+libraries:
+  - drupal_threejs/world
+# Document-representation render kept off-canvas for crawlers and
+# screen readers (per THESIS.md "The document, in situ").
+regions:
+  hidden_seo: 'Hidden SEO / a11y outlet'
+  content: 'Content'

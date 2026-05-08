@@ -1,0 +1,18 @@
+<?php
+
+/**
+ * @file
+ * Theme hooks and preprocessors for the drupal_threejs theme.
+ */
+
+declare(strict_types=1);
+
+/**
+ * Implements hook_preprocess_html().
+ *
+ * Adds the world-shell class so the canvas + overlay layers can
+ * full-bleed without fighting Olivero's normal page chrome.
+ */
+function drupal_threejs_preprocess_html(array &$variables): void {
+  $variables['attributes']['class'][] = 'world-shell';
+}

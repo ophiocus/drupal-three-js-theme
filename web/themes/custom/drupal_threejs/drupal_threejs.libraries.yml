@@ -1,0 +1,13 @@
+world:
+  version: 1.x
+  js:
+    dist/world.bundle.js:
+      minified: true
+      attributes:
+        type: module
+        defer: true
+  css:
+    base:
+      css/world.css: {}
+  dependencies:
+    - core/drupal

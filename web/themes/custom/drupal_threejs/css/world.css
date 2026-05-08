@@ -1,0 +1,36 @@
+/**
+ * drupal_threejs — world.css
+ *
+ * Minimum styles to take the canvas full-bleed and hide Olivero's
+ * page chrome until Sprint 5 adds the card-runtime DOM overlay.
+ */
+
+html.world-shell,
+html.world-shell body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background: #1a1410; /* matches scene.background — no flash */
+}
+
+.world__canvas {
+  position: fixed;
+  inset: 0;
+  display: block;
+  width: 100vw;
+  height: 100vh;
+}
+
+/* Document-representation outlet stays in the DOM for SEO + a11y
+   but is removed visually. Position-absolute keeps screen readers
+   able to find it. */
+.world__seo-outlet {
+  position: absolute;
+  left: -9999px;
+  top: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
