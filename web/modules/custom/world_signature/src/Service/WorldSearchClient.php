@@ -222,6 +222,104 @@ final class WorldSearchClient {
   }
 
   /**
+   * Fetch one descriptor by id, or NULL if not found.
+   *
+   * @return array|NULL
+   *   The descriptor as an associative array, or NULL on 404.
+   */
+  public function find(string $id): ?array {
+    $url = $this->collectionUrl() . '/' . rawurlencode($id);
+    try {
+      $response = $this->http->request('GET', $url, [
+        'auth' => [$this->authUser, $this->authPassword],
+        'headers' => ['Accept' => 'application/json'],
+        'timeout' => 5,
+        'http_errors' => FALSE,
+      ]);
+    }
+    catch (GuzzleException $e) {
+      throw new \RuntimeException(
+        sprintf('Gateway find failed for %s: %s', $id, $e->getMessage()),
+        previous: $e,
+      );
+    }
+    $status = $response->getStatusCode();
+    if ($status === 404) {
+      return NULL;
+    }
+    if ($status < 200 || $status >= 300) {
+      throw new \RuntimeException(
+        sprintf('Gateway HTTP %d on find %s', $status, $id),
+      );
+    }
+    return json_decode((string) $response->getBody(), TRUE) ?: NULL;
+  }
+
+  /**
+   * Fetch all descriptors. RESTHeart returns paged collections;
+   * we walk pages until exhausted (or until $hardLimit is hit
+   * — defensive against runaway corpora).
+   *
+   * @return array<int, array>
+   */
+  public function findAll(int $hardLimit = 5000): array {
+    $all = [];
+    $page = 1;
+    $pageSize = 200;
+
+    while (count($all) < $hardLimit) {
+      $url = $this->collectionUrl()
+        . '?page=' . $page
+        . '&pagesize=' . $pageSize
+        . '&np=true';
+      try {
+        $response = $this->http->request('GET', $url, [
+          'auth' => [$this->authUser, $this->authPassword],
+          'headers' => ['Accept' => 'application/json'],
+          'timeout' => 15,
+          'http_errors' => FALSE,
+        ]);
+      }
+      catch (GuzzleException $e) {
+        throw new \RuntimeException(
+          sprintf('Gateway findAll failed: %s', $e->getMessage()),
+          previous: $e,
+        );
+      }
+      $status = $response->getStatusCode();
+      if ($status === 404) {
+        // Empty collection — return what we have so far.
+        break;
+      }
+      if ($status < 200 || $status >= 300) {
+        throw new \RuntimeException(
+          sprintf('Gateway HTTP %d on findAll page %d', $status, $page),
+        );
+      }
+      $batch = json_decode((string) $response->getBody(), TRUE) ?: [];
+      if (empty($batch)) {
+        break;
+      }
+      foreach ($batch as $doc) {
+        $all[] = $doc;
+        if (count($all) >= $hardLimit) {
+          break 2;
+        }
+      }
+      if (count($batch) < $pageSize) {
+        break;
+      }
+      $page++;
+    }
+
+    $this->logger->debug(
+      'findAll returned @n descriptors (paged).',
+      ['@n' => count($all)],
+    );
+    return $all;
+  }
+
+  /**
    * Returns TRUE when the gateway responds to /ping. Used by the
    * verify scripts and by the WorldHealthResource (Sprint 4).
    */

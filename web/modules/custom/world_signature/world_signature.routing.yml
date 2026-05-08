@@ -1,0 +1,45 @@
+# The renderer's contract with Drupal lives here. Four routes:
+#
+#   /world/health                                  → status JSON
+#   /world/snapshot/full                           → full corpus snapshot JSON
+#   /world/descriptor/{id}                          → one descriptor JSON
+#   /world/card/{entity_type}/{id}/{view_mode}      → Drupal-rendered HTML for FullView
+#
+# Anonymous access for ALPHA. v0.0.2 may add per-property auth.
+
+world_signature.health:
+  path: '/world/health'
+  defaults:
+    _controller: '\Drupal\world_signature\Controller\WorldController::health'
+    _format: json
+  requirements:
+    _access: 'TRUE'
+  options:
+    no_cache: 'TRUE'
+
+world_signature.snapshot:
+  path: '/world/snapshot/full'
+  defaults:
+    _controller: '\Drupal\world_signature\Controller\WorldController::snapshot'
+    _format: json
+  requirements:
+    _access: 'TRUE'
+
+world_signature.descriptor:
+  path: '/world/descriptor/{id}'
+  defaults:
+    _controller: '\Drupal\world_signature\Controller\WorldController::descriptor'
+    _format: json
+  requirements:
+    _access: 'TRUE'
+    id: '[a-z0-9_-]+'
+
+world_signature.card:
+  path: '/world/card/{entity_type}/{id}/{view_mode}'
+  defaults:
+    _controller: '\Drupal\world_signature\Controller\WorldController::card'
+  requirements:
+    _access: 'TRUE'
+    entity_type: '[a-z_]+'
+    id: '[0-9]+'
+    view_mode: '[a-z_]+'
