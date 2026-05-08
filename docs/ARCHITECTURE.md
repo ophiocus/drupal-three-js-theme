@@ -9,6 +9,8 @@
 > [THESIS.md](../THESIS.md) (philosophy) ·
 > [docs/MANIFESTO.md](MANIFESTO.md) (the world's configurable surface — every
 > item type, every component type, every per-instance config object) ·
+> [docs/HTML_SURFACES.md](HTML_SURFACES.md) (Drupal-served HTML painted into
+> the 3D world — the engine's core differentiating primitive) ·
 > [docs/EDITORIAL.md](EDITORIAL.md) (editor-facing: the eight axes) ·
 > [docs/PROTOCOL.md](PROTOCOL.md) (development & decision log) ·
 > [docs/SUBJECT.md](SUBJECT.md) (per-property: `atlas_coffee`).

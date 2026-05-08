@@ -80,3 +80,36 @@ function world_signature_update_10002(): string {
     count($data['item_types'] ?? []),
   );
 }
+
+/**
+ * Re-import the manifesto from the module-shipped YAML to pick up
+ * the v2 additions: html_surface component type + surface.html_panel
+ * item type. Idempotent — checks the version before re-importing.
+ */
+function world_signature_update_10003(): string {
+  $config = \Drupal::configFactory()->getEditable('world_signature.manifesto');
+  $current_version = (int) $config->get('version');
+
+  $module_path = \Drupal::service('extension.list.module')
+    ->getPath('world_signature');
+  $yaml_file = $module_path . '/config/install/world_signature.manifesto.yml';
+  $data = \Symfony\Component\Yaml\Yaml::parseFile($yaml_file);
+  $shipped_version = (int) ($data['version'] ?? 0);
+
+  if ($current_version >= $shipped_version) {
+    return sprintf(
+      'world_signature.manifesto already at v%d (>= shipped v%d); nothing to do.',
+      $current_version,
+      $shipped_version,
+    );
+  }
+
+  $config->setData($data)->save(TRUE);
+  return sprintf(
+    'Bumped world_signature.manifesto v%d -> v%d (%d component types, %d item types).',
+    $current_version,
+    $shipped_version,
+    count($data['component_types'] ?? []),
+    count($data['item_types'] ?? []),
+  );
+}

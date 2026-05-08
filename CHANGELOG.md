@@ -110,6 +110,20 @@ this project adheres to [Semantic Versioning](https://semver.org/).
   `status: planned` types today; runtimes catch up later without
   invalidating data. The palette landing in `8a6c203` is now
   framed as one instance of this pattern.
+- `docs/HTML_SURFACES.md` + manifesto v2 — **Drupal-served HTML
+  painted into the 3D world as a texture**, declared as a core
+  engine differentiating primitive. Strategic forward bet on
+  HTML-in-Canvas (`drawElementImage()`, Chromium 147+ behind the
+  `#canvas-draw-element` flag, 2026 WICC spec) with three.js
+  HTMLMesh as the universal-browser bridge. Single API on our
+  side; capability-detected switch underneath; properties get
+  faster/sharper rendering for free as HIC reaches stable.
+  Manifesto bumped v1→v2: new component type `html_surface`,
+  new item type `surface.html_panel` (status: planned). The
+  thesis claim "the world contains the document" becomes
+  mechanically true — same DOM serves the SEO/a11y outlet AND
+  paints the world's surfaces. Implementation lands in Sprint 5
+  (stages 5a–5e in HTML_SURFACES.md §"Implementation plan").
 - `docs/SUBJECT.md` — **`atlas_coffee` locked as the sandbox
   property** (2026-05-08). Atmospheric Latin American coffee
   culture, tuned for the medium-curious reader (discovery of the

@@ -12,7 +12,7 @@
 # entries are deliberately ahead of runtime — properties can begin
 # authoring against them today.
 
-version: 1
+version: 2
 
 # ─── Component types ────────────────────────────────────────────────
 # The vocabulary of properties items can carry. Universal, fixed at
@@ -132,6 +132,25 @@ component_types:
       - search_match
       - schedule_release
 
+  html_surface:
+    label: 'HTML surface'
+    description: 'A 2D HTML fragment painted onto a 3D quad as a texture. Uses the browser-native HTML-in-Canvas API (Chromium 147+, drawElementImage) where available; falls back to three.js HTMLMesh / html2canvas otherwise. Drupal-served content; same DOM the SEO/a11y outlet uses. See docs/HTML_SURFACES.md.'
+    value_schema:
+      type: mapping
+      keys:
+        content_ref: 'string — URL of an HTML endpoint, typically /world/card/<entity>/<id>/<viewMode>'
+        width_px: integer
+        height_px: integer
+        transparent_background: boolean
+        refresh: 'enum: on-mount | on-snapshot-change | manual | live'
+        max_pixel_ratio: float
+        a11y_role: 'enum: decorative | document'
+    examples:
+      - card_face
+      - wall_inscription
+      - chat_bubble
+      - placard
+
 
 # ─── Item types ─────────────────────────────────────────────────────
 # Kinds of things the world contains. Each declares which component
@@ -218,6 +237,20 @@ item_types:
       - { type: animation_slot, name: idle }
       - { type: animation_slot, name: speaking }
       - { type: sound_slot, name: voice }
+      - { type: html_surface, name: chat_bubble }
       - { type: trigger_event, name: hover }
       - { type: trigger_event, name: click }
+    status: planned
+
+  - id: 'surface.html_panel'
+    label: 'HTML panel'
+    description: 'Standalone textured plane painting Drupal-served HTML into the 3D scene. The atomic primitive for "DOM in the world." Composable: any item type may include an html_surface component, but surface.html_panel exposes one as a first-class object. See docs/HTML_SURFACES.md.'
+    instance_cardinality: per-instance
+    config_object: 'world_signature.surface.html_panel.{instanceId}'
+    components:
+      - { type: html_surface, name: content }
+      - { type: hitbox, name: activation }
+      - { type: animation_slot, name: appear }
+      - { type: animation_slot, name: dismiss }
+      - { type: light_emitter, name: rim }
     status: planned

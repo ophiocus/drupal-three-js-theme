@@ -33,10 +33,11 @@ print sprintf(" · component types: %d\n", count($componentTypes));
 foreach (array_keys($componentTypes) as $id) {
   print "    • $id\n";
 }
-ws_check('all 8 component types declared', count($componentTypes) === 8);
+ws_check('9 component types declared (v2)', count($componentTypes) === 9);
 ws_check('color_slot known', $m->knowsComponentType('color_slot'));
 ws_check('hitbox known', $m->knowsComponentType('hitbox'));
 ws_check('trigger_event known', $m->knowsComponentType('trigger_event'));
+ws_check('html_surface known (v2)', $m->knowsComponentType('html_surface'));
 ws_check('made-up component unknown', !$m->knowsComponentType('made_up_widget'));
 
 print "\n";
@@ -52,9 +53,15 @@ foreach ($itemTypes as $id => $def) {
   );
 }
 
-ws_check('5 item types declared', count($itemTypes) === 5);
+ws_check('6 item types declared (v2)', count($itemTypes) === 6);
 ws_check('world.global is implemented', ($itemTypes['world.global']['status'] ?? '') === WorldManifesto::STATUS_IMPLEMENTED);
 ws_check('chatvatar.barista is planned', ($itemTypes['chatvatar.barista']['status'] ?? '') === WorldManifesto::STATUS_PLANNED);
+ws_check('surface.html_panel registered (v2)', isset($itemTypes['surface.html_panel']));
+ws_check(
+  'item types declaring html_surface',
+  count($m->itemTypesWithComponentType('html_surface')) >= 2,
+  'expected chatvatar.barista + surface.html_panel',
+);
 
 print "\n";
 
