@@ -32,6 +32,9 @@ web_environment:
     - ANTHROPIC_API_KEY=
     - MONGODB_ATLAS_URI=
     - WORLD_SIGNATURE_DATABASE=drupal_three_js_theme_world
+    - WORLD_GATEWAY_URL=http://restheart:8080
+    - WORLD_GATEWAY_USER=admin
+    - WORLD_GATEWAY_PASSWORD=secret
 
 hooks:
     post-start:

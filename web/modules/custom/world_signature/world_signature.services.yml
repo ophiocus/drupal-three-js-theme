@@ -22,8 +22,24 @@ services:
       - '@logger.channel.world_signature'
 
   # Writes the JSON-encoded Signature onto the entity's
-  # `field_world_signature` field.
+  # field_world_signature field.
   world_signature.signature_writer:
     class: Drupal\world_signature\Service\SignatureWriter
     arguments:
+      - '@logger.channel.world_signature'
+
+  # Builds the skinny descriptor written to the gateway.
+  world_signature.descriptor_builder:
+    class: Drupal\world_signature\Service\DescriptorBuilder
+
+  # Guzzle client to the RESTHeart gateway. The service reads
+  # env vars (WORLD_GATEWAY_URL, WORLD_SIGNATURE_DATABASE,
+  # WORLD_GATEWAY_USER, WORLD_GATEWAY_PASSWORD) directly via
+  # getenv() — Drupal's container doesn't expand %env()% the
+  # way Symfony's does. Sandbox values come from
+  # .ddev/config.yaml's web_environment.
+  world_signature.world_search_client:
+    class: Drupal\world_signature\Service\WorldSearchClient
+    arguments:
+      - '@http_client'
       - '@logger.channel.world_signature'

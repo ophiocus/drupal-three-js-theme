@@ -11,28 +11,36 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
+use Drupal\world_signature\Plugin\MetaphorPluginInterface;
+use Drupal\world_signature\Plugin\MetaphorPluginManager;
+use Drupal\world_signature\Service\DescriptorBuilder;
 use Drupal\world_signature\Service\EntityFactsReader;
 use Drupal\world_signature\Service\SignatureWriter;
+use Drupal\world_signature\Service\WorldSearchClient;
 use Drupal\world_signature\Signature\SignatureExtractor;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Job that extracts and persists the signature for one entity.
+ * Job that extracts a signature, persists it to MariaDB, and pushes
+ * the skinny descriptor to the RESTHeart gateway.
  *
  * Payload: ['entity_type' => string, 'entity_id' => string|int,
  *           'op' => 'insert'|'update'|'delete'].
  *
- * Pipeline (matching scaffold/verify-3a.php's manual run, but
- * automated here on every entity save):
+ * Pipeline (insert / update):
  *
  *   load(entity)
- *     → EntityFactsReader::read()        (NULL = skip; not in world)
+ *     → EntityFactsReader::read()         (NULL = skip; not in world)
  *     → SignatureExtractor::extract()
- *     → SignatureWriter::write()         (JSON onto field_world_signature)
+ *     → SignatureWriter::write()           (JSON onto field_world_signature, MariaDB)
+ *     → DescriptorBuilder::build()         (skinny shape)
+ *     → WorldSearchClient::upsert()        (HTTPS PUT to gateway → Atlas)
  *     → JobResult::success()
  *
- * Atlas write path is added in Sprint 3b-2 between extract and
- * write — descriptor → WorldSearchClient → App Services Function.
+ * Pipeline (delete):
+ *
+ *   WorldSearchClient::delete(<descriptorId>)
+ *     → JobResult::success()
  *
  * @AdvancedQueueJobType(
  *   id = "world_signature_extract",
@@ -51,6 +59,9 @@ final class ExtractSignature extends JobTypeBase implements ContainerFactoryPlug
     private readonly EntityFactsReader $factsReader,
     private readonly SignatureExtractor $extractor,
     private readonly SignatureWriter $writer,
+    private readonly DescriptorBuilder $descriptorBuilder,
+    private readonly WorldSearchClient $searchClient,
+    private readonly MetaphorPluginManager $metaphorManager,
     private readonly LoggerChannelInterface $logger,
   ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
@@ -70,6 +81,9 @@ final class ExtractSignature extends JobTypeBase implements ContainerFactoryPlug
       $container->get('world_signature.entity_facts_reader'),
       $container->get('world_signature.signature_extractor'),
       $container->get('world_signature.signature_writer'),
+      $container->get('world_signature.descriptor_builder'),
+      $container->get('world_signature.world_search_client'),
+      $container->get('plugin.manager.world_signature.metaphor'),
       $container->get('logger.channel.world_signature'),
     );
   }
@@ -88,14 +102,21 @@ final class ExtractSignature extends JobTypeBase implements ContainerFactoryPlug
       ));
     }
 
-    // Delete: nothing to extract; downstream Atlas-side cleanup
-    // happens in 3b-2.
+    // Delete: drop the descriptor from the gateway. No facts/extractor
+    // needed — the gateway-side _id is recoverable from (type, id).
     if ($op === 'delete') {
-      $this->logger->info(
-        'Delete op for @type/@id (no extraction; Atlas cleanup deferred to 3b-2).',
-        ['@type' => $entityType, '@id' => $entityId],
-      );
-      return JobResult::success('delete: noop in 3b-1');
+      $descriptorId = $this->descriptorBuilder->descriptorId($entityType, $entityId);
+      try {
+        $this->searchClient->delete($descriptorId);
+      }
+      catch (\RuntimeException $e) {
+        return JobResult::failure(sprintf(
+          'Gateway delete failed for %s: %s',
+          $descriptorId,
+          $e->getMessage(),
+        ));
+      }
+      return JobResult::success(sprintf('deleted %s', $descriptorId));
     }
 
     try {
@@ -103,7 +124,7 @@ final class ExtractSignature extends JobTypeBase implements ContainerFactoryPlug
     }
     catch (\Throwable $e) {
       return JobResult::failure(sprintf(
-        'Could not load @%s/%s: %s',
+        'Could not load %s/%s: %s',
         $entityType,
         $entityId,
         $e->getMessage(),
@@ -111,7 +132,6 @@ final class ExtractSignature extends JobTypeBase implements ContainerFactoryPlug
     }
 
     if ($entity === NULL) {
-      // Entity was deleted between enqueue and processing; not an error.
       $this->logger->info(
         '@type/@id no longer exists; skipping.',
         ['@type' => $entityType, '@id' => $entityId],
@@ -135,8 +155,33 @@ final class ExtractSignature extends JobTypeBase implements ContainerFactoryPlug
     $signature = $this->extractor->extract($facts);
     $written = $this->writer->write($entity, $signature);
 
+    // Build descriptor and push to the gateway. Persisting locally
+    // (above) is the system of record; gateway is a cache. If the
+    // gateway write fails, the local field is still correct and a
+    // retry will republish.
+    $pluginId = sprintf('%s:%s', $entityType, $entity->bundle());
+    /** @var \Drupal\world_signature\Plugin\MetaphorPluginInterface $metaphor */
+    $metaphor = $this->metaphorManager->createInstance($pluginId);
+    assert($metaphor instanceof MetaphorPluginInterface);
+
+    $descriptor = $this->descriptorBuilder->build($entity, $facts, $signature, $metaphor);
+
+    try {
+      $this->searchClient->upsert($descriptor);
+    }
+    catch (\RuntimeException $e) {
+      // Local persist already happened; only the gateway is stale.
+      // Failing the job lets advancedqueue retry against the gateway.
+      return JobResult::failure(sprintf(
+        'gateway upsert failed for %s/%s: %s',
+        $entityType,
+        $entityId,
+        $e->getMessage(),
+      ));
+    }
+
     return JobResult::success(sprintf(
-      'extracted signature for %s/%s (%s)',
+      'extracted + upserted %s/%s (%s)',
       $entityType,
       $entityId,
       $written ? 'persisted' : 'no field; not persisted',

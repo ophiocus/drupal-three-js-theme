@@ -1,0 +1,43 @@
+# RESTHeart sidecar — the data gateway between Drupal and Atlas.
+#
+# Drupal (web container) reaches RESTHeart at http://restheart:8080
+# via DDEV's internal network. RESTHeart connects outbound to the
+# Atlas cluster via MONGODB_ATLAS_URI, the same env var we already
+# expose on the web container.
+#
+# Default admin credentials shipped by softinstigate/restheart are
+# admin / secret — fine for sandbox. Production swaps these via the
+# RESTHEART_USERS_YML mount.
+#
+# See docs/ARCHITECTURE.md §9 for the full pattern.
+
+services:
+  restheart:
+    container_name: ddev-${DDEV_SITENAME}-restheart
+    image: softinstigate/restheart:8
+    hostname: restheart
+    expose:
+      - "8080"
+    environment:
+      # RESTHeart 8 reads its config via the RHO override env var.
+      # MONGO_URI / RH_MONGO_URI alone are ignored; the default RHO
+      # in the upstream image points at host.docker.internal. We
+      # rewrite /mclient/connection-string to our Atlas URI.
+      RHO: '/mclient/connection-string->"${MONGODB_ATLAS_URI}";/http-listener/host->"0.0.0.0";/mongo/mongo-mounts->[{"what":"*","where":"/"}]'
+    networks:
+      default:
+        aliases:
+          - restheart
+    labels:
+      com.ddev.site-name: ${DDEV_SITENAME}
+      com.ddev.approot: ${DDEV_APPROOT}
+    restart: "no"
+
+  # DDEV needs the web container to depend on this so it's reachable
+  # at `ddev start` time. The depends_on directive here is merged into
+  # the web service's compose entry by DDEV's overlay mechanism.
+  web:
+    depends_on:
+      - restheart
+    links:
+      - restheart:restheart
