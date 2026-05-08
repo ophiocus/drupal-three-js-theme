@@ -49,7 +49,16 @@ Total ~20–25 entities. Calibrated against the eight axes (`docs/EDITORIAL.md`)
 | Authorship | 3–4 profiles, each authoring a cluster |
 | Form | Image required; one entity with audio (a cupping recording); one with geo coords |
 
-## Visual vocabulary
+## Visual vocabulary — atlas_coffee's *target* configuration
+
+> The `world_signature` module ships with a **neutral pastel
+> palette** (greens + light blue, see
+> `config/install/world_signature.palette.yml`) so any property
+> using the theme has a defensible look out of the box. The
+> palette below is what *atlas_coffee specifically* will override
+> the defaults to in production. Sandbox / dev currently runs
+> the neutral defaults; the atlas_coffee-flavoured override
+> ships when the property's actual deploy lands.
 
 Atmospheric coffee, tuned for the medium-curious reader:
 

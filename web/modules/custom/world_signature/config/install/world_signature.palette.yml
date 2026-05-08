@@ -1,0 +1,45 @@
+# world_signature.palette
+#
+# The renderer reads this from the snapshot and applies it to every
+# material, light, and fog setting on boot. Each property overrides
+# this file via config_sync (see DATAFLOW §3b — config_ignore is
+# explicitly NOT recommended for the palette; treat it as code-deployed).
+#
+# Default: pastel greens + light blue. Calm, neutral, property-agnostic.
+# atlas_coffee's prod deploy overrides to warm earth per docs/SUBJECT.md.
+#
+# Color values are CSS hex strings; three.js parses them via THREE.Color.
+
+background: '#d0dce6'
+fog:
+  color: '#c8d8e0'
+  near: 80
+  far: 500
+ambient:
+  color: '#e8efe9'
+  intensity: 0.85
+sun:
+  color: '#fffae0'
+  intensity: 1.3
+  position:
+    - 80
+    - 120
+    - 60
+fill:
+  color: '#a8c4dc'
+  intensity: 0.45
+  position:
+    - -80
+    - 60
+    - -60
+ground:
+  color: '#c4dec4'
+sectorPad:
+  color: '#a4c498'
+compassPost:
+  color: '#a8b4c0'
+bundleColors:
+  article: '#8eb887'
+  profile: '#92aabe'
+  event: '#d8d098'
+  default: '#a8b4b8'

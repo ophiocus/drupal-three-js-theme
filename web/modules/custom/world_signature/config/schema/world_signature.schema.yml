@@ -1,0 +1,97 @@
+world_signature.palette:
+  type: config_object
+  label: 'World palette'
+  mapping:
+    background:
+      type: string
+      label: 'Sky / scene background colour (CSS hex)'
+    fog:
+      type: mapping
+      label: 'Fog'
+      mapping:
+        color:
+          type: string
+          label: 'Fog colour'
+        near:
+          type: float
+          label: 'Fog near distance'
+        far:
+          type: float
+          label: 'Fog far distance'
+    ambient:
+      type: mapping
+      label: 'Ambient light'
+      mapping:
+        color:
+          type: string
+          label: 'Ambient colour'
+        intensity:
+          type: float
+          label: 'Ambient intensity'
+    sun:
+      type: mapping
+      label: 'Key directional light'
+      mapping:
+        color:
+          type: string
+          label: 'Sun colour'
+        intensity:
+          type: float
+          label: 'Sun intensity'
+        position:
+          type: sequence
+          label: 'Sun position [x,y,z]'
+          sequence:
+            type: float
+    fill:
+      type: mapping
+      label: 'Fill directional light'
+      mapping:
+        color:
+          type: string
+          label: 'Fill colour'
+        intensity:
+          type: float
+          label: 'Fill intensity'
+        position:
+          type: sequence
+          label: 'Fill position [x,y,z]'
+          sequence:
+            type: float
+    ground:
+      type: mapping
+      label: 'Ground plane material'
+      mapping:
+        color:
+          type: string
+          label: 'Ground colour'
+    sectorPad:
+      type: mapping
+      label: 'Sector centroid pad material'
+      mapping:
+        color:
+          type: string
+          label: 'Sector pad colour'
+    compassPost:
+      type: mapping
+      label: 'Compass post material (ALPHA placeholder)'
+      mapping:
+        color:
+          type: string
+          label: 'Compass post colour'
+    bundleColors:
+      type: mapping
+      label: 'Per-bundle entity material colours'
+      mapping:
+        article:
+          type: string
+          label: 'Article bundle colour'
+        profile:
+          type: string
+          label: 'Profile bundle colour'
+        event:
+          type: string
+          label: 'Event bundle colour'
+        default:
+          type: string
+          label: 'Fallback colour for any bundle without a specific entry'

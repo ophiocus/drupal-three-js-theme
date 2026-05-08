@@ -27,6 +27,41 @@ interface DescriptorShape {
 }
 
 /**
+ * Palette shape — mirrors world_signature.palette config schema
+ * (see web/modules/custom/world_signature/config/schema/...). Every
+ * color is a CSS hex string the renderer parses with THREE.Color.
+ */
+interface Palette {
+  background: string;
+  fog: { color: string; near: number; far: number };
+  ambient: { color: string; intensity: number };
+  sun: { color: string; intensity: number; position: [number, number, number] };
+  fill: { color: string; intensity: number; position: [number, number, number] };
+  ground: { color: string };
+  sectorPad: { color: string };
+  compassPost: { color: string };
+  bundleColors: Record<string, string>;
+}
+
+/** Hardcoded fallback if a snapshot lands without a palette key. */
+const DEFAULT_PALETTE: Palette = {
+  background: "#d0dce6",
+  fog: { color: "#c8d8e0", near: 80, far: 500 },
+  ambient: { color: "#e8efe9", intensity: 0.85 },
+  sun: { color: "#fffae0", intensity: 1.3, position: [80, 120, 60] },
+  fill: { color: "#a8c4dc", intensity: 0.45, position: [-80, 60, -60] },
+  ground: { color: "#c4dec4" },
+  sectorPad: { color: "#a4c498" },
+  compassPost: { color: "#a8b4c0" },
+  bundleColors: {
+    article: "#8eb887",
+    profile: "#92aabe",
+    event: "#d8d098",
+    default: "#a8b4b8",
+  },
+};
+
+/**
  * The renderer's macro-state. exploration = walking the world.
  * reading = card in FullView, engine paused. Card runtime in
  * Sprint 5 wires this to a state machine.
@@ -38,6 +73,7 @@ export class SceneManager {
   private readonly scene: THREE.Scene;
   private readonly camera: THREE.PerspectiveCamera;
   private snapshot: CorpusSnapshot | null = null;
+  private palette: Palette = DEFAULT_PALETTE;
   private mode: Mode = "exploration";
 
   constructor(private readonly canvas: HTMLCanvasElement) {
@@ -50,9 +86,9 @@ export class SceneManager {
     this.resize();
 
     this.scene = new THREE.Scene();
-    // Warm-earth fog matches atlas_coffee's atmospheric mode brief.
-    this.scene.background = new THREE.Color(0x1a1410);
-    this.scene.fog = new THREE.Fog(0x1a1410, 50, 400);
+    // Background + fog applied properly once the snapshot's palette
+    // arrives in mount(); these defaults prevent a flash before then.
+    this.applyPaletteBackground();
 
     this.camera = new THREE.PerspectiveCamera(
       60,
@@ -60,8 +96,6 @@ export class SceneManager {
       0.1,
       1000,
     );
-
-    this.addLights();
 
     window.addEventListener("resize", () => this.resize());
   }
@@ -79,7 +113,10 @@ export class SceneManager {
     }
     const raw = (await response.json()) as RawSnapshot;
     this.snapshot = this.adaptSnapshot(raw);
+    this.palette = (raw.world.palette as Palette) ?? DEFAULT_PALETTE;
 
+    this.applyPaletteBackground();
+    this.addLights();
     this.placeCamera(options.cameraPosition);
     this.placeEntities();
     this.startLoop();
@@ -102,23 +139,49 @@ export class SceneManager {
 
   // ─── Internal ────────────────────────────────────────────────────────────
 
+  private applyPaletteBackground(): void {
+    this.scene.background = new THREE.Color(this.palette.background);
+    this.scene.fog = new THREE.Fog(
+      this.palette.fog.color,
+      this.palette.fog.near,
+      this.palette.fog.far,
+    );
+  }
+
   private addLights(): void {
-    const ambient = new THREE.AmbientLight(0xffeacc, 0.45);
+    const p = this.palette;
+
+    const ambient = new THREE.AmbientLight(
+      new THREE.Color(p.ambient.color),
+      p.ambient.intensity,
+    );
     this.scene.add(ambient);
 
-    // Golden-hour key light per atlas_coffee's atmospheric brief.
-    const sun = new THREE.DirectionalLight(0xffd9a0, 0.9);
-    sun.position.set(80, 120, 60);
+    const sun = new THREE.DirectionalLight(
+      new THREE.Color(p.sun.color),
+      p.sun.intensity,
+    );
+    sun.position.set(...p.sun.position);
     this.scene.add(sun);
+
+    const fill = new THREE.DirectionalLight(
+      new THREE.Color(p.fill.color),
+      p.fill.intensity,
+    );
+    fill.position.set(...p.fill.position);
+    this.scene.add(fill);
   }
 
   private placeCamera(override?: Vec3): void {
     if (!this.snapshot) return;
     const w = this.snapshot.world;
+    // ALPHA-friendly closer overview — fits a 1-entity corpus in
+    // the frame. Sprint 5's vantage system replaces this with
+    // proper URI→camera transitions.
     const pos = override ?? {
       x: 0,
-      y: w.overviewHeight,
-      z: w.overviewHeight,
+      y: w.overviewHeight * 0.45,
+      z: w.overviewHeight * 0.55,
     };
     this.camera.position.set(pos.x, pos.y, pos.z);
     this.camera.lookAt(0, 0, 0);
@@ -126,52 +189,97 @@ export class SceneManager {
 
   private placeEntities(): void {
     if (!this.snapshot) return;
-    const geometry = new THREE.BoxGeometry(4, 4, 4);
+    const p = this.palette;
+
+    // Ground plane — sized to the world. Palette-driven.
+    const groundSize = this.snapshot.world.radius * 4;
+    const ground = new THREE.Mesh(
+      new THREE.PlaneGeometry(groundSize, groundSize, 1, 1),
+      new THREE.MeshStandardMaterial({
+        color: new THREE.Color(p.ground.color),
+        roughness: 0.95,
+        metalness: 0,
+      }),
+    );
+    ground.rotateX(-Math.PI / 2);
+    ground.position.y = 0;
+    this.scene.add(ground);
+
+    // Cardinal compass posts — ALPHA placeholder; removed once
+    // the corpus reaches ~5 entities and feels populated.
+    const compassGeo = new THREE.BoxGeometry(2, 6, 2);
+    const compassMat = new THREE.MeshStandardMaterial({
+      color: new THREE.Color(p.compassPost.color),
+      roughness: 0.9,
+    });
+    for (const [dx, dz] of [[60, 0], [-60, 0], [0, 60], [0, -60]]) {
+      const post = new THREE.Mesh(compassGeo, compassMat);
+      post.position.set(dx, 3, dz);
+      this.scene.add(post);
+    }
+
+    // Entity meshes — bumped to 12-unit cubes so a single entity
+    // reads at a distance during ALPHA. Sprint 5's SmartObject
+    // base class replaces this with metaphor-specific geometry.
+    const geometry = new THREE.BoxGeometry(12, 12, 12);
     for (const entity of Object.values(this.snapshot.entities)) {
       const pos = entityPosition(entity, this.snapshot);
-      // Bundle-coloured material — articles are warm umber, profiles
-      // a touch greener, events brassier. Refined per atlas_coffee
-      // palette in Sprint 5.
       const material = new THREE.MeshStandardMaterial({
         color: this.bundleColor(entity.bundle),
-        roughness: 0.7,
-        metalness: 0.05,
+        roughness: 0.65,
+        metalness: 0.08,
       });
       const mesh = new THREE.Mesh(geometry, material);
-      mesh.position.set(pos.x, 2, pos.z);
+      mesh.position.set(pos.x, 6, pos.z);
       mesh.userData.entityId = entity.id;
       this.scene.add(mesh);
     }
-    // Sector centroid markers — small floor pads. Visual landmark
-    // for the user; placeholder until Sprint 5's biome treatment.
-    const padGeo = new THREE.CircleGeometry(this.snapshot.world.radius * 0.15, 32);
+
+    // Sector centroid pads.
+    const padGeo = new THREE.CircleGeometry(this.snapshot.world.radius * 0.25, 48);
     padGeo.rotateX(-Math.PI / 2);
     for (const sector of Object.values(this.snapshot.sectors)) {
       const padMaterial = new THREE.MeshStandardMaterial({
-        color: 0x2a1f15,
-        roughness: 0.95,
+        color: new THREE.Color(p.sectorPad.color),
+        roughness: 0.9,
       });
       const pad = new THREE.Mesh(padGeo, padMaterial);
-      pad.position.set(sector.centroid.x, 0.01, sector.centroid.z);
+      pad.position.set(sector.centroid.x, 0.05, sector.centroid.z);
       this.scene.add(pad);
     }
+
+    console.info(
+      `[world] canvas: ${this.canvas.clientWidth}x${this.canvas.clientHeight}, ` +
+        `camera at (${this.camera.position.x.toFixed(0)},${this.camera.position.y.toFixed(0)},${this.camera.position.z.toFixed(0)}), ` +
+        `palette: ${p.background}`,
+    );
   }
 
-  private bundleColor(bundle: string): number {
-    switch (bundle) {
-      case "article":
-        return 0xa05a2c; // umber
-      case "profile":
-        return 0x5a7a3c; // muted moss
-      case "event":
-        return 0xc2a04a; // brass
-      default:
-        return 0x808080;
-    }
+  private bundleColor(bundle: string): THREE.Color {
+    const hex =
+      this.palette.bundleColors[bundle] ??
+      this.palette.bundleColors.default ??
+      "#808080";
+    return new THREE.Color(hex);
   }
 
   private startLoop(): void {
+    // ALPHA-only gentle orbit — proof of liveness. Removed in
+    // Sprint 5 when proper Turbo-driven vantage transitions
+    // take over. Two-thirds-full revolution per minute.
+    const start = performance.now();
+    const radius = 130;
+    const yLevel = (this.snapshot?.world.overviewHeight ?? 200) * 0.45;
+
     this.renderer.setAnimationLoop(() => {
+      const t = (performance.now() - start) / 1000;
+      const angle = t * 0.07; // ~6° per second
+      this.camera.position.set(
+        Math.sin(angle) * radius,
+        yLevel,
+        Math.cos(angle) * radius,
+      );
+      this.camera.lookAt(0, 6, 0);
       this.renderer.render(this.scene, this.camera);
     });
   }
@@ -226,7 +334,7 @@ export class SceneManager {
 interface RawSnapshot {
   version: string;
   generatedAt: number;
-  world: CorpusSnapshot["world"];
+  world: CorpusSnapshot["world"] & { palette?: Palette };
   sectors: CorpusSnapshot["sectors"];
   entities: Record<string, DescriptorShape>;
 }

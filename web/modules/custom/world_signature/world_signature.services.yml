@@ -46,8 +46,10 @@ services:
 
   # Snapshot publisher — assembles a corpus snapshot the renderer
   # consumes. Pulls all descriptors from the gateway, lays out
-  # sectors on a deterministic circle.
+  # sectors on a deterministic circle, merges in world.palette
+  # config so the renderer can theme materials/lights/fog.
   world_signature.snapshot_publisher:
     class: Drupal\world_signature\Service\SnapshotPublisher
     arguments:
       - '@world_signature.world_search_client'
+      - '@config.factory'

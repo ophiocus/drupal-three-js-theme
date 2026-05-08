@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Drupal\world_signature\Service;
 
+use Drupal\Core\Config\ConfigFactoryInterface;
+
 /**
  * Assembles a corpus snapshot the renderer consumes.
  *
@@ -42,6 +44,7 @@ final class SnapshotPublisher {
 
   public function __construct(
     private readonly WorldSearchClient $client,
+    private readonly ConfigFactoryInterface $configFactory,
   ) {}
 
   /**
@@ -65,14 +68,58 @@ final class SnapshotPublisher {
       $entities[$id] = $d;
     }
 
+    $world = self::WORLD_CONSTANTS;
+    $world['palette'] = $this->loadPalette();
+
     return [
       'version' => 'v1',
       'generatedAt' => time(),
-      'world' => self::WORLD_CONSTANTS,
+      'world' => $world,
       'sectors' => $sectors,
       'entities' => $entities,
     ];
   }
+
+  /**
+   * Read world_signature.palette config; fall back to baked-in
+   * defaults so the renderer always gets a usable palette even
+   * before hook_update_10001 has run.
+   */
+  private function loadPalette(): array {
+    $config = $this->configFactory->get('world_signature.palette');
+    $palette = $config->getRawData() ?: [];
+    if ($palette === []) {
+      return self::FALLBACK_PALETTE;
+    }
+    // Don't trust partial overrides; merge against the fallback
+    // to guarantee every key the renderer expects is present.
+    return array_replace_recursive(self::FALLBACK_PALETTE, $palette);
+  }
+
+  private const array FALLBACK_PALETTE = [
+    'background' => '#d0dce6',
+    'fog' => ['color' => '#c8d8e0', 'near' => 80.0, 'far' => 500.0],
+    'ambient' => ['color' => '#e8efe9', 'intensity' => 0.85],
+    'sun' => [
+      'color' => '#fffae0',
+      'intensity' => 1.3,
+      'position' => [80.0, 120.0, 60.0],
+    ],
+    'fill' => [
+      'color' => '#a8c4dc',
+      'intensity' => 0.45,
+      'position' => [-80.0, 60.0, -60.0],
+    ],
+    'ground' => ['color' => '#c4dec4'],
+    'sectorPad' => ['color' => '#a4c498'],
+    'compassPost' => ['color' => '#a8b4c0'],
+    'bundleColors' => [
+      'article' => '#8eb887',
+      'profile' => '#92aabe',
+      'event' => '#d8d098',
+      'default' => '#a8b4b8',
+    ],
+  ];
 
   /**
    * Deterministic sector centroid layout: spread N sectors evenly on
