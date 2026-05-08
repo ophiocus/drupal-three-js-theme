@@ -13,7 +13,7 @@ import type { CorpusSnapshot, Entity, Vec3 } from "../types.js";
 import { entityPosition } from "../layout.js";
 import { hasHtmlInCanvas, type HtmlSurface } from "./HtmlSurface.js";
 import { SurfaceCache } from "./SurfaceCache.js";
-import { TriggerSystem, type CardRecord } from "./TriggerSystem.js";
+import { CardController, type CardRecord } from "./CardController.js";
 
 interface BootOptions {
   snapshotUrl: string;
@@ -80,7 +80,7 @@ export class SceneManager {
   private mode: Mode = "exploration";
   private readonly htmlSurfaces: HtmlSurface[] = [];
   private readonly surfaceCache = new SurfaceCache();
-  private triggers: TriggerSystem | null = null;
+  private cardController: CardController | null = null;
 
   constructor(private readonly canvas: HTMLCanvasElement) {
     this.renderer = new THREE.WebGLRenderer({
@@ -127,7 +127,12 @@ export class SceneManager {
     this.applyPaletteBackground();
     this.addLights();
     this.placeCamera(options.cameraPosition);
-    this.triggers = new TriggerSystem(this.canvas, this.camera);
+    this.cardController = new CardController({
+      canvas: this.canvas,
+      camera: this.camera,
+      surfaceCache: this.surfaceCache,
+      setMode: (m) => this.setMode(m),
+    });
     await this.placeEntities();
     this.startLoop();
     console.info(
@@ -324,18 +329,20 @@ export class SceneManager {
       // Trigger pad — small disc on the ground, click target.
       // Bundle-tinted so the user reads "this pad belongs to this
       // article/profile/event" before clicking.
-      const pad = TriggerSystem.makePad(this.bundleColor(entity.bundle));
+      const pad = CardController.makePad(this.bundleColor(entity.bundle));
       pad.position.set(pos.x, 0.1, pos.z + 7);
       pad.userData.entityId = entity.id;
       this.scene.add(pad);
 
-      this.triggers?.register({
+      this.cardController?.register({
         entityId: entity.id,
+        entityType,
+        numericId,
         pad,
         surface,
         homePosition: surface.mesh.position.clone(),
         homeScale: surface.mesh.scale.clone(),
-        bloomed: false,
+        state: "hidden",
       } satisfies CardRecord);
     } catch (err) {
       console.warn(`[world] HtmlSurface failed for ${entity.id} (${url}):`, err);

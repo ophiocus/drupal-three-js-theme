@@ -135,6 +135,43 @@ this project adheres to [Semantic Versioning](https://semver.org/).
   brief. Property-specific; future properties get their own
   SUBJECT.md.
 
+### Added (Sprint 5e — card runtime state machine)
+
+- **`src/world/runtime/CardController.ts`** — formal Hidden →
+  Bloomed → FullView state machine. Subsumes the old TriggerSystem
+  (raycaster + pad management); the bloom/collapse logic now lives
+  inside the state machine. Transitions:
+  - `Hidden → Bloomed`   pad click · hashchange `#card=<id>`
+  - `Bloomed → Hidden`   empty-space click · hash cleared · Esc
+  - `Bloomed → FullView` pad click while bloomed · hash `…&v=full`
+  - `FullView → Bloomed` close button · hash without `&v=full`
+  - `FullView → Hidden`  Esc from FullView
+  
+  Single-bloom / single-fullview invariants enforced. Empty-space
+  click during exploration collapses anything bloomed. Engine
+  pause (`renderer.setAnimationLoop(null)` via SceneManager.setMode)
+  triggers on FullView entry per ARCHITECTURE §4.3.
+- **`CardOverlay`** (private inner class) — the FullView DOM panel.
+  Fixed-position fullscreen scrim with backdrop-blur; centered
+  white article container with a × close button. Fetches the
+  `full` view-mode from `/world/card/<type>/<id>/full` (the same
+  cypher endpoint that serves the bloomed `default` view-mode,
+  but a fuller render). Inline styles are deliberate — the
+  overlay must work without theme CSS load order assumptions.
+- **URL coupling, client-side**:
+  - Bloomed:   `#card=<entityId>`
+  - FullView:  `#card=<entityId>&v=full`
+  - Empty:     no hash; world fully Hidden.
+  
+  `history.replaceState()` is used so browser-back doesn't accumulate
+  history per-bloom (per-FullView could move to `pushState` later).
+  External `hashchange` is honored — pasting a hashed URL drops the
+  user directly into the matching state.
+- **`SceneManager`** drops the `TriggerSystem` field, holds a
+  `cardController` instead, and passes `setMode` as a callback so
+  the state machine can pause the engine without a back-reference.
+- **TriggerSystem.ts deleted** — its function is fully absorbed.
+
 ### Added (Sprint 5d — surface cache)
 
 - **`src/world/runtime/SurfaceCache.ts`** — LRU + snapshot-version
