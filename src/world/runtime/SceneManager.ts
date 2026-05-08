@@ -11,11 +11,8 @@
 import * as THREE from "three";
 import type { CorpusSnapshot, Entity, Vec3 } from "../types.js";
 import { entityPosition } from "../layout.js";
-import {
-  createHtmlSurface,
-  hasHtmlInCanvas,
-  type HtmlSurface,
-} from "./HtmlSurface.js";
+import { hasHtmlInCanvas, type HtmlSurface } from "./HtmlSurface.js";
+import { SurfaceCache } from "./SurfaceCache.js";
 import { TriggerSystem, type CardRecord } from "./TriggerSystem.js";
 
 interface BootOptions {
@@ -82,6 +79,7 @@ export class SceneManager {
   private palette: Palette = DEFAULT_PALETTE;
   private mode: Mode = "exploration";
   private readonly htmlSurfaces: HtmlSurface[] = [];
+  private readonly surfaceCache = new SurfaceCache();
   private triggers: TriggerSystem | null = null;
 
   constructor(private readonly canvas: HTMLCanvasElement) {
@@ -122,6 +120,9 @@ export class SceneManager {
     const raw = (await response.json()) as RawSnapshot;
     this.snapshot = this.adaptSnapshot(raw);
     this.palette = (raw.world.palette as Palette) ?? DEFAULT_PALETTE;
+    // Cache invalidates atomically when the cypher publishes a new
+    // snapshot version. First-mount call is the initial set; no flush.
+    this.surfaceCache.setSnapshotVersion(raw.version);
 
     this.applyPaletteBackground();
     this.addLights();
@@ -300,7 +301,7 @@ export class SceneManager {
     const url = `/world/card/${entityType}/${numericId}/default`;
 
     try {
-      const surface = await createHtmlSurface({
+      const surface = await this.surfaceCache.acquire({
         url,
         widthPx: 600,
         heightPx: 400,
@@ -308,7 +309,6 @@ export class SceneManager {
         heightWorld: 12,
         transparent: true,
       });
-      await surface.refresh();
       // Quad floats above the cube and pushed outward from origin so
       // the orbit camera reads the front face. lookAt() here aims the
       // surface at world-center — Sprint 5e's vantage system replaces

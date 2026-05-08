@@ -135,6 +135,26 @@ this project adheres to [Semantic Versioning](https://semver.org/).
   brief. Property-specific; future properties get their own
   SUBJECT.md.
 
+### Added (Sprint 5d — surface cache)
+
+- **`src/world/runtime/SurfaceCache.ts`** — LRU + snapshot-version
+  cache wrapping `createHtmlSurface()`. Dual invalidation:
+  capacity (default 32 surfaces, evicts LRU with `dispose()` to
+  reclaim GPU memory) and snapshot version (cypher republishes →
+  cache flushes atomically). Concurrent acquires for the same URL
+  share one fetch (stampede control).
+- **`SceneManager`** now holds a `SurfaceCache`, calls
+  `setSnapshotVersion(raw.version)` on every mount, and the
+  per-entity `attachHtmlSurface()` flow goes through `acquire()`.
+  Same code path will serve Sprint 5e's FullView fetches without
+  duplicating work — the same entity's `default` and `full`
+  view-modes become two distinct cache entries.
+- **`test/surface-cache.test.ts`** — 7 tests locking the
+  semantics: cache hit, concurrent-de-dup, distinct URLs,
+  LRU eviction with disposal, snapshot-version flush,
+  first-set-no-flush, idempotent same-version. `createHtmlSurface`
+  is mocked at the module boundary; tests run without DOM.
+
 ### Added (Sprint 5c — trigger pads, click-to-bloom)
 
 - **`src/world/runtime/TriggerSystem.ts`** — per-entity activation
