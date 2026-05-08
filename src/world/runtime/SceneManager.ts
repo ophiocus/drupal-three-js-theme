@@ -11,6 +11,11 @@
 import * as THREE from "three";
 import type { CorpusSnapshot, Entity, Vec3 } from "../types.js";
 import { entityPosition } from "../layout.js";
+import {
+  createHtmlSurface,
+  hasHtmlInCanvas,
+  type HtmlSurface,
+} from "./HtmlSurface.js";
 
 interface BootOptions {
   snapshotUrl: string;
@@ -75,6 +80,7 @@ export class SceneManager {
   private snapshot: CorpusSnapshot | null = null;
   private palette: Palette = DEFAULT_PALETTE;
   private mode: Mode = "exploration";
+  private readonly htmlSurfaces: HtmlSurface[] = [];
 
   constructor(private readonly canvas: HTMLCanvasElement) {
     this.renderer = new THREE.WebGLRenderer({
@@ -118,11 +124,12 @@ export class SceneManager {
     this.applyPaletteBackground();
     this.addLights();
     this.placeCamera(options.cameraPosition);
-    this.placeEntities();
+    await this.placeEntities();
     this.startLoop();
     console.info(
       `[world] mounted: ${Object.keys(this.snapshot.entities).length} entities ` +
-        `across ${Object.keys(this.snapshot.sectors).length} sectors`,
+        `across ${Object.keys(this.snapshot.sectors).length} sectors, ` +
+        `html-surface path: ${hasHtmlInCanvas() ? "HIC (native)" : "html-to-image (bridge)"}`,
     );
   }
 
@@ -187,7 +194,7 @@ export class SceneManager {
     this.camera.lookAt(0, 0, 0);
   }
 
-  private placeEntities(): void {
+  private async placeEntities(): Promise<void> {
     if (!this.snapshot) return;
     const p = this.palette;
 
@@ -222,6 +229,7 @@ export class SceneManager {
     // reads at a distance during ALPHA. Sprint 5's SmartObject
     // base class replaces this with metaphor-specific geometry.
     const geometry = new THREE.BoxGeometry(12, 12, 12);
+    const surfacePromises: Promise<void>[] = [];
     for (const entity of Object.values(this.snapshot.entities)) {
       const pos = entityPosition(entity, this.snapshot);
       const material = new THREE.MeshStandardMaterial({
@@ -233,7 +241,15 @@ export class SceneManager {
       mesh.position.set(pos.x, 6, pos.z);
       mesh.userData.entityId = entity.id;
       this.scene.add(mesh);
+
+      // Sprint 5b: paint a Drupal-served HTML card on a quad next
+      // to each entity. The quad faces world-origin so the orbiting
+      // camera always catches a readable angle. Failures are logged
+      // but never block the scene — a missing surface degrades to
+      // "just the cube," matching the bridge philosophy.
+      surfacePromises.push(this.attachHtmlSurface(entity, pos));
     }
+    await Promise.allSettled(surfacePromises);
 
     // Sector centroid pads.
     const padGeo = new THREE.CircleGeometry(this.snapshot.world.radius * 0.25, 48);
@@ -253,6 +269,57 @@ export class SceneManager {
         `camera at (${this.camera.position.x.toFixed(0)},${this.camera.position.y.toFixed(0)},${this.camera.position.z.toFixed(0)}), ` +
         `palette: ${p.background}`,
     );
+  }
+
+  /**
+   * Sprint 5b: instantiate one HtmlSurface per entity, painted with
+   * the Drupal-served `default` view-mode of that entity. Positioned
+   * just above and slightly outward from its cube, oriented to face
+   * the world origin so the orbit always reveals it.
+   *
+   * Errors are caught and logged — a failed surface should never
+   * crater the whole world. The cube alone is still a valid
+   * placeholder representation.
+   */
+  private async attachHtmlSurface(
+    entity: Entity,
+    pos: { x: number; z: number },
+  ): Promise<void> {
+    // entity.id is shaped "node-1"; the cypher's card endpoint
+    // takes (entityType, id, viewMode) → /world/card/node/1/default.
+    const dashIdx = entity.id.indexOf("-");
+    if (dashIdx < 0) {
+      console.warn(`[world] skipping HtmlSurface for ${entity.id}: malformed id`);
+      return;
+    }
+    const entityType = entity.id.slice(0, dashIdx);
+    const numericId = entity.id.slice(dashIdx + 1);
+    const url = `/world/card/${entityType}/${numericId}/default`;
+
+    try {
+      const surface = await createHtmlSurface({
+        url,
+        widthPx: 600,
+        heightPx: 400,
+        widthWorld: 18,
+        heightWorld: 12,
+        transparent: true,
+      });
+      await surface.refresh();
+      // Quad floats above the cube and pushed outward from origin so
+      // the orbit camera reads the front face. lookAt() here aims the
+      // surface at world-center — Sprint 5e's vantage system replaces
+      // this with proper per-entity facing rules.
+      const dist = Math.sqrt(pos.x * pos.x + pos.z * pos.z) || 1;
+      const outX = pos.x + (pos.x / dist) * 12;
+      const outZ = pos.z + (pos.z / dist) * 12;
+      surface.mesh.position.set(outX, 14, outZ);
+      surface.mesh.lookAt(0, 14, 0);
+      this.scene.add(surface.mesh);
+      this.htmlSurfaces.push(surface);
+    } catch (err) {
+      console.warn(`[world] HtmlSurface failed for ${entity.id} (${url}):`, err);
+    }
   }
 
   private bundleColor(bundle: string): THREE.Color {

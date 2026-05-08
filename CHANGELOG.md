@@ -135,6 +135,44 @@ this project adheres to [Semantic Versioning](https://semver.org/).
   brief. Property-specific; future properties get their own
   SUBJECT.md.
 
+### Added (Sprint 5a + 5b — HTML surfaces, painted)
+
+- **`src/world/runtime/HtmlSurface.ts`** — abstract `HtmlSurface`
+  base, `createHtmlSurface()` factory with runtime capability
+  detection (`hasHtmlInCanvas()` checks
+  `'drawElementImage' in CanvasRenderingContext2D.prototype`),
+  shared `makeSurfaceMesh()` (PlaneGeometry + MeshBasicMaterial)
+  and `wrapHtmlFragment()` (minimal HTML envelope so Drupal-served
+  fragments serialize cleanly under html-to-image). Single API
+  the property side ever sees.
+- **`src/world/runtime/HtmlInCanvasSurface.ts`** — SOTA path,
+  Chromium 147+ behind `#canvas-draw-element`. Uses native
+  `ctx.drawElementImage(container)` against an offscreen
+  positioned-fixed container (`left:-10000px`). Dynamic-imported
+  by the factory only when the capability is present, so
+  non-supporting browsers never download it.
+- **`src/world/runtime/HtmlMeshSurface.ts`** — universal-browser
+  bridge via `html-to-image`'s `toCanvas()` (SVG-foreignObject
+  rasterisation). Lazy-loaded; `html-to-image` is never pulled in
+  on the HIC path. Same offscreen-container pattern; same
+  CanvasTexture output.
+- **`SceneManager.placeEntities()` now async**; for each entity
+  placed in the scene, calls `attachHtmlSurface()` which fetches
+  `/world/card/<entityType>/<id>/default` (Drupal's render of the
+  default view-mode), paints it onto a 18×12 world-unit quad,
+  and positions it floating just above and outward from the
+  entity's cube, oriented to face world-origin so the orbit
+  catches a readable angle. Failures are caught and logged —
+  a missing surface degrades gracefully to "just the cube." All
+  surface fetches in parallel via `Promise.allSettled()`.
+- **`html-to-image@^1.11.13`** added to `dependencies`.
+- Built bundle now produces three artefacts: `world.bundle.js`
+  (main), `HtmlInCanvasSurface-*.js` (SOTA chunk, lazy),
+  `HtmlMeshSurface-*.js` (bridge chunk, lazy). The thesis claim
+  "the world contains the document" is now mechanically visible —
+  the same Drupal HTML that powers the SEO outlet paints the
+  world's surfaces.
+
 ### Development tooling
 
 - **MongoDB MCP server registered at user level.** Each engineer
