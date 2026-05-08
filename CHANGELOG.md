@@ -96,6 +96,16 @@ this project adheres to [Semantic Versioning](https://semver.org/).
 - `docs/EDITORIAL.md` — editor-facing guide to the eight axes of
   content richness; per-content-type recipes; pre-publish
   checklist. Lands before any editor sees the model.
+- `docs/SUBJECT.md` — **`atlas_coffee` locked as the sandbox
+  property** (2026-05-08). Atmospheric Latin American coffee
+  culture, tuned for the medium-curious reader (discovery of the
+  *medium*, not of coffee). Editorial brief: 3 bundles
+  (article/profile/event), 2 vocabularies (region × method),
+  20–25 entity target for ALPHA fixtures. Visual vocabulary
+  recorded (palette, sector light shifts, trigger-pad shape, sound).
+  Sprint 4 onward: aesthetic decisions referenced against this
+  brief. Property-specific; future properties get their own
+  SUBJECT.md.
 
 ### Development tooling
 
