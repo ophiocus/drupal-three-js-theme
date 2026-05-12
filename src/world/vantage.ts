@@ -20,6 +20,7 @@ export function vantage(url: string, snapshot: CorpusSnapshot): Vantage {
       // across all sectors rather than straight down.
       return {
         kind: "front",
+        uri: "/",
         sectorId: null,
         position: { x: 0, y: w.overviewHeight, z: w.overviewHeight },
         lookAt: { x: 0, y: 0, z: 0 },
@@ -44,6 +45,7 @@ export function vantage(url: string, snapshot: CorpusSnapshot): Vantage {
       };
       return {
         kind: "section",
+        uri: `/sector/${parsed.termId}`,
         sectorId: parsed.termId,
         position: rim,
         lookAt: { x: sector.centroid.x, y: 0, z: sector.centroid.z },
@@ -70,6 +72,7 @@ export function vantage(url: string, snapshot: CorpusSnapshot): Vantage {
       const primarySector = entity.taxonomyTerms[0] ?? null;
       return {
         kind: "detail",
+        uri: `/node/${parsed.entityId}`,
         sectorId: primarySector,
         position: camera,
         lookAt: pos,
@@ -83,6 +86,7 @@ export function vantage(url: string, snapshot: CorpusSnapshot): Vantage {
       // relevant sectors rather than the whole world.
       return {
         kind: "listing",
+        uri: url,
         sectorId: null,
         position: {
           x: 0,
@@ -97,8 +101,10 @@ export function vantage(url: string, snapshot: CorpusSnapshot): Vantage {
     case "unknown": {
       // Fallback to overview rather than throwing; the world should
       // remain navigable even when a URL doesn't match a known shape.
+      // Report the front URI — the camera ends up there regardless.
       return {
         kind: "front",
+        uri: "/",
         sectorId: null,
         position: { x: 0, y: w.overviewHeight, z: w.overviewHeight },
         lookAt: { x: 0, y: 0, z: 0 },

@@ -76,6 +76,12 @@ export type VantageKind = "front" | "section" | "detail" | "listing";
 
 export interface Vantage {
   kind: VantageKind;
+  /**
+   * The URL this vantage is the inverse of. CameraController uses
+   * this when settling to write `history.replaceState` so the
+   * world→URL arrow of the coordinate diagram commutes.
+   */
+  uri: string;
   // null when the vantage is not "inside" any sector (front, listing).
   sectorId: string | null;
   position: Vec3;

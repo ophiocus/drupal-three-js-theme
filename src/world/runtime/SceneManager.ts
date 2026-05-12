@@ -15,6 +15,8 @@ import { hasHtmlInCanvas, type HtmlSurface } from "./HtmlSurface.js";
 import { SurfaceCache } from "./SurfaceCache.js";
 import { CardController, type CardRecord } from "./CardController.js";
 import { BiomeMixer } from "./BiomeMixer.js";
+import { CameraController } from "./CameraController.js";
+import { vantage } from "../vantage.js";
 
 interface BootOptions {
   snapshotUrl: string;
@@ -83,6 +85,7 @@ export class SceneManager {
   private readonly surfaceCache = new SurfaceCache();
   private cardController: CardController | null = null;
   private biomeMixer: BiomeMixer | null = null;
+  private cameraController: CameraController | null = null;
   private ambientLight: THREE.AmbientLight | null = null;
 
   constructor(private readonly canvas: HTMLCanvasElement) {
@@ -129,16 +132,28 @@ export class SceneManager {
 
     this.applyPaletteBackground();
     this.addLights();
-    this.placeCamera(options.cameraPosition);
+    // v0.1: CameraController owns motion. Seed from the URL's
+    // vantage; the ALPHA orbit is gone.
+    const snap = this.snapshot;
+    this.cameraController = new CameraController({
+      camera: this.camera,
+      getTargetVantageFromUrl: () => vantage(window.location.pathname, snap),
+      setUrlFromVantage: (v) => {
+        if (window.location.pathname !== v.uri) {
+          history.replaceState(null, "", v.uri);
+        }
+      },
+    });
     this.cardController = new CardController({
       canvas: this.canvas,
       camera: this.camera,
       surfaceCache: this.surfaceCache,
       setMode: (m) => this.setMode(m),
+      onBloomedMesh: (mesh) => this.cameraController?.setBloomedMesh(mesh),
     });
     // Sprint 6b: region biomes. Each sector contributes a tonal
     // overlay weighted by inverse-square distance from the camera's
-    // XZ. As the orbit cycles past sectors, the scene shifts tone.
+    // XZ. As the camera shifts position, the scene shifts tone.
     if (this.ambientLight) {
       this.biomeMixer = new BiomeMixer(
         Object.values(this.snapshot.sectors),
@@ -372,25 +387,19 @@ export class SceneManager {
   }
 
   private startLoop(): void {
-    // ALPHA-only gentle orbit — proof of liveness. Removed in
-    // Sprint 5 when proper Turbo-driven vantage transitions
-    // take over. Two-thirds-full revolution per minute.
-    const start = performance.now();
-    const radius = 130;
-    const yLevel = (this.snapshot?.world.overviewHeight ?? 200) * 0.45;
+    // v0.1: CameraController owns motion; loop just routes the
+    // per-frame dt to every controller that asks for it.
+    let lastTime = performance.now();
+    this.renderer.setAnimationLoop((time) => {
+      // Clamp the first-frame dt so a stale `lastTime` from a long
+      // setMode pause doesn't teleport the camera. 0.1s is the
+      // ceiling; anything longer is treated as a single 100ms step.
+      const dt = Math.min((time - lastTime) / 1000, 0.1);
+      lastTime = time;
 
-    this.renderer.setAnimationLoop(() => {
-      const t = (performance.now() - start) / 1000;
-      const angle = t * 0.07; // ~6° per second
-      this.camera.position.set(
-        Math.sin(angle) * radius,
-        yLevel,
-        Math.cos(angle) * radius,
-      );
-      this.camera.lookAt(0, 6, 0);
-      // Sprint 6b: spatial biome blend per frame. Cheap (O(sectors));
-      // each sector's biome contribution falls off as inverse-square
-      // distance, so closer sectors dominate sharply.
+      this.cameraController?.update(dt);
+      // Spatial biome blend after camera motion so the tonal shift
+      // reflects the latest position. Cheap (O(sectors)).
       this.biomeMixer?.update({
         x: this.camera.position.x,
         z: this.camera.position.z,

@@ -4,6 +4,54 @@ All notable changes to this project are recorded here. The format
 loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased] — v0.1 in progress
+
+### Added (v0.1 — CameraController)
+
+- **`src/world/runtime/CameraController.ts`** — closes the world→URL
+  arrow of the coordinate-system commutative diagram. Owns per-frame
+  camera motion: damps position + look-target toward the current
+  Vantage (read from the URL), detects when motion has settled,
+  writes the URL inverse via `history.replaceState`. Continuously
+  re-orients any bloomed surface mesh toward the camera (subsumed
+  from CardController's bloom-once behavior). Listens for
+  `hashchange`/`popstate`/`keydown` (Escape returns to overview;
+  Tab/number-keys stubbed for follow-up).
+- **`docs/v0.1/CAMERA_CONTROLLER.md`** — full spec including
+  rationale, interface, algorithm, input bindings, URL state model,
+  test list, integration notes, risk/open questions.
+- **`Vantage.uri` field** — every vantage now knows its URL inverse,
+  so settled vantages can deterministically write their address.
+  Existing 11 vantage tests still pass.
+- **`test/camera-controller.test.ts`** — 10 invariants under jsdom:
+  initial seeding, monotonic damp, convergence, settle gate,
+  no-rewrite on stable target, mid-flight target reset, bloomed-mesh
+  continuous facing, mesh decoupling on null, dispose cleanup.
+  Required jsdom devDep (~25 KB); per-file env directive keeps
+  other tests in fast node env.
+- **`SceneManager`** changes: drops the ALPHA orbit (50-line block).
+  Camera now seeded from URL via CameraController, moves only via
+  damped vantage targets. Loop becomes a `dt` router: camera updates,
+  biome updates, render.
+- **`CardController`** changes: adds `onBloomedMesh` callback option;
+  fires on bloom (mesh) and on collapse / fullView (null). The
+  per-bloom lookAt becomes initial-only; continuous facing moves
+  to CameraController.
+
+### Known v0.1 gap (tracked for v0.1.1)
+
+- **Drupal routes for `/sector/<termId>` and `/node/<id>`** as world
+  coordinate URLs. Currently only `/node/<id>` works (Drupal's
+  default node canonical); `/sector/<id>` 404s on direct load. The
+  CameraController writes these URLs to the bar via
+  `history.replaceState`, but full reload doesn't survive. v0.1.1
+  adds `WorldController::sector()` and binds the route in
+  `world_signature.routing.yml`.
+- **Idle drift / "world feels alive" demonstration.** Removing the
+  orbit means a freshly-loaded page is static until the user
+  navigates. v0.1.1 adds a slow drift around the current vantage
+  target when no input has arrived for >3 seconds.
+
 ## [Unreleased] — pre-v0.0.1 ALPHA
 
 ### Established (philosophy & architecture)

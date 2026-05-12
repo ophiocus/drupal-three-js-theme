@@ -30,7 +30,8 @@ You should see:
   has a small **green disc** (the trigger pad) in front of it.
 - **Twenty floating quads** above-and-behind each cube, each
   painted with the title and metadata of its article.
-- **Camera orbiting slowly** at about 6°/sec.
+- **Camera held at the overview vantage** (v0.1: CameraController
+  reads the URL and seeds the camera; the ALPHA orbit is gone).
 
 Watch the Console for two lines:
 
@@ -44,19 +45,31 @@ If you don't see the surfaces (just cubes), check Network for
 with HTML content. If you see *"HtmlSurface failed"* warnings,
 html-to-image choked on a fragment; report.
 
-## 0:15 — the orbit is the biome demo
+## 0:15 — biomes are a function of position
 
-Just watch for ~30 seconds. The orbit cycles past each sector
-centroid once every ~90 seconds. As it does, the **background
-tint, fog color, and ambient warmth shift** — Antigua's golden
-volcanic warmth blending into Cauca's clear Andean cool, into
-Boquete's cloud-forest blue-grey, into Sierra Madre's dusty
-earth, into Tarrazú's saturated green.
+In v0.0.1-alpha the camera orbited slowly past sectors, demonstrating
+biomes automatically. v0.1's CameraController takes ownership of
+camera motion and removed that scaffold; the camera now sits still
+until you navigate. The biome you see at `/` is a near-equal blend
+of all five regions (the camera is at the world's center looking
+down).
 
-The blend is *spatial, not temporal*: each sector contributes
+To see biomes shift, navigate. Try pasting these in succession:
+
+- `/sector/2` — drifts toward Antigua's golden volcanic warmth
+- `/sector/4` — into Boquete's cool blue-grey cloud forest
+- `/sector/6` — into Tarrazú's saturated green
+
+Each URL change triggers a damped camera transition (~250ms to
+90% convergence), and the biome blend follows continuously. The
+blend is *spatial, not temporal*: each sector contributes
 inverse-square-of-distance weight. There's no state machine, no
 timer — biome is a function of position, no different from
 gravity in a physics engine.
+
+(Note: as of v0.1.0, `/sector/<id>` URLs only work when entered
+via the URL bar after the initial page load. Drupal routes for
+sector/node deep-links are tracked for v0.1.1.)
 
 ## 1:30 — pick a card and bloom it
 
@@ -142,7 +155,7 @@ two of its longest arrows.
 ## 4:00 — what you've verified
 
 - ✓ 20-entity corpus across 5 sectors (Sprint 6a)
-- ✓ Five region biomes blend spatially as the camera orbits (Sprint 6b)
+- ✓ Five region biomes blend spatially as the camera moves (Sprint 6b)
 - ✓ HTML surfaces paint live Drupal-rendered articles on 3D quads
   (Sprint 5a+5b)
 - ✓ Trigger pads bloom cards in 3D space (Sprint 5c)
@@ -163,9 +176,9 @@ affordances, smooth bloom tweens).
 
 ## Known sharp edges for ALPHA
 
-1. **Bloomed surface faces the camera at bloom time only.**
-   As the orbit continues, the surface keeps its initial
-   orientation. v0.1 makes facing continuous.
+1. ~~**Bloomed surface faces the camera at bloom time only.**~~
+   Fixed in v0.1 — CameraController re-orients bloomed surfaces
+   each frame.
 2. **Camera position doesn't update the URL.** The URL→world
    direction commutes; the world→URL direction is half-built
    (only the card state machine syncs the hash, not the

@@ -55,6 +55,13 @@ interface ControllerOptions {
   camera: THREE.Camera;
   surfaceCache: SurfaceCache;
   setMode: ModeSetter;
+  /**
+   * Notify the host (CameraController) when a surface mesh enters
+   * or leaves the bloomed state. The CameraController uses this to
+   * keep the bloomed surface facing the camera each frame.
+   * Null = no surface bloomed.
+   */
+  onBloomedMesh?: (mesh: THREE.Object3D | null) => void;
   /** FullView fetches use this view-mode (e.g. "full"). */
   fullViewViewMode?: string;
 }
@@ -167,15 +174,21 @@ export class CardController {
     const offset = camDir.clone().multiplyScalar(-15);
     record.surface.mesh.position.copy(record.homePosition).add(offset);
     record.surface.mesh.scale.copy(record.homeScale).multiplyScalar(1.8);
+    // Initial facing — CameraController takes over from here, keeping
+    // the mesh oriented toward the camera continuously each frame.
     record.surface.mesh.lookAt(this.options.camera.position);
     this.bloomedRecord = record;
+    this.options.onBloomedMesh?.(record.surface.mesh);
   }
 
   private applyHidden(record: CardRecord): void {
     record.surface.mesh.position.copy(record.homePosition);
     record.surface.mesh.scale.copy(record.homeScale);
     record.surface.mesh.lookAt(0, record.homePosition.y, 0);
-    if (this.bloomedRecord === record) this.bloomedRecord = null;
+    if (this.bloomedRecord === record) {
+      this.bloomedRecord = null;
+      this.options.onBloomedMesh?.(null);
+    }
   }
 
   private async applyFullView(record: CardRecord): Promise<void> {
@@ -183,6 +196,13 @@ export class CardController {
     // contract is "world stops the moment the user enters reading."
     this.options.setMode("reading");
     this.fullViewRecord = record;
+    // The 3D surface mesh stays in the scene but recedes from
+    // attention; CameraController doesn't need to keep re-orienting
+    // it while the DOM overlay carries the content.
+    if (this.bloomedRecord === record) {
+      this.bloomedRecord = null;
+      this.options.onBloomedMesh?.(null);
+    }
     this.overlay.show("<p>Loading…</p>");
 
     try {
