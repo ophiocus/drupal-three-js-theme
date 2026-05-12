@@ -135,6 +135,59 @@ this project adheres to [Semantic Versioning](https://semver.org/).
   brief. Property-specific; future properties get their own
   SUBJECT.md.
 
+### Added (Sprint 6a — atlas_coffee fixtures)
+
+- **`scaffold/seed-atlas-coffee.php`** — idempotent fixture seeder.
+  Replaces the trout sentinel with 20 articles across 5 Latin
+  American coffee regions: Antigua (Guatemala), Cauca (Colombia),
+  Boquete (Panamá), Sierra Madre (México), Tarrazú (Costa Rica).
+  Four entities per region by design — gives biomes density to
+  blend against, makes overview-height views feel populated.
+- **Editorial voice locked to the SUBJECT brief.** Content is
+  *atmospheric* (medium-curious reader, not coffee enthusiast):
+  technique primers, producer profiles, harvest reports,
+  cooperative economics. Body length is 100–250 words per entity
+  so the FullView panel reads as a complete short article, not a
+  stub.
+- **Lean shape: all 20 entities are bundle=`article`.** Bundles
+  for `profile` and `event` were planned but the bundle-color
+  hint was always a stand-in for the deferred metaphor-specific
+  geometry; for ALPHA, region (taxonomy → sector) carries all
+  the navigation weight.
+- **`scaffold/inspect-corpus.php` + `inspect-snapshot.py`** —
+  development aids for verifying fixture state and snapshot shape.
+- **`scaffold/purge-orphans.php`** — sweeps RESTHeart for
+  descriptors whose Drupal entity no longer exists. Sprint 6
+  ran into one (the old trout descriptor); the script formalizes
+  the cleanup so future fixture iterations don't accumulate
+  ghosts. Future scar: the `world_signature_entity_delete` hook
+  should make this unnecessary; investigate before v0.1.
+
+### Added (Sprint 6b — region biomes)
+
+- **`src/world/runtime/BiomeMixer.ts`** — spatial (not temporal)
+  biome blending. Each sector contributes a tonal overlay
+  (background, fog color/density, ambient color/intensity)
+  weighted by inverse-square distance from the camera's XZ.
+  As the orbit cycles past the 5 sector centroids (at radius
+  ~100 from origin), the scene shifts tone. Five biomes hardcoded
+  for ALPHA:
+  - Antigua — warm grey-green, golden ambient, slight haze (volcanic)
+  - Cauca — bright clear, cool fog, neutral ambient (Andean)
+  - Boquete — cool blue-grey, dimmer ambient (cloud forest)
+  - Sierra Madre — warm earth tones, dusty haze (Chiapas)
+  - Tarrazú — saturated greens, light fog, soft ambient (Costa Rica)
+  
+  Inverse-*square* (not linear) so closer sectors dominate sharply
+  — bare 1/d gave too uniform a blend at the orbit radius.
+- **`SceneManager`** wires the mixer into the animation loop;
+  per-frame work is O(sectors) and cheap. The orbit cycles past
+  all 5 sectors every ~90 seconds, demonstrating each biome.
+- v0.1 will move the hardcoded biome list into
+  `world_signature.palette` config so editors tune their world
+  without touching code. For ALPHA, hardcoded keeps the surface
+  small.
+
 ### Added (Sprint 5e — card runtime state machine)
 
 - **`src/world/runtime/CardController.ts`** — formal Hidden →

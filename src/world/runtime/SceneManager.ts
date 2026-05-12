@@ -14,6 +14,7 @@ import { entityPosition } from "../layout.js";
 import { hasHtmlInCanvas, type HtmlSurface } from "./HtmlSurface.js";
 import { SurfaceCache } from "./SurfaceCache.js";
 import { CardController, type CardRecord } from "./CardController.js";
+import { BiomeMixer } from "./BiomeMixer.js";
 
 interface BootOptions {
   snapshotUrl: string;
@@ -81,6 +82,8 @@ export class SceneManager {
   private readonly htmlSurfaces: HtmlSurface[] = [];
   private readonly surfaceCache = new SurfaceCache();
   private cardController: CardController | null = null;
+  private biomeMixer: BiomeMixer | null = null;
+  private ambientLight: THREE.AmbientLight | null = null;
 
   constructor(private readonly canvas: HTMLCanvasElement) {
     this.renderer = new THREE.WebGLRenderer({
@@ -133,6 +136,16 @@ export class SceneManager {
       surfaceCache: this.surfaceCache,
       setMode: (m) => this.setMode(m),
     });
+    // Sprint 6b: region biomes. Each sector contributes a tonal
+    // overlay weighted by inverse-square distance from the camera's
+    // XZ. As the orbit cycles past sectors, the scene shifts tone.
+    if (this.ambientLight) {
+      this.biomeMixer = new BiomeMixer(
+        Object.values(this.snapshot.sectors),
+        this.scene,
+        this.ambientLight,
+      );
+    }
     await this.placeEntities();
     this.startLoop();
     console.info(
@@ -172,6 +185,7 @@ export class SceneManager {
       p.ambient.intensity,
     );
     this.scene.add(ambient);
+    this.ambientLight = ambient;
 
     const sun = new THREE.DirectionalLight(
       new THREE.Color(p.sun.color),
@@ -374,6 +388,13 @@ export class SceneManager {
         Math.cos(angle) * radius,
       );
       this.camera.lookAt(0, 6, 0);
+      // Sprint 6b: spatial biome blend per frame. Cheap (O(sectors));
+      // each sector's biome contribution falls off as inverse-square
+      // distance, so closer sectors dominate sharply.
+      this.biomeMixer?.update({
+        x: this.camera.position.x,
+        z: this.camera.position.z,
+      });
       this.renderer.render(this.scene, this.camera);
     });
   }
