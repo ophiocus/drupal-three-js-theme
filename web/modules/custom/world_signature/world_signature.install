@@ -113,3 +113,33 @@ function world_signature_update_10003(): string {
     count($data['item_types'] ?? []),
   );
 }
+
+/**
+ * v0.1 — add per-sector biome overlays to world_signature.palette.
+ *
+ * BiomeMixer used to hardcode five tonal overlays; this hook moves
+ * them into config so editors can tune the world without touching
+ * the renderer. Idempotent: skips installs that already have a
+ * `biomes` key (assume the property has tuned it; don't overwrite).
+ */
+function world_signature_update_10004(): string {
+  $config = \Drupal::configFactory()->getEditable('world_signature.palette');
+  if (is_array($config->get('biomes')) && $config->get('biomes') !== []) {
+    return 'world_signature.palette already has biomes; preserving existing tuning.';
+  }
+
+  $module_path = \Drupal::service('extension.list.module')
+    ->getPath('world_signature');
+  $yaml_file = $module_path . '/config/install/world_signature.palette.yml';
+  $data = \Symfony\Component\Yaml\Yaml::parseFile($yaml_file);
+  $biomes = $data['biomes'] ?? [];
+  if ($biomes === []) {
+    return 'No biomes in shipped palette YAML; nothing to migrate.';
+  }
+
+  $config->set('biomes', $biomes)->save();
+  return sprintf(
+    'Added %d biome overlays to world_signature.palette.',
+    count($biomes),
+  );
+}

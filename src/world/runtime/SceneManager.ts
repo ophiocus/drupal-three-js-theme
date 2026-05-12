@@ -14,7 +14,7 @@ import { entityPosition } from "../layout.js";
 import { hasHtmlInCanvas, type HtmlSurface } from "./HtmlSurface.js";
 import { SurfaceCache } from "./SurfaceCache.js";
 import { CardController, type CardRecord } from "./CardController.js";
-import { BiomeMixer } from "./BiomeMixer.js";
+import { BiomeMixer, type BiomePaletteEntry } from "./BiomeMixer.js";
 import { CameraController } from "./CameraController.js";
 import { vantage } from "../vantage.js";
 
@@ -47,6 +47,8 @@ interface Palette {
   sectorPad: { color: string };
   compassPost: { color: string };
   bundleColors: Record<string, string>;
+  /** Per-sector biome overlays. Empty array = global palette unchanged. */
+  biomes?: BiomePaletteEntry[];
 }
 
 /** Hardcoded fallback if a snapshot lands without a palette key. */
@@ -154,9 +156,12 @@ export class SceneManager {
     // Sprint 6b: region biomes. Each sector contributes a tonal
     // overlay weighted by inverse-square distance from the camera's
     // XZ. As the camera shifts position, the scene shifts tone.
+    // v0.1: biome list comes from world_signature.palette.biomes
+    // config; editors tune the world tonally without touching code.
     if (this.ambientLight) {
       this.biomeMixer = new BiomeMixer(
         Object.values(this.snapshot.sectors),
+        this.palette.biomes ?? [],
         this.scene,
         this.ambientLight,
       );

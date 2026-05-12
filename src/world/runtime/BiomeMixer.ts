@@ -28,56 +28,17 @@ export interface Biome {
   ambientIntensity: number;
 }
 
-const BIOMES_BY_INDEX: Biome[] = [
-  // Sector 0 / Antigua — volcanic Central America. Warm grey-green,
-  // golden ambient, slight haze.
-  {
-    background: "#cad6c2",
-    fogColor: "#c8d2c2",
-    fogNear: 80,
-    fogFar: 480,
-    ambientColor: "#f0e8c8",
-    ambientIntensity: 0.95,
-  },
-  // Sector 1 / Cauca — high Colombian Andes. Bright, clear, cool.
-  {
-    background: "#d8dfe6",
-    fogColor: "#cdd6e0",
-    fogNear: 100,
-    fogFar: 520,
-    ambientColor: "#e8eef4",
-    ambientIntensity: 0.85,
-  },
-  // Sector 2 / Boquete — Panamanian cloud forest. Cool blue-grey,
-  // dimmer ambient (the forest filters the light).
-  {
-    background: "#c4cfd6",
-    fogColor: "#b8c4cc",
-    fogNear: 60,
-    fogFar: 420,
-    ambientColor: "#d8e0e6",
-    ambientIntensity: 0.70,
-  },
-  // Sector 3 / Sierra Madre — Chiapas. Warm earth tones, dusty haze.
-  {
-    background: "#d4ccba",
-    fogColor: "#ccc2b0",
-    fogNear: 80,
-    fogFar: 480,
-    ambientColor: "#f4e8c8",
-    ambientIntensity: 0.90,
-  },
-  // Sector 4 / Tarrazú — Costa Rica. Saturated greens, light fog,
-  // soft ambient.
-  {
-    background: "#c6d6c4",
-    fogColor: "#bccdba",
-    fogNear: 90,
-    fogFar: 500,
-    ambientColor: "#e0e8d8",
-    ambientIntensity: 0.88,
-  },
-];
+/**
+ * Snapshot-shaped biome — the JSON arrives in this form from the
+ * cypher (`world_signature.palette.biomes` → snapshot). The
+ * BiomeMixer flattens it to the runtime `Biome` shape on intake.
+ */
+export interface BiomePaletteEntry {
+  label?: string;
+  background: string;
+  fog: { color: string; near: number; far: number };
+  ambient: { color: string; intensity: number };
+}
 
 const DEFAULT_BIOME: Biome = {
   background: "#d0dce6",
@@ -87,6 +48,17 @@ const DEFAULT_BIOME: Biome = {
   ambientColor: "#e8efe9",
   ambientIntensity: 0.85,
 };
+
+function fromPaletteEntry(entry: BiomePaletteEntry): Biome {
+  return {
+    background: entry.background,
+    fogColor: entry.fog.color,
+    fogNear: entry.fog.near,
+    fogFar: entry.fog.far,
+    ambientColor: entry.ambient.color,
+    ambientIntensity: entry.ambient.intensity,
+  };
+}
 
 interface SectorBinding {
   sector: Sector;
@@ -101,6 +73,7 @@ export class BiomeMixer {
 
   constructor(
     sectors: Sector[],
+    biomeEntries: BiomePaletteEntry[],
     private readonly scene: THREE.Scene,
     private readonly ambient: THREE.AmbientLight,
   ) {
@@ -111,10 +84,17 @@ export class BiomeMixer {
       const bn = Number(b.termId);
       return an - bn;
     });
+    // No biome entries in config = no biome blending; every sector
+    // gets the default biome and the result is the global palette
+    // unchanged. The mixer still runs (cheap), it just doesn't do
+    // anything visible.
+    const biomes = biomeEntries.length > 0
+      ? biomeEntries.map(fromPaletteEntry)
+      : [DEFAULT_BIOME];
     sorted.forEach((sector, i) => {
       this.bindings.push({
         sector,
-        biome: BIOMES_BY_INDEX[i % BIOMES_BY_INDEX.length],
+        biome: biomes[i % biomes.length],
       });
     });
   }

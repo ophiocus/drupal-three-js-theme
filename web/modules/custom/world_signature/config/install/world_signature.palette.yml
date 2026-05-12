@@ -43,3 +43,55 @@ bundleColors:
   profile: '#92aabe'
   event: '#d8d098'
   default: '#a8b4b8'
+# Per-sector biome overlays. Each entry binds to one sector in
+# termId-ascending order. atlas_coffee's five regions get a tonal
+# palette evoking the place — volcanic Central American warmth,
+# Andean clarity, cloud-forest cool, Chiapas dust, Costa Rican
+# saturation. Properties override this entire sequence per their
+# editorial subject.
+biomes:
+  - label: 'Volcanic Central America (Antigua-like)'
+    background: '#cad6c2'
+    fog:
+      color: '#c8d2c2'
+      near: 80
+      far: 480
+    ambient:
+      color: '#f0e8c8'
+      intensity: 0.95
+  - label: 'High Andes (Cauca-like)'
+    background: '#d8dfe6'
+    fog:
+      color: '#cdd6e0'
+      near: 100
+      far: 520
+    ambient:
+      color: '#e8eef4'
+      intensity: 0.85
+  - label: 'Cloud forest (Boquete-like)'
+    background: '#c4cfd6'
+    fog:
+      color: '#b8c4cc'
+      near: 60
+      far: 420
+    ambient:
+      color: '#d8e0e6'
+      intensity: 0.70
+  - label: 'Mountain dust (Sierra Madre-like)'
+    background: '#d4ccba'
+    fog:
+      color: '#ccc2b0'
+      near: 80
+      far: 480
+    ambient:
+      color: '#f4e8c8'
+      intensity: 0.90
+  - label: 'Saturated green (Tarrazú-like)'
+    background: '#c6d6c4'
+    fog:
+      color: '#bccdba'
+      near: 90
+      far: 500
+    ambient:
+      color: '#e0e8d8'
+      intensity: 0.88

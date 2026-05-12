@@ -119,6 +119,43 @@ final class SnapshotPublisher {
       'event' => '#d8d098',
       'default' => '#a8b4b8',
     ],
+    // Per-sector biome overlays — see config/install/world_signature.palette.yml
+    // for the canonical defaults. The renderer assigns biomes to
+    // sectors in termId-ascending order, blending by inverse-square
+    // distance. Empty array = renderer falls back to the global
+    // palette unchanged (no biome blending).
+    'biomes' => [
+      [
+        'label' => 'Volcanic Central America',
+        'background' => '#cad6c2',
+        'fog' => ['color' => '#c8d2c2', 'near' => 80.0, 'far' => 480.0],
+        'ambient' => ['color' => '#f0e8c8', 'intensity' => 0.95],
+      ],
+      [
+        'label' => 'High Andes',
+        'background' => '#d8dfe6',
+        'fog' => ['color' => '#cdd6e0', 'near' => 100.0, 'far' => 520.0],
+        'ambient' => ['color' => '#e8eef4', 'intensity' => 0.85],
+      ],
+      [
+        'label' => 'Cloud forest',
+        'background' => '#c4cfd6',
+        'fog' => ['color' => '#b8c4cc', 'near' => 60.0, 'far' => 420.0],
+        'ambient' => ['color' => '#d8e0e6', 'intensity' => 0.70],
+      ],
+      [
+        'label' => 'Mountain dust',
+        'background' => '#d4ccba',
+        'fog' => ['color' => '#ccc2b0', 'near' => 80.0, 'far' => 480.0],
+        'ambient' => ['color' => '#f4e8c8', 'intensity' => 0.90],
+      ],
+      [
+        'label' => 'Saturated green',
+        'background' => '#c6d6c4',
+        'fog' => ['color' => '#bccdba', 'near' => 90.0, 'far' => 500.0],
+        'ambient' => ['color' => '#e0e8d8', 'intensity' => 0.88],
+      ],
+    ],
   ];
 
   /**

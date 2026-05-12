@@ -164,3 +164,38 @@ world_signature.palette:
         default:
           type: string
           label: 'Fallback colour for any bundle without a specific entry'
+    biomes:
+      type: sequence
+      label: 'Per-sector biome overlays. The renderer assigns one biome to each sector in termId-ascending order, blending them by inverse-square distance from camera XZ. Add more entries than sectors and the extras are ignored; fewer and the sectors past the end fall back to the global palette.'
+      sequence:
+        type: mapping
+        mapping:
+          label:
+            type: label
+            label: 'Human-readable biome name (editorial; not used by the renderer)'
+          background:
+            type: string
+            label: 'Biome background tint (CSS hex)'
+          fog:
+            type: mapping
+            label: 'Biome fog'
+            mapping:
+              color:
+                type: string
+                label: 'Fog colour'
+              near:
+                type: float
+                label: 'Fog near distance'
+              far:
+                type: float
+                label: 'Fog far distance'
+          ambient:
+            type: mapping
+            label: 'Biome ambient light'
+            mapping:
+              color:
+                type: string
+                label: 'Ambient colour'
+              intensity:
+                type: float
+                label: 'Ambient intensity'

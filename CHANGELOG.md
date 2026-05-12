@@ -6,6 +6,30 @@ this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased] — v0.1 in progress
 
+### Added (v0.1 — biome palette → config)
+
+- **`world_signature.palette.biomes`** is now a config sequence;
+  editors override the tonal map of the world by editing config
+  via Features/config_sync. Each entry is a `{ label, background,
+  fog{color,near,far}, ambient{color,intensity} }` mapping.
+- **`world_signature.schema.yml`** extended with the `biomes`
+  sequence schema; Drupal validates the config on save.
+- **`config/install/world_signature.palette.yml`** ships the
+  5 atlas_coffee biomes as defaults — Volcanic Central America,
+  High Andes, Cloud Forest, Mountain Dust, Saturated Green.
+- **`hook_update_10004`** migrates existing installs: adds the
+  biome sequence to `world_signature.palette` from the shipped
+  YAML. Idempotent — installs that already have a `biomes` key
+  (a property tuned its world) are left alone.
+- **`SnapshotPublisher::FALLBACK_PALETTE`** also gains the biome
+  defaults, so a fresh module install before the update hook runs
+  still produces a usable biome list in the snapshot.
+- **`BiomeMixer`** now takes biomes as a constructor argument
+  (`BiomePaletteEntry[]`) instead of a hardcoded `BIOMES_BY_INDEX`
+  array. An empty list means no blending — the global palette
+  applies unchanged. Sector→biome assignment still walks sectors
+  in termId-ascending order and wraps if fewer biomes than sectors.
+
 ### Added (v0.1 — CameraController)
 
 - **`src/world/runtime/CameraController.ts`** — closes the world→URL
