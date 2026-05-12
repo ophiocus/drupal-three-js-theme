@@ -25,40 +25,67 @@ menus, Commerce, GTM — three.js is the presentation layer.
 - Licensing/ownership: may end up MIT-licensed and shared, while the
   platform repo stays private to client work.
 
-## Status
+## Status — `v0.0.1-alpha`
 
-Past greenfield. The project's philosophy and architectural commitments
-are now documented:
+ALPHA shipped 2026-05-11. The thesis claim that *the world contains
+the document* is mechanically real: the same Drupal-rendered HTML
+that serves SEO and accessibility also paints the world's 3D
+surfaces. 20-entity corpus (atlas_coffee subject), 5 regions /
+sectors, 5 spatial biomes. URLs round-trip into the world's state.
+
+**[docs/WALKTHROUGH.md](docs/WALKTHROUGH.md)** — a 4-minute
+reproducible script for a first-time visit. Start there.
+
+Architectural commitments:
 
 - **[THESIS.md](THESIS.md)** — *Site as World*: the philosophical
   thesis. A site is a place; URIs are coordinates; geography is a
   function of the corpus.
 - **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** — normative
-  architecture. Establishes the two-side spine (PHP cypher + JS
-  renderer), the descriptor contract, and the rule that **every 3D
-  theme under this thesis MUST require the `world_signature` module.**
-- **[docs/PROTOCOL.md](docs/PROTOCOL.md)** — development and
-  prototyping protocol. Repo shape, test split, decision log, sandbox
-  workflow.
+  architecture. Two-side spine (PHP cypher + JS renderer), descriptor
+  contract, the rule that **every 3D theme under this thesis MUST
+  require the `world_signature` module**.
+- **[docs/PROTOCOL.md](docs/PROTOCOL.md)** — development protocol,
+  decision log, DDEV-only working principle.
+- **[docs/HTML_SURFACES.md](docs/HTML_SURFACES.md)** — the engine
+  differentiator: Drupal HTML painted as 3D textures via
+  capability-detected HIC (Chromium 147+) or html-to-image bridge.
+- **[docs/SUBJECT.md](docs/SUBJECT.md)** — atlas_coffee subject lock.
+- **[docs/EDITORIAL.md](docs/EDITORIAL.md)** — eight-axis editorial
+  richness model.
 
-What exists in code:
+What's in the ALPHA:
 
-- The renderer-side spine (`src/world/`): pure-TS `vantage(url, snapshot)`
-  with seven invariant tests (`test/vantage.test.ts`, all green).
+- PHP cypher (`world_signature`): entity hooks → AdvancedQueue →
+  signature extraction → descriptor upsert to RESTHeart gateway →
+  snapshot endpoint. 14 PHP unit tests green.
+- TypeScript renderer (`src/world/`): pure `vantage()` with seven
+  invariants, `entityPosition()` deterministic placement, scene
+  manager, HTML-surface abstraction (HIC + html-to-image, capability
+  detected), surface cache (LRU + snapshot-version), card runtime
+  state machine (Hidden→Bloomed→FullView), DOM overlay, engine
+  pause on FullView, URL hash coupling, spatial biome blend. 18 JS
+  unit tests green.
+- Olivero child theme — canvas + descriptor outlet, world bundle
+  loaded as ES module.
+- 20-entity atlas_coffee fixture corpus across 5 regions.
 
-What's next, in rough order:
+What v0.1 unlocks (in rough order):
 
-1. Scaffold the `world_signature` module — the metaphor cypher.
-   `Signature` value object, `EntityFactsReader` interface, pure
-   `SignatureExtractor::extract()`, unit tests covering the seven PHP
-   invariants.
-2. Wire entity hooks + `drupal/advancedqueue` worker; kernel-test the
-   pipeline end to end.
-3. Snapshot publisher (drush command) emitting the corpus JSON the
-   renderer already knows how to consume.
-4. Olivero child theme skeleton (`theme/`) with `page.html.twig`
-   override that emits the canvas + descriptor outlet.
-5. Turbo wiring + scene reconciler on the renderer side.
+1. Move BiomeMixer's hardcoded biome list into
+   `world_signature.palette` config so editors tune their world
+   without touching code.
+2. SmartObject base class — per-bundle metaphor geometry replacing
+   the cube-as-stand-in. Profile and event bundles become real.
+3. Continuous facing while bloomed (currently faces camera at bloom
+   moment only).
+4. Camera → URL hash sync (the other half of the coordinate-system
+   commutation; currently URL→world commutes but world→URL only
+   partially).
+5. DOM-overlay component tests via jsdom (CardController, CardOverlay,
+   BiomeMixer currently rely on manual walkthrough verification).
+6. Investigate why `world_signature_entity_delete` doesn't always
+   clean RESTHeart; retire `scaffold/purge-orphans.php` once fixed.
 
 ## Relationship to webrunners
 
