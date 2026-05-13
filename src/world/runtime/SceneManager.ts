@@ -20,6 +20,7 @@ import { PointerNavigator } from "./PointerNavigator.js";
 import { SmartObject, type FrameContext } from "./smart-objects/SmartObject.js";
 import { SmartObjectRegistry } from "./smart-objects/Builder.js";
 import { FallbackBuilder } from "./smart-objects/builders/FallbackBuilder.js";
+import { ArticleBuilder } from "./smart-objects/builders/ArticleBuilder.js";
 import { vantage } from "../vantage.js";
 
 interface BootOptions {
@@ -89,7 +90,13 @@ export class SceneManager {
   private mode: Mode = "exploration";
   private readonly htmlSurfaces: HtmlSurface[] = [];
   private readonly surfaceCache = new SurfaceCache();
-  private readonly registry = new SmartObjectRegistry(new FallbackBuilder());
+  private readonly registry = (() => {
+    const reg = new SmartObjectRegistry(new FallbackBuilder());
+    // v0.1.2b: ArticleBuilder handles `bundle === "article"` —
+    // produces a cube whose side is modulated by word count.
+    reg.register(new ArticleBuilder());
+    return reg;
+  })();
   private readonly smartObjects = new Map<string, SmartObject>();
   private cardController: CardController | null = null;
   private biomeMixer: BiomeMixer | null = null;

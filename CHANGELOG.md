@@ -6,6 +6,39 @@ this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased] — v0.1 in progress
 
+### Added (v0.1.2b — ArticleBuilder, word-count → cube side)
+
+First visible signature → geometry mapping. The cube stays cubic
+(uniform on all axes, per D2 = "universal manner"); only its
+side length is modulated by the descriptor's
+`signature.structural.wordCount`.
+
+- **`smart-objects/builders/ArticleBuilder.ts`** — matches
+  `bundle === "article"`. Cube side = `wordCountToSide(words)`,
+  a log-scale function clamped to `[4, 20]` world units. Pad
+  and HTML surface offsets scale with the cube so they stay
+  proportionally placed.
+- **Anchors**: 1 word → 4 units, 100 words → 12 (matches the
+  current fallback size), 10,000 words → 20. Log scale so a
+  1-word entity isn't a microcube and a 10,000-word entity
+  isn't a megacube.
+- **`wordCountToSide`** is exported so future builders (Profile,
+  Event) can apply the same function to their analogue measurement.
+  Universal mapping in the editorial sense: any "how much content"
+  signal lands on the same scale.
+- **6 invariant tests** in `test/article-builder.test.ts`:
+  monotonic, bounded `[4,20]`, three anchor values, no-NaN on
+  zero/negative inputs. 38 tests total green.
+- **SceneManager** registers ArticleBuilder before FallbackBuilder
+  — articles get the modulated cube; anything else (none today,
+  but profiles + events later) falls through to the fallback's
+  plain 12-unit cube.
+
+Visible result: the trout-replacement coffee corpus now shows
+varied-size cubes — Camilo Restrepo's 200-word profile is a small
+cube; the 250-word honey-process technique primer is a large one.
+The signature isn't just data any more; it's geometry.
+
 ### Added (v0.1.2a — SmartObject abstraction)
 
 The renderer's entity layer becomes composable. Replaces the
