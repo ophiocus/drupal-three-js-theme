@@ -221,6 +221,226 @@ A simple sanity query: list collections in
 `drupal_three_js_theme_world` — should return `[]` until Sprint
 3b-2 writes the first descriptor.
 
+## 4c. Asset MCP servers — Sketchfab + Blender
+
+Once `v0.1.3` lands its `ProfileBuilder` (per
+`docs/v0.1/SMART_OBJECTS.md`), the renderer needs real 3D assets
+— rigged figures, idle animations, props. Two MCP servers give
+agents working on this project the ability to source and
+manipulate those assets without leaving the chat.
+
+Both are **optional**: every Builder degrades to a primitive
+when its required asset is missing (per
+`FallbackBuilder.matches()` and the `try/catch` guards inside
+each specific Builder). An engineer not running these MCPs sees
+the cube fallback for any glb-dependent entity; nothing breaks.
+
+### 4c.1 Sketchfab MCP — asset discovery + download
+
+Searches and downloads free 3D models from Sketchfab. The
+matching pattern for our use: rigged low-poly characters under
+CC0 or CC-BY licenses, exported as `.glb`.
+
+#### What it gives us
+
+- Search Sketchfab's catalog by keyword + license filter + format.
+- Read model metadata (polycount, animation count, license,
+  attribution required y/n).
+- Download in `gltf` / `glb` / `usdz` / source format.
+
+For the project this collapses asset sourcing from "open browser,
+search, download, unzip, find the glb, copy to theme assets" to
+a single agent call.
+
+#### Configuration (per-engineer, one-time)
+
+1. **Get a Sketchfab API token.** Free account at
+   [sketchfab.com](https://sketchfab.com); profile → settings →
+   *Password & API* → copy the token. The token grants the same
+   read/download permissions the logged-in user has — keep it
+   private.
+2. **Add to `~/.claude.json`** (user-level, not committed):
+
+   ```json
+   {
+     "mcpServers": {
+       "Sketchfab": {
+         "command": "npx",
+         "args": ["-y", "@gregkop/sketchfab-mcp-server"],
+         "env": {
+           "SKETCHFAB_API_TOKEN": "<your-token>"
+         }
+       }
+     }
+   }
+   ```
+
+3. **Restart Claude Code** so the server registers.
+
+The Windows-host `~/.claude.json` is the one Claude Code reads;
+if you're working through WSL, follow the host-side merge pattern
+documented in the founding-session battle scars (jq merge of the
+`mcpServers` block) rather than maintaining two configs.
+
+#### Usage patterns
+
+| Want | Agent does |
+|---|---|
+| A stylized humanoid figure | `mcp__Sketchfab__search` with `q="low-poly character"`, `license=cc0`, `format=glb`, `animated=true` |
+| Inspect a candidate before downloading | `mcp__Sketchfab__get_model` with the model UID |
+| Download to project | `mcp__Sketchfab__download_model` to `web/themes/custom/drupal_threejs/assets/models/<slug>.glb` |
+
+**License hygiene** — when a CC-BY asset lands in the project,
+the attribution string (author + URL + license) must be
+recorded in `docs/ASSET_ATTRIBUTIONS.md` (created the first time
+a CC-BY asset arrives). CC0 assets need no attribution but are
+worth recording anyway for provenance. The Sketchfab MCP returns
+the attribution block per asset; agents are expected to append
+it on download.
+
+#### Boundaries
+
+- **Free / open-license only.** Don't download anything under
+  Sketchfab's "Editorial" or "Standard" commercial licenses for
+  use in the project; the matching `license=cc0|cc-by|cc-by-sa`
+  filter is non-negotiable for shipped assets.
+- **Read-only operations only.** The server supports search and
+  download; do not enable the upload-side of Sketchfab's API
+  from this MCP.
+- **API rate limits.** Sketchfab's free tier rate-limits search
+  to ~60/minute. Don't sweep the catalog in a tight loop.
+
+### 4c.2 Blender MCP — modeling + asset transformation
+
+When Sketchfab doesn't have what we need (or what's there needs
+re-rigging, re-scaling, animation re-targeting, or stylization
+to match the world's aesthetic), Blender MCP lets an agent
+drive Blender directly: create scenes, modify objects, run
+Python, export glb.
+
+#### What it gives us
+
+- Scene inspection (current objects, materials, modifiers).
+- Object create / modify / delete + parameter control.
+- Arbitrary Python execution inside Blender (the escape hatch).
+- Pull from **Poly Haven** (CC0) and **Sketchfab** (forwarded
+  through Blender MCP's own Sketchfab integration).
+- AI-generated geometry via **Hyper3D / Hunyuan3D** text-to-3D
+  (useful for v0.2+ generative Chatvatar work).
+- Export the active scene or selection as `.glb` / `.gltf` /
+  `.fbx` / `.obj`.
+
+Blender MCP is heavier than Sketchfab MCP — it talks to a
+running Blender instance via a Blender addon — but its scope
+covers the whole pipeline from blank scene to project-ready glb.
+
+#### Configuration (per-engineer, one-time)
+
+1. **Install Blender** (4.0+ recommended).
+   - Windows: [blender.org/download](https://www.blender.org/download/).
+   - WSL: Blender is GUI-heavy; run it on the Windows host even
+     if your project files live in WSL. Save exported glbs into
+     the WSL-mounted project path.
+2. **Install the Blender addon.** Clone
+   [ahujasid/blender-mcp](https://github.com/ahujasid/blender-mcp),
+   open Blender → *Edit → Preferences → Add-ons → Install* and
+   point it at the repo's `addon.py`. Enable the addon. The
+   addon shows a panel in the 3D viewport's N-side; click
+   *Start MCP Server* to open the listener (default port 9876).
+3. **Add the MCP server to `~/.claude.json`:**
+
+   ```json
+   {
+     "mcpServers": {
+       "Blender": {
+         "command": "uvx",
+         "args": ["blender-mcp"]
+       }
+     }
+   }
+   ```
+
+   The server is a Python tool installed via `uv` / `uvx`; if
+   `uv` isn't on PATH, install it with
+   `curl -LsSf https://astral.sh/uv/install.sh | sh` (per
+   astral.sh) then re-run.
+4. **Restart Claude Code.** Blender must be running with the
+   addon's MCP server started *before* an agent reaches for
+   `mcp__Blender__*` tools; otherwise the calls fail with a
+   connection-refused error.
+
+#### Usage patterns
+
+| Want | Agent does |
+|---|---|
+| A Poly Haven HDRI for environment lighting | `mcp__Blender__poly_haven_search` + `download_asset` |
+| Stylize a Sketchfab figure to match the world | search via Sketchfab MCP, download via Sketchfab MCP, *open in Blender* via Blender MCP, run a Python script to recolor/decimate/re-rig, *export glb* |
+| Generate a chair "looking like Antigua coffee shop" | `mcp__Blender__hyper3d_generate` with the prompt |
+| Recompute UVs or bake a procedural material | `mcp__Blender__execute_python` with the recipe |
+
+#### Boundaries
+
+- **Local Blender instance only.** No agent should `apt install`
+  Blender into the DDEV web container — Blender is a
+  developer-tool, not a runtime dependency. Per the DDEV-only
+  working principle (§1), Blender is an exception: it lives on
+  the host because it's authoring software, not application code.
+- **Generated content gets license-tagged.** Hyper3D / Hunyuan3D
+  generations are CC0 by default; record the prompt and seed in
+  `docs/ASSET_ATTRIBUTIONS.md` so the provenance is reproducible.
+- **Python execution is wide-open.** The
+  `mcp__Blender__execute_python` tool runs arbitrary Python
+  inside Blender. Don't paste Python that touches the filesystem
+  outside the project's `web/themes/custom/drupal_threejs/assets/`
+  tree without a clear reason.
+
+### 4c.3 When to use which (and when to use neither)
+
+Decision tree at the point of needing an asset:
+
+1. **Is it already in `web/themes/custom/drupal_threejs/assets/`?**
+   Use it.
+2. **Is there a known CC0 source** (Quaternius, Kenney.nl, Poly
+   Haven, three.js examples)? Fetch by curl, drop into assets/.
+   Fastest path; no MCP setup needed.
+3. **Does Sketchfab have a near-fit under CC0 or CC-BY?**
+   Sketchfab MCP, search + download, record attribution.
+4. **Does the asset need shape/material modification to fit
+   the world's aesthetic?** Sketchfab → Blender MCP for the
+   modification step → export glb.
+5. **Is the asset something no library plausibly has** (the
+   property's brand persona, a custom Chatvatar)? Blender MCP
+   with Hyper3D for the generation step → manual review +
+   touch-up → export.
+
+Most v0.1.3 work (ProfileBuilder, first rigged figure) lives in
+step 2 or 3. Steps 4–5 wait for v0.2+ when the world's aesthetic
+is more crystallized.
+
+### 4c.4 Verifying the MCPs are wired
+
+After restarting Claude Code with either or both configured:
+
+- **Sketchfab:** the agent should see `mcp__Sketchfab__search`,
+  `mcp__Sketchfab__get_model`, `mcp__Sketchfab__download_model`.
+  Sanity query: search `q="cube"`, `license=cc0`, `count=1`.
+- **Blender:** with Blender running + addon active + *Start MCP
+  Server* clicked, the agent should see
+  `mcp__Blender__get_scene_info`, `mcp__Blender__execute_python`,
+  `mcp__Blender__poly_haven_search`, etc. Sanity query:
+  `mcp__Blender__get_scene_info` → returns the current scene's
+  object list (likely just the default cube + camera + light).
+
+If either MCP is registered but tools don't show up, check
+Claude Code's MCP logs (settings → MCP Servers → server name →
+*View logs*) for connection errors. The two most common scars:
+
+- **Sketchfab token expired** — generate a new one; `npx` won't
+  warn, the search just returns 401s.
+- **Blender addon not listening** — the *Start MCP Server*
+  button must be clicked each time Blender restarts; the addon
+  doesn't auto-start.
+
 ## 4a. External service version notes — RESTHeart-mediated stack
 
 > **Architecture pivot recorded 2026-05-07.** Atlas App Services
