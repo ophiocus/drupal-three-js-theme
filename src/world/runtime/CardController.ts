@@ -28,11 +28,20 @@
 import * as THREE from "three";
 import type { HtmlSurface, HtmlSurfaceOptions } from "./HtmlSurface.js";
 import type { SurfaceCache } from "./SurfaceCache.js";
+import type { SmartObject } from "./smart-objects/SmartObject.js";
+import { HtmlSurfaceComponent } from "./smart-objects/components/HtmlSurfaceComponent.js";
+import { TriggerPadComponent } from "./smart-objects/components/TriggerPadComponent.js";
 
 export type CardState = "hidden" | "bloomed" | "fullView";
 
-/** Per-entity state record. SceneManager builds these on entity placement. */
-export interface CardRecord {
+/**
+ * Per-entity card lifecycle state.
+ *
+ * v0.1.2: CardController derives this from a SmartObject at
+ * register time — pad, surface, and bundle metadata all come
+ * from the SmartObject's attached components.
+ */
+interface CardRecord {
   entityId: string;
   /** Numeric/string id used to build the FullView card endpoint URL. */
   numericId: string;
@@ -100,7 +109,35 @@ export class CardController {
     return mesh;
   }
 
-  register(record: CardRecord): void {
+  /**
+   * v0.1.2: register a SmartObject. CardController derives the
+   * internal CardRecord from the SmartObject's components —
+   * TriggerPadComponent for the pad mesh, HtmlSurfaceComponent
+   * for the surface. Entities without both components silently
+   * skip registration (not every SmartObject participates in the
+   * card lifecycle).
+   */
+  register(smartObject: SmartObject): void {
+    const pad = smartObject.findComponent(TriggerPadComponent)?.pad;
+    const surface = smartObject.findComponent(HtmlSurfaceComponent)?.surface;
+    if (!pad || !surface) return;
+
+    // Parse "node-12" → ("node", "12") for the FullView URL.
+    const dashIdx = smartObject.entityId.indexOf("-");
+    if (dashIdx < 0) return;
+    const entityType = smartObject.entityId.slice(0, dashIdx);
+    const numericId = smartObject.entityId.slice(dashIdx + 1);
+
+    const record: CardRecord = {
+      entityId: smartObject.entityId,
+      entityType,
+      numericId,
+      pad,
+      surface,
+      homePosition: surface.mesh.position.clone(),
+      homeScale: surface.mesh.scale.clone(),
+      state: "hidden",
+    };
     this.cards.push(record);
     // Seed initial state from URL hash on first registration only.
     // (Cards register asynchronously; we want each one to honor the

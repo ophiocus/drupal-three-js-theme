@@ -6,6 +6,51 @@ this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased] — v0.1 in progress
 
+### Added (v0.1.2a — SmartObject abstraction)
+
+The renderer's entity layer becomes composable. Replaces the
+direct-cube-instantiation approach with a registry of Builders
+that produce SmartObjects (THREE.Group + Components).
+
+- **`src/world/runtime/smart-objects/SmartObject.ts`** — base
+  class extending `THREE.Group`. Carries `entityId` + `builderName`
+  + an array of `Component`s. Three lifecycle hooks: onAttach,
+  update (per-frame fanout), dispose (frees GPU resources via
+  traversal). `findComponent(kind)` lookup for cross-component
+  queries.
+- **`src/world/runtime/smart-objects/Builder.ts`** —
+  `SmartObjectBuilder` interface (matches + build) and the
+  `SmartObjectRegistry` dispatch table. First-match-wins ordering;
+  registry falls back to a guaranteed builder on no match or
+  any builder throwing. Async build (async asset acquisition is
+  the common case).
+- **`smart-objects/components/MeshComponent.ts`** — wraps a
+  static `THREE.Mesh`. Optional `entityBody` flag tags the mesh
+  for PointerNavigator click routing.
+- **`smart-objects/components/TriggerPadComponent.ts`** — wraps
+  the bundle-tinted disc. Replaces the standalone
+  `CardController.makePad()` helper.
+- **`smart-objects/components/HtmlSurfaceComponent.ts`** — wraps
+  an `HtmlSurface` (the engine differentiator). Acquired by the
+  builder before component construction so attach is synchronous.
+- **`smart-objects/builders/FallbackBuilder.ts`** — matches every
+  descriptor; produces the v0.0.1-alpha behavior (bundle-tinted
+  cube + trigger pad + HTML surface). Permanent safety net.
+- **`SceneManager`** holds the registry, instantiates the
+  fallback by default. `placeEntities()` loops all descriptors
+  through `registry.build()` in parallel and adds the resulting
+  groups to the scene. Animation loop fans out per-frame `update()`
+  to every SmartObject. The old `attachHtmlSurface()` is removed.
+- **`CardController.register(smartObject)`** replaces the
+  CardRecord-shaped argument. CardController queries the
+  SmartObject for its TriggerPadComponent + HtmlSurfaceComponent
+  at registration time and builds its internal lifecycle record.
+
+No visible change at v0.1.2a. The fallback builder reproduces
+the v0.0.1-alpha visual exactly. ArticleBuilder lands in v0.1.2b
+with the first visible signature → geometry mapping (word count
+→ cube side).
+
 ### Added (v0.1.1 — cypher routes for sector deep-links)
 
 - **`/sector/{termId}` route** in `world_signature.routing.yml`.

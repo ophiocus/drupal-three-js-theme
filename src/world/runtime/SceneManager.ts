@@ -13,10 +13,13 @@ import type { CorpusSnapshot, Entity, Vec3 } from "../types.js";
 import { entityPosition } from "../layout.js";
 import { hasHtmlInCanvas, type HtmlSurface } from "./HtmlSurface.js";
 import { SurfaceCache } from "./SurfaceCache.js";
-import { CardController, type CardRecord } from "./CardController.js";
+import { CardController } from "./CardController.js";
 import { BiomeMixer, type BiomePaletteEntry } from "./BiomeMixer.js";
 import { CameraController } from "./CameraController.js";
 import { PointerNavigator } from "./PointerNavigator.js";
+import { SmartObject, type FrameContext } from "./smart-objects/SmartObject.js";
+import { SmartObjectRegistry } from "./smart-objects/Builder.js";
+import { FallbackBuilder } from "./smart-objects/builders/FallbackBuilder.js";
 import { vantage } from "../vantage.js";
 
 interface BootOptions {
@@ -86,6 +89,8 @@ export class SceneManager {
   private mode: Mode = "exploration";
   private readonly htmlSurfaces: HtmlSurface[] = [];
   private readonly surfaceCache = new SurfaceCache();
+  private readonly registry = new SmartObjectRegistry(new FallbackBuilder());
+  private readonly smartObjects = new Map<string, SmartObject>();
   private cardController: CardController | null = null;
   private biomeMixer: BiomeMixer | null = null;
   private cameraController: CameraController | null = null;
@@ -281,34 +286,27 @@ export class SceneManager {
       this.scene.add(post);
     }
 
-    // Entity meshes — bumped to 12-unit cubes so a single entity
-    // reads at a distance during ALPHA. Sprint 5's SmartObject
-    // base class replaces this with metaphor-specific geometry.
-    const geometry = new THREE.BoxGeometry(12, 12, 12);
-    const surfacePromises: Promise<void>[] = [];
-    for (const entity of Object.values(this.snapshot.entities)) {
-      const pos = entityPosition(entity, this.snapshot);
-      const material = new THREE.MeshStandardMaterial({
-        color: this.bundleColor(entity.bundle),
-        roughness: 0.65,
-        metalness: 0.08,
+    // v0.1.2: SmartObject registry owns entity geometry. The
+    // FallbackBuilder produces today's cube + pad + HTML surface;
+    // later builders (Article, Profile, Event) attach when
+    // registered. All entities build in parallel.
+    const snap = this.snapshot;
+    const buildPromises = Object.values(snap.entities).map(async (entity) => {
+      const wp = entityPosition(entity, snap);
+      const obj = await this.registry.build(entity, {
+        snapshot: snap,
+        palette: this.palette,
+        surfaceCache: this.surfaceCache,
+        assetUrl: (path) => `/themes/custom/drupal_threejs/assets/${path}`,
+        worldPosition: new THREE.Vector3(wp.x, 0, wp.z),
       });
-      const mesh = new THREE.Mesh(geometry, material);
-      mesh.position.set(pos.x, 6, pos.z);
-      // v0.1.1: tag the cube as a click target so PointerNavigator
-      // can route a click → "navigate to this entity's detail vantage."
-      mesh.userData.isEntityBody = true;
-      mesh.userData.entityId = entity.id;
-      this.scene.add(mesh);
-
-      // Sprint 5b: paint a Drupal-served HTML card on a quad next
-      // to each entity. The quad faces world-origin so the orbiting
-      // camera always catches a readable angle. Failures are logged
-      // but never block the scene — a missing surface degrades to
-      // "just the cube," matching the bridge philosophy.
-      surfacePromises.push(this.attachHtmlSurface(entity, pos));
-    }
-    await Promise.allSettled(surfacePromises);
+      this.scene.add(obj);
+      this.smartObjects.set(entity.id, obj);
+      // Card lifecycle registration — CardController reads
+      // TriggerPad + HtmlSurface components off the SmartObject.
+      this.cardController?.register(obj);
+    });
+    await Promise.allSettled(buildPromises);
 
     // Sector centroid pads. v0.1.1: tagged as click targets so
     // PointerNavigator routes a click → "navigate to this sector."
@@ -331,75 +329,6 @@ export class SceneManager {
         `camera at (${this.camera.position.x.toFixed(0)},${this.camera.position.y.toFixed(0)},${this.camera.position.z.toFixed(0)}), ` +
         `palette: ${p.background}`,
     );
-  }
-
-  /**
-   * Sprint 5b: instantiate one HtmlSurface per entity, painted with
-   * the Drupal-served `default` view-mode of that entity. Positioned
-   * just above and slightly outward from its cube, oriented to face
-   * the world origin so the orbit always reveals it.
-   *
-   * Errors are caught and logged — a failed surface should never
-   * crater the whole world. The cube alone is still a valid
-   * placeholder representation.
-   */
-  private async attachHtmlSurface(
-    entity: Entity,
-    pos: { x: number; z: number },
-  ): Promise<void> {
-    // entity.id is shaped "node-1"; the cypher's card endpoint
-    // takes (entityType, id, viewMode) → /world/card/node/1/default.
-    const dashIdx = entity.id.indexOf("-");
-    if (dashIdx < 0) {
-      console.warn(`[world] skipping HtmlSurface for ${entity.id}: malformed id`);
-      return;
-    }
-    const entityType = entity.id.slice(0, dashIdx);
-    const numericId = entity.id.slice(dashIdx + 1);
-    const url = `/world/card/${entityType}/${numericId}/default`;
-
-    try {
-      const surface = await this.surfaceCache.acquire({
-        url,
-        widthPx: 600,
-        heightPx: 400,
-        widthWorld: 18,
-        heightWorld: 12,
-        transparent: true,
-      });
-      // Quad floats above the cube and pushed outward from origin so
-      // the orbit camera reads the front face. lookAt() here aims the
-      // surface at world-center — Sprint 5e's vantage system replaces
-      // this with proper per-entity facing rules.
-      const dist = Math.sqrt(pos.x * pos.x + pos.z * pos.z) || 1;
-      const outX = pos.x + (pos.x / dist) * 12;
-      const outZ = pos.z + (pos.z / dist) * 12;
-      surface.mesh.position.set(outX, 14, outZ);
-      surface.mesh.lookAt(0, 14, 0);
-      this.scene.add(surface.mesh);
-      this.htmlSurfaces.push(surface);
-
-      // Trigger pad — small disc on the ground, click target.
-      // Bundle-tinted so the user reads "this pad belongs to this
-      // article/profile/event" before clicking.
-      const pad = CardController.makePad(this.bundleColor(entity.bundle));
-      pad.position.set(pos.x, 0.1, pos.z + 7);
-      pad.userData.entityId = entity.id;
-      this.scene.add(pad);
-
-      this.cardController?.register({
-        entityId: entity.id,
-        entityType,
-        numericId,
-        pad,
-        surface,
-        homePosition: surface.mesh.position.clone(),
-        homeScale: surface.mesh.scale.clone(),
-        state: "hidden",
-      } satisfies CardRecord);
-    } catch (err) {
-      console.warn(`[world] HtmlSurface failed for ${entity.id} (${url}):`, err);
-    }
   }
 
   private bundleColor(bundle: string): THREE.Color {
@@ -428,6 +357,16 @@ export class SceneManager {
         x: this.camera.position.x,
         z: this.camera.position.z,
       });
+      // v0.1.2: per-SmartObject fanout. Pure-geometry components
+      // no-op; future components (animations, gaze) wake up here.
+      if (this.smartObjects.size > 0) {
+        const ctx: FrameContext = {
+          camera: this.camera,
+          time: time / 1000,
+          currentSectorId: null,
+        };
+        for (const obj of this.smartObjects.values()) obj.update(dt, ctx);
+      }
       this.renderer.render(this.scene, this.camera);
     });
   }
