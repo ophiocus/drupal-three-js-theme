@@ -141,6 +141,7 @@ export class SceneManager {
     const snap = this.snapshot;
     this.cameraController = new CameraController({
       camera: this.camera,
+      snapshot: snap,
       getTargetVantageFromUrl: () => vantage(window.location.pathname, snap),
       setUrlFromVantage: (v) => {
         if (window.location.pathname !== v.uri) {

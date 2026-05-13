@@ -94,9 +94,9 @@ describe("CameraController — update", () => {
       setUrlFromVantage: () => {},
     });
     ctrl.setTarget(makeVantage("/node/1", { x: 100, y: 50, z: -40 }));
-    // 300 frames at 60fps = 5 seconds; well past any reasonable
-    // settle time for default lambda.
-    for (let i = 0; i < 300; i++) ctrl.update(1 / 60);
+    // 120 frames at 60fps = 2 seconds; well past convergence with
+    // lambda=4 (~250ms to 90%), well before idle drift starts at 3s.
+    for (let i = 0; i < 120; i++) ctrl.update(1 / 60);
     expect(cam.position.x).toBeCloseTo(100, 1);
     expect(cam.position.y).toBeCloseTo(50, 1);
     expect(cam.position.z).toBeCloseTo(-40, 1);
@@ -203,6 +203,80 @@ describe("CameraController — bloomed mesh", () => {
     cam.position.set(200, 0, 0);
     ctrl.update(1 / 60);
     expect(mesh.quaternion.equals(afterBloom)).toBe(true);
+  });
+});
+
+describe("CameraController — drag orbit (v0.1.1)", () => {
+  it("applyDragDelta(dx, 0) rotates azimuth around target", () => {
+    const cam = makeCamera();
+    const initial = makeVantage("/", { x: 0, y: 50, z: 100 }, { x: 0, y: 0, z: 0 });
+    const ctrl = new CameraController({
+      camera: cam,
+      getTargetVantageFromUrl: () => initial,
+      setUrlFromVantage: () => {},
+    });
+    const radius0 = cam.position.length();
+    // Drag horizontally by 100 pixels → azimuth rotates 100 * 0.005 = 0.5 rad.
+    ctrl.setUserInteracting(true);
+    ctrl.applyDragDelta(100, 0);
+    // Sync the camera once (no time elapsed, but base target moved).
+    // Camera is at old position; targetPos is new. After several
+    // damp steps it converges; radius should be preserved.
+    for (let i = 0; i < 60; i++) ctrl.update(1 / 60);
+    ctrl.setUserInteracting(false);
+    expect(cam.position.length()).toBeCloseTo(radius0, 0);
+  });
+
+  it("polar is clamped — large dy drag doesn't flip the camera", () => {
+    const cam = makeCamera();
+    const ctrl = new CameraController({
+      camera: cam,
+      getTargetVantageFromUrl: () =>
+        makeVantage("/", { x: 0, y: 50, z: 100 }, { x: 0, y: 0, z: 0 }),
+      setUrlFromVantage: () => {},
+    });
+    ctrl.setUserInteracting(true);
+    // 10,000 pixels of dy = ~40 rad, but POLAR is clamped to
+    // [~0.2, ~1.47]; the y component of camera must stay positive
+    // (camera never goes below ground when looking at y=0).
+    ctrl.applyDragDelta(0, 10000);
+    for (let i = 0; i < 60; i++) ctrl.update(1 / 60);
+    expect(cam.position.y).toBeGreaterThan(0);
+  });
+});
+
+describe("CameraController — idle drift (v0.1.1)", () => {
+  it("starts drifting after 3s of no interaction", () => {
+    const cam = makeCamera();
+    const ctrl = new CameraController({
+      camera: cam,
+      getTargetVantageFromUrl: () => makeVantage("/", { x: 0, y: 50, z: 100 }),
+      setUrlFromVantage: () => {},
+    });
+    // Let the camera fully converge (2s).
+    for (let i = 0; i < 120; i++) ctrl.update(1 / 60);
+    const settledPos = cam.position.clone();
+    // Advance past the 3s idle threshold + half a drift period.
+    for (let i = 0; i < 300; i++) ctrl.update(1 / 60);
+    // After drift starts, position differs from the converged settle pos.
+    expect(cam.position.distanceTo(settledPos)).toBeGreaterThan(0.5);
+  });
+
+  it("interacting suppresses drift", () => {
+    const cam = makeCamera();
+    const ctrl = new CameraController({
+      camera: cam,
+      getTargetVantageFromUrl: () => makeVantage("/", { x: 0, y: 50, z: 100 }),
+      setUrlFromVantage: () => {},
+    });
+    for (let i = 0; i < 120; i++) ctrl.update(1 / 60);
+    ctrl.setUserInteracting(true);
+    const heldPos = cam.position.clone();
+    // 5 seconds of held interaction — drift should not kick in.
+    for (let i = 0; i < 300; i++) ctrl.update(1 / 60);
+    // No applyDragDelta calls; baseTargetPos unchanged; camera stays
+    // close to where it was.
+    expect(cam.position.distanceTo(heldPos)).toBeLessThan(0.1);
   });
 });
 

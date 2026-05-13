@@ -6,6 +6,43 @@ this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased] — v0.1 in progress
 
+### Added (v0.1.1 — CameraController locomotion: drag, drift, keys)
+
+- **Drag-orbit (Q2=b polar-constrained).** PointerNavigator
+  forwards `pointermove` deltas while dragging; CameraController
+  converts them to azimuth/polar mutations around the current
+  vantage's `lookAt`. Polar clamped to `[~11°, ~84°]` so the
+  camera never flips overhead or burrows below ground. Drag
+  sticks (no snap-back on release) — the new view persists until
+  the next URL-driven re-target.
+- **Idle drift.** After 3s of no `userInteracting`, sinusoidal
+  perturbation around `baseTargetPos` (amplitude 6 world units,
+  period ~11s) reinstates the "world is alive" feel that the
+  ALPHA orbit provided. Drift eases in over 2 seconds so onset
+  isn't jarring. Drift halts on any interaction or URL change.
+- **Spherical state.** CameraController internally tracks
+  `(orbitAzimuth, orbitPolar, orbitRadius)` of `baseTargetPos`
+  relative to `targetLook`. Two helpers (`syncOrbitFromBase`,
+  `syncBaseFromOrbit`) keep spherical and Cartesian
+  representations in agreement.
+- **Keyboard navigation** (PC, per the locomotion proposal):
+  - `Tab` / `Shift+Tab` — cycle to next/prev entity within the
+    current sector (or corpus-wide if no sector context). Order:
+    `Object.values(snapshot.entities)`, filtered by `taxonomyTerms[0]`.
+  - `1`–`9` — jump to sector N in `termId`-ascending order; same
+    order BiomeMixer uses, so number keys feel geographically
+    consistent with the biome palette.
+  - `Escape` — already wired in v0.1; returns to `/`.
+- **`navigateTo(uri)` uses `pushState`** (was `replaceState`) so
+  user-initiated navigations enter browser history; settle
+  detection still uses `replaceState` for implicit URL writes.
+- **CameraController takes the snapshot** as an optional
+  constructor argument — used only by the keyboard cycling code.
+  Sites without keyboard nav can omit it.
+- Four new tests (32 total): azimuth rotation preserves orbit
+  radius, polar clamping prevents flip, idle drift starts after
+  3s of no interaction, interacting suppresses drift.
+
 ### Added (v0.1.1 — PointerNavigator)
 
 - **`src/world/runtime/PointerNavigator.ts`** — macro-navigation

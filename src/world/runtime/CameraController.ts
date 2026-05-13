@@ -13,7 +13,7 @@
 // See docs/v0.1/CAMERA_CONTROLLER.md for the full spec.
 
 import * as THREE from "three";
-import type { Vantage } from "../types.js";
+import type { CorpusSnapshot, Vantage } from "../types.js";
 
 export interface CameraControllerOptions {
   camera: THREE.PerspectiveCamera;
@@ -28,6 +28,12 @@ export interface CameraControllerOptions {
    * differs from the previously-reported one.
    */
   setUrlFromVantage: (v: Vantage) => void;
+  /**
+   * Snapshot reference — needed for keyboard navigation (Tab to
+   * cycle entities within a sector, number keys to jump sectors).
+   * Optional: hotkeys silently no-op when absent.
+   */
+  snapshot?: CorpusSnapshot;
   /**
    * Damping stiffness; higher = faster convergence. Default 4
    * gives ~250ms to 90% convergence at typical frame rates.
@@ -46,13 +52,40 @@ const DEFAULT_SETTLE_SECONDS = 0.6;
 /** Camera position velocity (world-units/sec) below which we count as "settled." */
 const SETTLE_VELOCITY_THRESHOLD = 0.5;
 
+// Drag-orbit configuration. Polar-constrained (Q2=b) so the camera
+// can never flip upside down. Polar measured from +Y; 0 = straight
+// down on the target, π/2 = horizontal.
+const DRAG_AZIMUTH_SENSITIVITY = 0.005; // rad / pixel
+const DRAG_POLAR_SENSITIVITY = 0.004;
+const POLAR_MIN = 0.2;            // ~11° — almost overhead
+const POLAR_MAX = Math.PI / 2 - 0.1; // ~84° — just above horizon
+
+// Idle drift configuration. After IDLE_THRESHOLD seconds of no
+// interaction and no in-flight motion, gentle sinusoidal
+// perturbation around baseTargetPos keeps the world feeling alive
+// without changing the URL (the velocity stays under settle
+// threshold).
+const IDLE_THRESHOLD_SECONDS = 3;
+const IDLE_DRIFT_AMPLITUDE = 6;   // world units
+const IDLE_DRIFT_PERIOD_SECONDS = 11;
+
 export class CameraController {
   private targetVantage: Vantage;
   private readonly lookTarget = new THREE.Vector3();
+  /** Drifted target (base + idle perturbation). Damp converges here. */
   private readonly targetPos = new THREE.Vector3();
+  /** Canonical vantage position before drift. Drag-orbit moves this. */
+  private readonly baseTargetPos = new THREE.Vector3();
   private readonly targetLook = new THREE.Vector3();
   private readonly lastPos = new THREE.Vector3();
+  // Spherical coords of baseTargetPos relative to targetLook —
+  // makes drag-orbit a simple azimuth/polar/radius mutation.
+  private orbitAzimuth = 0;
+  private orbitPolar = 0.5;
+  private orbitRadius = 100;
   private settleTimer = 0;
+  private idleTimer = 0;
+  private elapsedTime = 0;
   private lastReportedUri: string | null = null;
   private bloomedMesh: THREE.Object3D | null = null;
   private userInteracting = false;
@@ -81,6 +114,25 @@ export class CameraController {
   /** Call each frame from the animation loop with the elapsed seconds. */
   update(dt: number): void {
     const camera = this.options.camera;
+    this.elapsedTime += dt;
+
+    // 0. Idle drift — sinusoidal perturbation around baseTargetPos
+    // when no interaction or in-flight motion. The drift is small
+    // enough that the camera's apparent velocity stays under the
+    // settle threshold, so URLs don't get written during drift.
+    this.updateIdleDriftState(dt);
+    if (this.idleTimer > IDLE_THRESHOLD_SECONDS) {
+      const phase = (this.elapsedTime / IDLE_DRIFT_PERIOD_SECONDS) * 2 * Math.PI;
+      const eased = (this.idleTimer - IDLE_THRESHOLD_SECONDS) / 2;
+      const easeIn = Math.min(eased, 1); // ramp in over 2s
+      this.targetPos.set(
+        this.baseTargetPos.x + Math.sin(phase) * IDLE_DRIFT_AMPLITUDE * easeIn,
+        this.baseTargetPos.y,
+        this.baseTargetPos.z + Math.cos(phase) * IDLE_DRIFT_AMPLITUDE * easeIn,
+      );
+    } else {
+      this.targetPos.copy(this.baseTargetPos);
+    }
 
     // 1. Damp position toward target.
     camera.position.x = THREE.MathUtils.damp(
@@ -163,11 +215,19 @@ export class CameraController {
    * Apply a pointer drag delta to the camera. Polar-constrained
    * orbit around the current vantage's lookAt point (Q2=b).
    *
-   * Stubbed for commit 1; real implementation lands in commit 2
-   * once we also have the spherical-coordinates state.
+   * X delta → azimuth around Y axis (yaw). Y delta → polar angle
+   * (pitch), clamped to [POLAR_MIN, POLAR_MAX] so the camera can
+   * never flip overhead or burrow below the ground. The drag
+   * "sticks" — releasing pointerup doesn't snap back; the new
+   * angle persists until the next URL-driven re-target.
    */
-  applyDragDelta(_dx: number, _dy: number): void {
-    // intentionally empty for v0.1.1 commit 1
+  applyDragDelta(dx: number, dy: number): void {
+    this.orbitAzimuth -= dx * DRAG_AZIMUTH_SENSITIVITY;
+    this.orbitPolar = THREE.MathUtils.clamp(
+      this.orbitPolar + dy * DRAG_POLAR_SENSITIVITY,
+      POLAR_MIN, POLAR_MAX,
+    );
+    this.syncBaseFromOrbit();
   }
 
   /** Free event listeners. Call when tearing down the runtime. */
@@ -180,16 +240,75 @@ export class CameraController {
   // ─── Internal ────────────────────────────────────────────────────────────
 
   private syncTargetVectors(): void {
-    this.targetPos.set(
+    this.baseTargetPos.set(
       this.targetVantage.position.x,
       this.targetVantage.position.y,
       this.targetVantage.position.z,
     );
+    this.targetPos.copy(this.baseTargetPos);
     this.targetLook.set(
       this.targetVantage.lookAt.x,
       this.targetVantage.lookAt.y,
       this.targetVantage.lookAt.z,
     );
+    this.syncOrbitFromBase();
+    // Re-targeting (URL change, hotkey) ends any in-flight idle drift.
+    this.idleTimer = 0;
+  }
+
+  /**
+   * Derive (azimuth, polar, radius) from baseTargetPos relative to
+   * targetLook. Called when the canonical vantage changes; the
+   * drag-orbit's spherical state must agree with the new target.
+   */
+  private syncOrbitFromBase(): void {
+    const dx = this.baseTargetPos.x - this.targetLook.x;
+    const dy = this.baseTargetPos.y - this.targetLook.y;
+    const dz = this.baseTargetPos.z - this.targetLook.z;
+    this.orbitRadius = Math.sqrt(dx * dx + dy * dy + dz * dz);
+    if (this.orbitRadius < 0.001) {
+      // Degenerate — camera on top of target. Pick reasonable defaults.
+      this.orbitRadius = 1;
+      this.orbitAzimuth = 0;
+      this.orbitPolar = Math.PI / 4;
+      return;
+    }
+    this.orbitAzimuth = Math.atan2(dx, dz);
+    this.orbitPolar = Math.acos(
+      THREE.MathUtils.clamp(dy / this.orbitRadius, -1, 1),
+    );
+    this.orbitPolar = THREE.MathUtils.clamp(this.orbitPolar, POLAR_MIN, POLAR_MAX);
+  }
+
+  /**
+   * Recompute baseTargetPos from current spherical coords. Called
+   * after a drag delta mutates azimuth / polar / radius.
+   */
+  private syncBaseFromOrbit(): void {
+    const sinPolar = Math.sin(this.orbitPolar);
+    this.baseTargetPos.set(
+      this.targetLook.x + this.orbitRadius * sinPolar * Math.sin(this.orbitAzimuth),
+      this.targetLook.y + this.orbitRadius * Math.cos(this.orbitPolar),
+      this.targetLook.z + this.orbitRadius * sinPolar * Math.cos(this.orbitAzimuth),
+    );
+  }
+
+  /**
+   * Idle drift gate. Increments idleTimer when the user isn't
+   * interacting. Reset to zero by setUserInteracting(true) or by
+   * setTarget()/URL changes (via syncTargetVectors).
+   *
+   * Previous attempt gated on distance-to-base, but drift itself
+   * moves the camera away from base — creating a feedback loop
+   * that reset the timer mid-drift. The simpler "time since last
+   * interaction" gate is correct: drift IS the response to idle.
+   */
+  private updateIdleDriftState(dt: number): void {
+    if (this.userInteracting) {
+      this.idleTimer = 0;
+      return;
+    }
+    this.idleTimer += dt;
   }
 
   private updateSettleState(dt: number): void {
@@ -248,19 +367,87 @@ export class CameraController {
       // CardController also listens for Escape (collapses cards).
       // Both can fire; the order doesn't matter — collapsing a
       // card and jumping to overview are independent state mutations.
-      this.navigateToUri("/");
+      this.navigateTo("/");
       event.preventDefault();
       return;
     }
-    // Tab / Shift+Tab navigation and number-key sector jumps require
-    // the snapshot's sector + entity list, which lives on
-    // SceneManager. v0.1 plumbs that via callbacks if the deferred
-    // requirement justifies it; for now this is a stub.
+    if (event.key === "Tab") {
+      event.preventDefault();
+      this.cycleEntity(event.shiftKey ? -1 : 1);
+      return;
+    }
+    // Number keys 1–9 jump to sector N (termId-ascending order).
+    // Beyond the available sector count is a no-op.
+    if (/^[1-9]$/.test(event.key)) {
+      const index = parseInt(event.key, 10) - 1;
+      this.jumpToSectorByIndex(index);
+      event.preventDefault();
+      return;
+    }
   };
 
-  private navigateToUri(uri: string): void {
-    history.replaceState(null, "", uri);
-    // replaceState doesn't fire popstate/hashchange; route manually.
-    this.onHashChange();
+  /**
+   * Cycle to the next/prev entity in the current path's sector.
+   * "Current sector" is derived from the URL: at `/node/<n>`, the
+   * primary sector of that node; at `/sector/<n>`, that sector;
+   * at `/`, all entities corpus-wide.
+   *
+   * Entity order is `Object.values(snapshot.entities)` by id —
+   * stable across reloads since the snapshot is deterministic.
+   * v0.2 may surface editorial ordering via the descriptor.
+   */
+  private cycleEntity(direction: 1 | -1): void {
+    const snap = this.options.snapshot;
+    if (!snap) return;
+    const path = window.location.pathname;
+    let pool: string[] = [];
+
+    const allEntities = Object.values(snap.entities);
+    if (path.startsWith("/node/")) {
+      const currentId = `node-${path.slice("/node/".length)}`;
+      const sector = snap.entities[currentId]?.taxonomyTerms?.[0];
+      pool = sector
+        ? allEntities
+            .filter((e) => e.taxonomyTerms[0] === sector)
+            .map((e) => e.id)
+        : allEntities.map((e) => e.id);
+    } else if (path.startsWith("/sector/")) {
+      const sectorId = path.slice("/sector/".length);
+      pool = allEntities
+        .filter((e) => e.taxonomyTerms.includes(sectorId))
+        .map((e) => e.id);
+    } else {
+      pool = allEntities.map((e) => e.id);
+    }
+    if (pool.length === 0) return;
+
+    // Find current position in the pool; if not present, start at the
+    // direction-appropriate end.
+    const currentNodeId = path.startsWith("/node/")
+      ? `node-${path.slice("/node/".length)}`
+      : null;
+    let idx = currentNodeId ? pool.indexOf(currentNodeId) : -1;
+    if (idx === -1) idx = direction > 0 ? -1 : pool.length;
+    const next = pool[(idx + direction + pool.length) % pool.length];
+    const dash = next.indexOf("-");
+    if (dash < 0) return;
+    this.navigateTo(`/${next.slice(0, dash)}/${next.slice(dash + 1)}`);
   }
+
+  /**
+   * Jump to a sector by zero-based index in termId-ascending order.
+   * Matches the BiomeMixer's sector ordering so number keys feel
+   * "geographically consistent" — pressing `1` lands on the same
+   * sector whose biome is the first one in the palette.
+   */
+  private jumpToSectorByIndex(index: number): void {
+    const snap = this.options.snapshot;
+    if (!snap) return;
+    const sectorIds = Object.values(snap.sectors)
+      .map((s) => s.termId)
+      .sort((a, b) => Number(a) - Number(b));
+    if (index >= sectorIds.length) return;
+    this.navigateTo(`/sector/${sectorIds[index]}`);
+  }
+
 }
