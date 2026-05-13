@@ -6,6 +6,33 @@ this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased] — v0.1 in progress
 
+### Added (v0.1.2c — LoaderOverlay, pre-warm gate)
+
+Per D3 = pre-warm assets before showing the world. The user
+never sees the mid-build canvas now.
+
+- **`src/world/runtime/LoaderOverlay.ts`** — pure-DOM loader.
+  Fades in on construction, fades out on `hide()`. Centered
+  "Building the world" title + three pulsing dots (CSS keyframe;
+  keeps animating even while the main thread is busy with
+  builds) + a message line + a progress counter (`built / total`).
+- **Background gradient** derived from the palette: radial
+  highlight at 50% 40%, base color the palette's background.
+  Palette-coherent so the fade-out doesn't feel jarring.
+- **Accessibility**: `role="status"` + `aria-live="polite"` so
+  screen readers announce the message line and progress.
+- **`SceneManager.mount()`** shows the overlay before fetching
+  the snapshot, updates progress as each SmartObject build
+  settles, and fades the overlay out only after the render loop
+  is alive. Error path leaves the loader visible briefly with
+  a failure message so the user sees something rather than a
+  blank screen.
+
+Three.js inset (a small rotating primitive inside the overlay)
+is deferred to v0.2 — the DOM-only version is good enough at
+ALPHA scale and avoids GPU usage during boot when we want
+maximum headroom for the real scene's compile-shaders pass.
+
 ### Added (v0.1.2b — ArticleBuilder, word-count → cube side)
 
 First visible signature → geometry mapping. The cube stays cubic

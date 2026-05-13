@@ -21,6 +21,7 @@ import { SmartObject, type FrameContext } from "./smart-objects/SmartObject.js";
 import { SmartObjectRegistry } from "./smart-objects/Builder.js";
 import { FallbackBuilder } from "./smart-objects/builders/FallbackBuilder.js";
 import { ArticleBuilder } from "./smart-objects/builders/ArticleBuilder.js";
+import { LoaderOverlay } from "./LoaderOverlay.js";
 import { vantage } from "../vantage.js";
 
 interface BootOptions {
@@ -131,20 +132,53 @@ export class SceneManager {
   /**
    * Boot: fetch snapshot, build the scene, start the render loop.
    * Resolves when the first frame has rendered.
+   *
+   * v0.1.2c: LoaderOverlay covers the screen while pre-warming
+   * (snapshot fetch + SmartObject builds + HTML surface fetches).
+   * Fades out once everything's ready; the user never sees the
+   * mid-build canvas.
    */
   async mount(options: BootOptions): Promise<void> {
-    const response = await fetch(options.snapshotUrl, {
-      headers: { Accept: "application/json" },
+    const loader = new LoaderOverlay({
+      message: "fetching corpus",
     });
-    if (!response.ok) {
-      throw new Error(`snapshot fetch failed: HTTP ${response.status}`);
+
+    try {
+      const response = await fetch(options.snapshotUrl, {
+        headers: { Accept: "application/json" },
+      });
+      if (!response.ok) {
+        loader.setMessage(`snapshot fetch failed: HTTP ${response.status}`);
+        throw new Error(`snapshot fetch failed: HTTP ${response.status}`);
+      }
+      const raw = (await response.json()) as RawSnapshot;
+      this.snapshot = this.adaptSnapshot(raw);
+      this.palette = (raw.world.palette as Palette) ?? DEFAULT_PALETTE;
+      // Cache invalidates atomically when the cypher publishes a new
+      // snapshot version. First-mount call is the initial set; no flush.
+      this.surfaceCache.setSnapshotVersion(raw.version);
+      loader.setMessage("assembling entities");
+      await this.mountAfterSnapshot(options, loader);
+      await loader.hide();
+    } catch (err) {
+      loader.setMessage("world failed to load");
+      // Leave the loader visible briefly so the user sees the error
+      // before the page falls back to a blank state.
+      setTimeout(() => loader.dispose(), 1500);
+      throw err;
     }
-    const raw = (await response.json()) as RawSnapshot;
-    this.snapshot = this.adaptSnapshot(raw);
-    this.palette = (raw.world.palette as Palette) ?? DEFAULT_PALETTE;
-    // Cache invalidates atomically when the cypher publishes a new
-    // snapshot version. First-mount call is the initial set; no flush.
-    this.surfaceCache.setSnapshotVersion(raw.version);
+  }
+
+  /**
+   * The non-snapshot-fetch portion of mount(). Split out so the
+   * mount() wrapper can own the loader lifecycle (show / progress /
+   * hide / error path) without nesting try/finally too deep.
+   */
+  private async mountAfterSnapshot(
+    options: BootOptions,
+    loader: LoaderOverlay,
+  ): Promise<void> {
+    if (!this.snapshot) return;
 
     this.applyPaletteBackground();
     this.addLights();
@@ -191,7 +225,7 @@ export class SceneManager {
         this.ambientLight,
       );
     }
-    await this.placeEntities();
+    await this.placeEntities(loader);
     this.startLoop();
     console.info(
       `[world] mounted: ${Object.keys(this.snapshot.entities).length} entities ` +
@@ -262,7 +296,7 @@ export class SceneManager {
     this.camera.lookAt(0, 0, 0);
   }
 
-  private async placeEntities(): Promise<void> {
+  private async placeEntities(loader?: LoaderOverlay): Promise<void> {
     if (!this.snapshot) return;
     const p = this.palette;
 
@@ -294,10 +328,14 @@ export class SceneManager {
     }
 
     // v0.1.2: SmartObject registry owns entity geometry. The
-    // FallbackBuilder produces today's cube + pad + HTML surface;
-    // later builders (Article, Profile, Event) attach when
-    // registered. All entities build in parallel.
+    // FallbackBuilder + ArticleBuilder produce cubes + pads +
+    // HTML surfaces; later builders (Profile, Event) attach when
+    // registered. All entities build in parallel. The loader's
+    // progress counter ticks as each build settles.
     const snap = this.snapshot;
+    const total = Object.keys(snap.entities).length;
+    let built = 0;
+    loader?.setProgress(0, total);
     const buildPromises = Object.values(snap.entities).map(async (entity) => {
       const wp = entityPosition(entity, snap);
       const obj = await this.registry.build(entity, {
@@ -312,6 +350,8 @@ export class SceneManager {
       // Card lifecycle registration — CardController reads
       // TriggerPad + HtmlSurface components off the SmartObject.
       this.cardController?.register(obj);
+      built++;
+      loader?.setProgress(built, total);
     });
     await Promise.allSettled(buildPromises);
 
