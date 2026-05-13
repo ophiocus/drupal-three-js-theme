@@ -1,0 +1,215 @@
+# Forest atmosphere — content × visual mapping.
+#
+# For each bundle the cypher emits descriptors for, this file
+# declares: what does an instance LOOK LIKE in the forest
+# atmosphere, and which signature axes drive which visual
+# parameters. Drafted by the agent (per docs/ATMOSPHERES.md
+# §"Stage 2 — Mapping"); editorial review pending.
+#
+# YAML schema, per docs/ATMOSPHERES.md:
+#   bundle.<name>.visual           short noun for the element
+#   bundle.<name>.geometry_source  glb:<path>|primitive:<shape>
+#   bundle.<name>.size_signal      signature path + range
+#   bundle.<name>.color_signal     signature path + how
+#   bundle.<name>.idle_motion      clip name (animation slot)
+#   bundle.<name>.interaction_motion bloom/click animation
+#   bundle.<name>.notes            editorial freeform
+
+bundle:
+
+  article:
+    visual: tree
+    geometry_source: 'glb:trees/oak-stylized.glb'
+    geometry_fallback: 'primitive:tree_composite'
+    # Word count → tree height. Same log scale as the default
+    # ArticleBuilder; forest atmosphere just maps the SIDE
+    # (cube) to HEIGHT (tree trunk + canopy total).
+    size_signal:
+      path: signature.structural.wordCount
+      function: log10_clamp
+      domain: [1, 10000]
+      range: [3, 14]   # tree height in world units
+      target: total_height
+    color_signal:
+      # Bark hue subtle-shifts by region. The biome mixer
+      # already does this at the lighting level; this is an
+      # additional material-level tint so even at biome-blend
+      # midpoints the bark reads differently per region.
+      path: taxonomyTerms[0]    # primary sector / region
+      function: lookup
+      lookup_key: forest_bark_palette
+      target: trunk_material_color
+    foliage_signal:
+      # Image count → leaf cluster density. Articles with more
+      # media are denser, more "alive."
+      path: signature.structural.imageCount
+      function: linear_clamp
+      domain: [0, 12]
+      range: [0.6, 1.4]
+      target: canopy_density_multiplier
+    idle_motion: canopy_sway
+    interaction_motion: leaf_shimmer_on_hover
+    notes: |
+      The "different word counts get different tree species"
+      idea is deferred to v0.2.x — for ALPHA-grade forest,
+      one oak-stylized.glb scaled per wordCount + tinted per
+      region is sufficient signal. Species variation comes
+      later when acquiring multiple tree assets is justified.
+
+  profile:
+    visual: forest_spirit
+    geometry_source: 'glb:spirits/sapling-figure.glb'
+    geometry_fallback: 'primitive:bipedal_stack'
+    # Profiles are quiet bipedal presences — sapling-scale, not
+    # tree-scale. Smaller than the smallest article tree so the
+    # silhouette difference is immediate.
+    size_signal:
+      path: signature.relational.inDegree
+      # "How connected is this person?" → height. Highly-cited
+      # producers stand taller. Cap so the tallest profile is
+      # still shorter than the average tree.
+      function: log10_clamp
+      domain: [1, 50]
+      range: [2.5, 5.5]
+      target: total_height
+    color_signal:
+      path: taxonomyTerms[0]
+      function: lookup
+      lookup_key: forest_bark_palette
+      target: bark_clothing_color
+    rig: humanoid_simple
+    idle_motion: breathing
+    gaze_behavior:
+      target: camera
+      bone: head
+      max_yaw_rad: 1.2   # ~70°; spirits can't fully turn around
+    interaction_motion: tilt_head_on_hover
+    notes: |
+      Profiles should feel like *people in the forest*, not
+      forest creatures. Bipedal silhouette is essential. The
+      "sapling" framing reads as "person made of wood/bark"
+      rather than tree-with-arms. Worth being deliberate about
+      sourcing — a low-poly humanoid with a clear two-legged
+      silhouette beats a stylized "tree person" that reads as
+      a tree.
+
+  event:
+    visual: clearing_with_totem
+    geometry_source: 'glb:totems/standing-stone.glb'
+    geometry_fallback: 'primitive:cylinder_pillar'
+    # Events are spots in the forest where SOMETHING is
+    # HAPPENING. Standing stone at the center of a moss-circle
+    # ground decal. Smaller than mature article trees but more
+    # *visually heavy* (high contrast against the floor).
+    size_signal:
+      path: signature.temporal.eventDate
+      # Approaching events grow; passed events stay small but
+      # warm. Modulation is *time-sensitive* — not a one-shot
+      # scale at build time but a per-frame parameter the
+      # IdleAnimationComponent or a new TemporalUrgencyComponent
+      # handles.
+      function: temporal_urgency
+      target: pulse_amplitude
+    color_signal:
+      path: signature.temporal.eventDate
+      function: temporal_urgency_color
+      pre_event: warm_amber
+      post_event: cool_patina
+      target: stone_emissive
+    ground_decal:
+      asset_id: ground-circle-moss
+      radius: 4.5
+      opacity: 0.7
+    idle_motion: stone_pulse_slow
+    interaction_motion: stone_pulse_fast_on_hover
+    notes: |
+      Events have a *time* property the other bundles don't —
+      they happen on a date. The visual should make that legible:
+      pre-event stones glow amber as the date approaches; on the
+      day it pulses; afterwards it cools to patina (still
+      visible, but past). This needs a TemporalUrgencyComponent
+      that doesn't yet exist; defer to v0.2.x.
+
+  chatvatar:
+    visual: forest_being
+    geometry_source: 'glb:beings/elder-figure.glb'   # not yet sourced
+    geometry_fallback: 'primitive:bipedal_stack_with_aura'
+    # Chatvatars are *interactive personae* — taller than spirits,
+    # less tree-like, more "this is a person you can talk to."
+    # The Anthropic-dialogue layer is v0.2+; for now, chatvatars
+    # don't appear in the corpus.
+    size_signal:
+      path: signature.relational.outDegree
+      function: log10_clamp
+      domain: [1, 100]
+      range: [4, 7]
+      target: total_height
+    rig: humanoid_full
+    idle_motion: breathing_pronounced
+    gaze_behavior:
+      target: camera
+      bone: head
+      max_yaw_rad: 1.5
+    interaction_motion: open_dialogue_pose
+    notes: |
+      Deferred until v0.2 brings the LLM-driven dialogue layer.
+      Listed here so the inventory captures the asset need
+      upstream of needing it — gives the world-building
+      technical layer a head start on acquisition.
+
+# ─── Lookup tables ─────────────────────────────────────────────
+
+# Color signal: bark color by region (atlas_coffee).
+# Tied to the existing biome ordering (termId ascending).
+forest_bark_palette:
+  antigua:      '#3a2820'   # volcanic dark soil tones
+  cauca:        '#5a4230'   # Andean mid-bark
+  boquete:      '#4a3a30'   # cloud-forest moss-darkened
+  sierra-madre: '#6a4820'   # warmer dust-bark
+  tarrazu:      '#3e3018'   # deep saturated bark
+  default:      '#4a3828'   # fallback
+
+# ─── Ground / scenery layer ────────────────────────────────────
+
+scenery:
+  ground:
+    base_color: '#3a4a2a'   # from CHARTER palette
+    texture_decal: 'leaf-litter-tiling.png'  # not yet sourced
+    fallback: solid_color
+  ambient_clutter:
+    # Sparse decorative meshes near sector centroids.
+    # Distribution is procedural (hash of sector term id +
+    # offset within sector radius).
+    items:
+      - asset_id: mushroom-cluster-stylized
+        density_per_sector: 6
+        scatter_radius: 0.4   # fraction of sector radius
+      - asset_id: fern-stylized
+        density_per_sector: 4
+        scatter_radius: 0.5
+      - asset_id: stone-moss-rounded
+        density_per_sector: 3
+        scatter_radius: 0.6
+  canopy_overhead:
+    # The "no sky" cue. A large semi-transparent dome with
+    # leaf-cluster billboards. Acquired separately.
+    asset_id: canopy-dome
+    height: 60                # above ground
+    radius: 1.5               # multiple of world.radius
+
+# ─── Particle layer ────────────────────────────────────────────
+
+particles:
+  motes:
+    type: pollen
+    count: 80
+    color: '#f0e8c8'
+    size_world: 0.08
+    lifespan_seconds: 8
+    spawn_zone:
+      min_y: 2
+      max_y: 12
+    notes: |
+      Subtle drifting motes mid-height. Soft particle additive
+      blending; never sharp. Lit by the sun position so they
+      pop in the shafts.

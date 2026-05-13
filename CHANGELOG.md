@@ -6,6 +6,109 @@ this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased] — v0.1 in progress
 
+### Added (v0.2.0 — Atmospheres + forest pilot)
+
+A new editorial-to-render layer: **Atmosphere = whole-world
+visual idiom** (forest, outer space, inner mind, etc.). Composes
+with Biomes (per-sector tonal overlay) and the SmartObject
+abstraction (per-bundle geometry). The same descriptor renders
+as a cube in the default atmosphere or a tree in the forest
+atmosphere — content doesn't change, visualization does.
+
+#### Pipeline
+
+- **`docs/ATMOSPHERES.md`** — formalized 6-stage pipeline:
+  Charter → Mapping → Inventory → Acquisition → Processing →
+  Renderer integration. Per-stage artifacts, tooling, automation
+  ceilings. Directory conventions. License-hygiene rules.
+  Pending-asset handling pattern (primitives fall back; world
+  stays coherent).
+
+#### Forest pilot
+
+- **`docs/atmospheres/forest/CHARTER.md`** — editorial declaration.
+  Tagline ("the world is a living forest at the hour just before
+  dusk"), mood, palette overrides, visual motifs, deferred audio,
+  inspiration references, alignment with the atlas_coffee subject.
+- **`docs/atmospheres/forest/mappings.yml`** — per-bundle visual
+  mapping. Article=tree (word count → height; sector → bark tint;
+  imageCount → canopy density). Profile=forest spirit (bipedal,
+  inDegree → height, breathing, gaze tracks camera). Event=clearing
+  with totem (temporal urgency → emissive). Chatvatar=forest being
+  (deferred to v0.2.x). Plus lookup tables, scenery / clutter /
+  particle layer specs.
+- **`docs/atmospheres/forest/assets-needed.yml`** — flat inventory
+  for the world-building technical layer. 11 assets across primary
+  meshes, decorative clutter, scenery, textures, particles. Each
+  with search keywords, license requirements, poly budgets,
+  fallback primitives, priority levels.
+- **`docs/atmospheres/forest/asset-log.yml`** — provenance log
+  (template). All entries `status: pending`; populated by the
+  acquisition layer when Sketchfab / Tripo MCPs run. Sourcing
+  strategy notes for the layer (direct CC0 first, Sketchfab MCP
+  second, Tripo MCP third).
+
+#### Renderer integration
+
+- **`src/world/runtime/atmospheres/forest/ArticleAsTree.ts`** —
+  primitive-geometry builder for `bundle=article`. Cylinder trunk
+  + cone canopy stacked. Height drives off `wordCountToSide` (the
+  same universal mapping from v0.1.2b's ArticleBuilder).
+  Bark color modulated by primary sector via lookup table.
+  Trigger pad + HTML surface attach unchanged; only the geometry
+  diverges. Atmosphere-coherent fallback: a forest's primitive
+  is still tree-shaped, never a cube.
+- **`src/world/runtime/atmospheres/forest/index.ts`** —
+  `registerForestAtmosphere(registry)` entry point. Future
+  ProfileAsSpirit / EventAsTotem / ChatvatarAsForestBeing
+  register alongside as `assets-needed.yml` resolves.
+- **`SceneManager`** registry construction moved into
+  `mountAfterSnapshot()` so atmospheres can register *before*
+  default builders. First-match-wins ordering means an active
+  atmosphere claims its bundles; everything else falls through
+  to ArticleBuilder / FallbackBuilder. Lazy `import()` of the
+  atmosphere module keeps unused atmospheres out of the main
+  bundle.
+
+#### Config + cypher
+
+- **`world_signature.palette.active_atmosphere`** new config
+  key. Default `"none"` (no atmosphere; default builders render
+  everything). Schema + install yml + SnapshotPublisher
+  fallback all updated. `hook_update_10005` adds the key to
+  existing installs.
+- **snake_case → camelCase translation** in
+  `SnapshotPublisher::loadPalette()`: Drupal config naturally
+  uses `active_atmosphere`; the renderer's Palette interface
+  wants `activeAtmosphere`. Translation happens at the cypher
+  boundary, one explicit step.
+
+#### State
+
+- **Forest atmosphere active** in the sandbox via
+  `ddev drush config:set world_signature.palette active_atmosphere forest`.
+- Snapshot carries `activeAtmosphere: "forest"`.
+- Renderer lazy-loads the forest module (1.66 KB chunk) and
+  ArticleAsTree claims all 20 atlas_coffee articles. Each
+  article renders as a cylinder-trunk + cone-canopy tree, with
+  height proportional to word count (same universal mapping as
+  cubes) and bark color region-tinted.
+- Profile / event bundles fall through to the default cube
+  builder for now — no profile/event entities in the corpus
+  yet, and the forest's ProfileAsSpirit / EventAsTotem await
+  Stage 4 asset acquisition.
+
+#### Pending (for the world-building technical layer)
+
+- Stage 4 (Acquisition) — wire Sketchfab / Tripo MCPs; resolve
+  the 11 entries in `assets-needed.yml`. Each acquired asset
+  updates `asset-log.yml`.
+- Stage 5 (Processing) — Blender MCP normalisation (polycount,
+  axis convention, animation clip naming). Outputs `manifest.json`
+  in the assets directory.
+- Stage 6 follow-on — ProfileAsSpirit + EventAsTotem builders.
+  ArticleAsTree may upgrade from primitives to a real glb.
+
 ### Added (v0.1.2c — LoaderOverlay, pre-warm gate)
 
 Per D3 = pre-warm assets before showing the world. The user

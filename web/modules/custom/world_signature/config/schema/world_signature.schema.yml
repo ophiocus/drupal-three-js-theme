@@ -71,6 +71,9 @@ world_signature.palette:
   type: config_object
   label: 'World palette'
   mapping:
+    active_atmosphere:
+      type: string
+      label: 'Active atmosphere — visual idiom of the world (forest, outer_space, inner_mind, or "none"). See docs/ATMOSPHERES.md.'
     background:
       type: string
       label: 'Sky / scene background colour (CSS hex)'

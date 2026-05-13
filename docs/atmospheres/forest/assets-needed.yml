@@ -1,0 +1,215 @@
+# Forest atmosphere — flat inventory of unique 3D assets needed.
+#
+# Generated mechanically from mappings.yml + CHARTER.md.
+# Acquisition consumes this list in Stage 4 (per
+# docs/ATMOSPHERES.md). Each entry lists everything the
+# world-building technical layer needs to find or generate
+# the asset.
+#
+# Sort order: primary tree, primary spirit, primary event prop,
+# decorative clutter, scenery / overhead, textures. Tighten
+# the budget on whichever bucket the property's polycount
+# pressure lives in.
+
+# ─── Primary mesh per bundle ──────────────────────────────────
+
+- id: oak-stylized
+  description: "Mature deciduous tree, stylized low-poly. Visible trunk + clumped canopy. Not topiary — irregular shape."
+  search_keywords:
+    - "low-poly oak tree stylized"
+    - "stylized cartoon oak tree glb"
+    - "low poly deciduous tree forest"
+  license_required: cc0|cc-by
+  format: glb
+  poly_budget: 4000
+  needs:
+    skeleton: false
+    animations: []   # canopy_sway driven from a vertex shader; no skeletal anim required
+  used_by:
+    - bundle.article
+  fallback: primitive:tree_composite
+  priority: 1
+
+- id: sapling-figure
+  description: "Bipedal humanoid form with bark/wood-textured skin. Sapling-scale (smaller than oak). Clear two-legged silhouette. Rigged for idle breathing animation and head gaze."
+  search_keywords:
+    - "humanoid wood spirit low-poly rigged"
+    - "forest spirit character rigged glb"
+    - "stylized tree person bipedal animated"
+  license_required: cc0|cc-by
+  format: glb
+  poly_budget: 6000
+  needs:
+    skeleton: humanoid_simple
+    animations:
+      - idle_breathing
+    bones_named:
+      head: "Head"
+  used_by:
+    - bundle.profile
+  fallback: primitive:bipedal_stack
+  priority: 1
+  notes: |
+    Hardest asset to source well. Sketchfab CC-BY low-poly
+    rigged humanoids exist; a "tree spirit" variant may be
+    harder to find. Acceptable fallback: any low-poly rigged
+    humanoid with Mixamo-compatible skeleton; we apply bark
+    textures via MaterialSlotComponent.
+
+- id: standing-stone
+  description: "Weathered standing stone, knee-to-shoulder height. Irregular silhouette. Bronze/golden warm tone in default state; emissive channel for temporal urgency animations."
+  search_keywords:
+    - "weathered standing stone megalith"
+    - "low-poly menhir stone"
+    - "standing stone forest stylized"
+  license_required: cc0|cc-by
+  format: glb
+  poly_budget: 2000
+  needs:
+    skeleton: false
+    animations: []
+    emissive_material: true   # for pulse_amplitude modulation
+  used_by:
+    - bundle.event
+  fallback: primitive:cylinder_pillar
+  priority: 1
+
+- id: elder-figure
+  description: "Taller humanoid than sapling-figure, less tree-like, more 'person you can talk to.' Fully rigged for breathing + dialogue gestures."
+  search_keywords:
+    - "low-poly elder character rigged"
+    - "humanoid character stylized fantasy rigged"
+  license_required: cc0|cc-by
+  format: glb
+  poly_budget: 8000
+  needs:
+    skeleton: humanoid_full
+    animations:
+      - idle_breathing_pronounced
+      - open_dialogue_pose
+  used_by:
+    - bundle.chatvatar
+  fallback: primitive:bipedal_stack_with_aura
+  priority: 3   # deferred — chatvatars don't exist in current corpus
+
+# ─── Decorative clutter (per-sector) ──────────────────────────
+
+- id: mushroom-cluster-stylized
+  description: "Small cluster of stylized mushrooms. Multiple sizes in one mesh. Used as decorative scatter near sector centroids."
+  search_keywords:
+    - "low-poly mushroom cluster stylized"
+    - "mushrooms forest decorative glb"
+  license_required: cc0|cc-by
+  format: glb
+  poly_budget: 500
+  needs:
+    skeleton: false
+    animations: []
+  used_by:
+    - scenery.ambient_clutter
+  fallback: primitive:hemisphere_cluster
+  priority: 2
+
+- id: fern-stylized
+  description: "Single stylized fern frond or small cluster. Low-poly. Vertex-shader sway optional."
+  search_keywords:
+    - "low-poly fern plant stylized"
+    - "forest understorey fern glb"
+  license_required: cc0|cc-by
+  format: glb
+  poly_budget: 400
+  needs:
+    skeleton: false
+    animations: []
+  used_by:
+    - scenery.ambient_clutter
+  fallback: primitive:cone_flat
+  priority: 2
+
+- id: stone-moss-rounded
+  description: "Small rounded stones with moss patches. 2–3 sizes in one mesh. Decorative scatter."
+  search_keywords:
+    - "rounded mossy stones low-poly"
+    - "forest rocks decoration glb"
+  license_required: cc0|cc-by
+  format: glb
+  poly_budget: 600
+  needs:
+    skeleton: false
+    animations: []
+  used_by:
+    - scenery.ambient_clutter
+  fallback: primitive:sphere_squashed
+  priority: 2
+
+# ─── Scenery / overhead ───────────────────────────────────────
+
+- id: canopy-dome
+  description: "Large semi-transparent dome textured with overlapping leaf clusters. The 'no sky — canopy ceiling' cue. Inverted normals so it renders from inside."
+  search_keywords:
+    - "forest canopy ceiling 3d"
+    - "leaf cluster billboards skydome"
+  license_required: cc0|cc-by
+  format: glb
+  poly_budget: 3000
+  needs:
+    skeleton: false
+    animations: []
+    inverted_normals: true
+    semi_transparent: true
+  used_by:
+    - scenery.canopy_overhead
+  fallback: primitive:dome_with_solid_color
+  priority: 2
+  notes: |
+    May be cheaper to author this directly in Blender than to
+    source it. A few overlapping textured planes inside a
+    sphere is straightforward Blender work; sourcing exactly
+    "forest canopy dome" from libraries is unreliable.
+
+# ─── Textures / decals ────────────────────────────────────────
+
+- id: ground-circle-moss
+  description: "Seamless circular moss texture for ground decals beneath event totems. Soft-edged, low-saturation green."
+  search_keywords:
+    - "moss circle texture seamless"
+    - "forest floor moss patch png"
+  license_required: cc0
+  format: png
+  size_px: 512x512
+  used_by:
+    - bundle.event.ground_decal
+  fallback: procedural_circle_alpha
+  priority: 2
+
+- id: leaf-litter-tiling
+  description: "Tileable ground texture: dry leaves, twigs, small stones, occasional fern frond. Earth tones over a slightly green-tinted base."
+  search_keywords:
+    - "leaf litter ground texture seamless"
+    - "forest floor pbr"
+  license_required: cc0
+  format: png
+  size_px: 1024x1024
+  used_by:
+    - scenery.ground.texture_decal
+  fallback: solid_color
+  priority: 2
+  notes: |
+    Poly Haven is a strong source for this; their pbr textures
+    are CC0 by default. ambientCG also has dozens of leaf-litter
+    variants under CC0.
+
+# ─── Particles ─────────────────────────────────────────────────
+
+- id: pollen-mote-sprite
+  description: "Single semi-transparent sprite used as the texture for the pollen-mote particle layer. Soft circular gradient, slight irregularity."
+  search_keywords:
+    - "particle sprite soft circle"
+    - "pollen light mote texture"
+  license_required: cc0
+  format: png
+  size_px: 64x64
+  used_by:
+    - particles.motes
+  fallback: procedural_radial_alpha
+  priority: 2

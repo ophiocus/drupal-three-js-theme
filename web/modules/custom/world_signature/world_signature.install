@@ -115,6 +115,23 @@ function world_signature_update_10003(): string {
 }
 
 /**
+ * v0.2 — add `active_atmosphere` to world_signature.palette.
+ *
+ * Adds the atmosphere-selection key. "none" is the safe default —
+ * the renderer falls through to its standard SmartObject Builders.
+ * Properties set this to "forest" / other atmosphere names per
+ * their editorial direction via config_sync.
+ */
+function world_signature_update_10005(): string {
+  $config = \Drupal::configFactory()->getEditable('world_signature.palette');
+  if ($config->get('active_atmosphere') !== NULL) {
+    return 'world_signature.palette.active_atmosphere already set; preserving.';
+  }
+  $config->set('active_atmosphere', 'none')->save();
+  return 'Added active_atmosphere=none to world_signature.palette.';
+}
+
+/**
  * v0.1 — add per-sector biome overlays to world_signature.palette.
  *
  * BiomeMixer used to hardcode five tonal overlays; this hook moves

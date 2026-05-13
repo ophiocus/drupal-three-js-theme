@@ -55,6 +55,14 @@ interface Palette {
   bundleColors: Record<string, string>;
   /** Per-sector biome overlays. Empty array = global palette unchanged. */
   biomes?: BiomePaletteEntry[];
+  /**
+   * Active atmosphere key. "none" (or absent) = no atmosphere
+   * builders register; defaults handle everything. Other values
+   * trigger lazy-import of `./atmospheres/<name>/index.js` and
+   * registration before the default builders, per
+   * docs/ATMOSPHERES.md.
+   */
+  activeAtmosphere?: string;
 }
 
 /** Hardcoded fallback if a snapshot lands without a palette key. */
@@ -91,13 +99,7 @@ export class SceneManager {
   private mode: Mode = "exploration";
   private readonly htmlSurfaces: HtmlSurface[] = [];
   private readonly surfaceCache = new SurfaceCache();
-  private readonly registry = (() => {
-    const reg = new SmartObjectRegistry(new FallbackBuilder());
-    // v0.1.2b: ArticleBuilder handles `bundle === "article"` —
-    // produces a cube whose side is modulated by word count.
-    reg.register(new ArticleBuilder());
-    return reg;
-  })();
+  private registry: SmartObjectRegistry | null = null;
   private readonly smartObjects = new Map<string, SmartObject>();
   private cardController: CardController | null = null;
   private biomeMixer: BiomeMixer | null = null;
@@ -182,6 +184,20 @@ export class SceneManager {
 
     this.applyPaletteBackground();
     this.addLights();
+
+    // v0.2: build the SmartObjectRegistry with atmosphere
+    // builders FIRST, defaults AFTER. First-match-wins means
+    // an active atmosphere claims its bundles; anything it
+    // doesn't claim falls through to ArticleBuilder /
+    // FallbackBuilder. See docs/ATMOSPHERES.md §"Stage 6".
+    this.registry = new SmartObjectRegistry(new FallbackBuilder());
+    const atmosphere = this.palette.activeAtmosphere;
+    if (atmosphere && atmosphere !== "none") {
+      loader.setMessage(`loading ${atmosphere} atmosphere`);
+      await this.registerAtmosphere(atmosphere);
+    }
+    this.registry.register(new ArticleBuilder());
+
     // v0.1: CameraController owns motion. Seed from the URL's
     // vantage; the ALPHA orbit is gone.
     const snap = this.snapshot;
@@ -333,12 +349,14 @@ export class SceneManager {
     // registered. All entities build in parallel. The loader's
     // progress counter ticks as each build settles.
     const snap = this.snapshot;
+    const registry = this.registry;
+    if (!registry) return;
     const total = Object.keys(snap.entities).length;
     let built = 0;
     loader?.setProgress(0, total);
     const buildPromises = Object.values(snap.entities).map(async (entity) => {
       const wp = entityPosition(entity, snap);
-      const obj = await this.registry.build(entity, {
+      const obj = await registry.build(entity, {
         snapshot: snap,
         palette: this.palette,
         surfaceCache: this.surfaceCache,
@@ -376,6 +394,34 @@ export class SceneManager {
         `camera at (${this.camera.position.x.toFixed(0)},${this.camera.position.y.toFixed(0)},${this.camera.position.z.toFixed(0)}), ` +
         `palette: ${p.background}`,
     );
+  }
+
+  /**
+   * Lazy-import an atmosphere by name and register its
+   * builders. Atmospheres become separate Vite chunks
+   * (parallel to the HtmlSurface chunks), so unused
+   * atmospheres never bloat the main bundle. Unknown
+   * atmosphere names log a warning and proceed without
+   * registering — the world still renders with the defaults.
+   */
+  private async registerAtmosphere(name: string): Promise<void> {
+    if (!this.registry) return;
+    try {
+      switch (name) {
+        case "forest": {
+          const mod = await import("./atmospheres/forest/index.js");
+          mod.registerForestAtmosphere(this.registry);
+          break;
+        }
+        default:
+          console.warn(`[world] unknown atmosphere "${name}"; running with defaults.`);
+      }
+    } catch (err) {
+      console.warn(
+        `[world] failed to load atmosphere "${name}"; running with defaults. Cause:`,
+        err,
+      );
+    }
   }
 
   private bundleColor(bundle: string): THREE.Color {

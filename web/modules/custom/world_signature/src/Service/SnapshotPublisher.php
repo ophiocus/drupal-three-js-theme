@@ -84,6 +84,11 @@ final class SnapshotPublisher {
    * Read world_signature.palette config; fall back to baked-in
    * defaults so the renderer always gets a usable palette even
    * before hook_update_10001 has run.
+   *
+   * Snake_case → camelCase for renderer keys: the config schema
+   * uses Drupal's snake_case (active_atmosphere); the renderer's
+   * Palette interface expects camelCase (activeAtmosphere). The
+   * mapping happens here as a single explicit translation.
    */
   private function loadPalette(): array {
     $config = $this->configFactory->get('world_signature.palette');
@@ -93,10 +98,17 @@ final class SnapshotPublisher {
     }
     // Don't trust partial overrides; merge against the fallback
     // to guarantee every key the renderer expects is present.
-    return array_replace_recursive(self::FALLBACK_PALETTE, $palette);
+    $merged = array_replace_recursive(self::FALLBACK_PALETTE, $palette);
+    // snake_case → camelCase translations.
+    if (isset($merged['active_atmosphere'])) {
+      $merged['activeAtmosphere'] = $merged['active_atmosphere'];
+      unset($merged['active_atmosphere']);
+    }
+    return $merged;
   }
 
   private const array FALLBACK_PALETTE = [
+    'active_atmosphere' => 'none',
     'background' => '#d0dce6',
     'fog' => ['color' => '#c8d8e0', 'near' => 80.0, 'far' => 500.0],
     'ambient' => ['color' => '#e8efe9', 'intensity' => 0.85],

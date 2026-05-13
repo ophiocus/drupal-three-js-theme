@@ -1,0 +1,117 @@
+# Forest atmosphere — asset provenance log.
+#
+# Populated by the world-building technical layer as Stage 4
+# (Acquisition) of the atmosphere pipeline (docs/ATMOSPHERES.md).
+#
+# Every glb / texture / sprite that lands in
+# web/themes/custom/drupal_threejs/assets/atmospheres/forest/
+# gets an entry here. Required for all assets — CC0 included —
+# so provenance is reproducible across deploys.
+#
+# Schema per entry:
+#   id:              must match the corresponding entry in assets-needed.yml
+#   file:            filename in assets/atmospheres/forest/
+#   status:          pending | acquired | rejected
+#   source:          URL of the original asset OR Tripo prompt+seed
+#   license:         CC0 | CC-BY | CC-BY-SA | proprietary
+#   author:          required for CC-BY / CC-BY-SA; consolidated in
+#                    docs/ASSET_ATTRIBUTIONS.md
+#   acquired_via:    direct_curl | sketchfab_mcp | tripo_mcp | blender_mcp
+#   acquired_date:   ISO 8601
+#   polycount:       int (post-processing)
+#   filesize_bytes:  int
+#   processed:       true | false (Stage 5 normalisation status)
+#   processing_notes: freeform — decimation, rotation fixes, etc.
+#   notes:           editorial freeform
+
+# ─── State as of pipeline pilot (2026-05-13) ───────────────────
+#
+# No acquisitions yet. MCPs not installed; primitives fall back
+# in the renderer (per ATMOSPHERES.md §"Pending-asset handling").
+# This file is the input to the world-building technical layer
+# when it runs.
+
+assets:
+  oak-stylized:
+    status: pending
+    notes: priority 1 — primary article visual.
+
+  sapling-figure:
+    status: pending
+    notes: priority 1 — primary profile visual. Hardest to source well; CC-BY rigged humanoid acceptable, then re-skin via MaterialSlotComponent.
+
+  standing-stone:
+    status: pending
+    notes: priority 1 — primary event visual. Emissive material required for temporal-urgency modulation.
+
+  elder-figure:
+    status: pending
+    notes: priority 3 — chatvatar bundle deferred to v0.2; no current corpus entries need it.
+
+  mushroom-cluster-stylized:
+    status: pending
+    notes: priority 2 — decorative clutter.
+
+  fern-stylized:
+    status: pending
+    notes: priority 2 — decorative clutter.
+
+  stone-moss-rounded:
+    status: pending
+    notes: priority 2 — decorative clutter.
+
+  canopy-dome:
+    status: pending
+    notes: priority 2 — author in Blender likely cheaper than searching libraries.
+
+  ground-circle-moss:
+    status: pending
+    notes: priority 2 — Poly Haven or ambientCG.
+
+  leaf-litter-tiling:
+    status: pending
+    notes: priority 2 — Poly Haven or ambientCG.
+
+  pollen-mote-sprite:
+    status: pending
+    notes: priority 2 — can be procedural radial alpha at runtime; sourcing optional.
+
+# ─── Sourcing notes for the world-building technical layer ───
+#
+# These notes don't fit a single asset entry; record them at the
+# file level for the acquisition pass to consume.
+
+sourcing_strategy:
+  direct_cc0_first:
+    - Quaternius (CC0): "https://quaternius.com" — strong on
+      stylized trees, characters, props. Likely covers
+      oak-stylized + mushroom + fern + stone outright.
+    - Kenney.nl (CC0): "https://kenney.nl" — broader game-asset
+      library. "Nature Kit" pack matches several entries.
+    - Poly Haven (CC0): "https://polyhaven.com" — primary
+      source for leaf-litter-tiling and ground-circle-moss
+      textures.
+    - ambientCG (CC0): "https://ambientcg.com" — alt source
+      for PBR ground textures.
+    - three.js examples (MIT): the project's existing path —
+      `Soldier.glb` and friends. Useful for sapling-figure
+      as a temporary humanoid placeholder.
+
+  sketchfab_mcp_second:
+    - For sapling-figure: search "low poly humanoid rigged"
+      + license CC-BY + animated. Filter to author-credited
+      packs; record attribution.
+    - For canopy-dome: unlikely to find a clean match;
+      generate in Blender instead.
+
+  tripo_mcp_third:
+    - Only for assets where libraries fail. For the forest
+      atmosphere, no entry currently requires Tripo —
+      everything has a viable library source. Tripo's lane
+      opens when v0.2 Chatvatars need property-specific
+      personae.
+
+  rejected_pattern:
+    - Anything under Sketchfab "Editorial" or "Standard"
+      licenses → rejected. Filter must be CC0|CC-BY|CC-BY-SA
+      at MCP-call time, not post-download.

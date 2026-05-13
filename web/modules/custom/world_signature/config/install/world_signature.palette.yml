@@ -10,6 +10,13 @@
 #
 # Color values are CSS hex strings; three.js parses them via THREE.Color.
 
+# Active atmosphere — whole-world visual idiom. "none" leaves the
+# renderer in its default SmartObject builders (cubes + word-count
+# side modulation). Other values trigger lazy-load of the matching
+# atmosphere module in src/world/runtime/atmospheres/<name>/.
+# See docs/ATMOSPHERES.md.
+active_atmosphere: 'none'
+
 background: '#d0dce6'
 fog:
   color: '#c8d8e0'
