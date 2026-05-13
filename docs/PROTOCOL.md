@@ -221,7 +221,7 @@ A simple sanity query: list collections in
 `drupal_three_js_theme_world` — should return `[]` until Sprint
 3b-2 writes the first descriptor.
 
-## 4c. Asset MCP servers — Sketchfab + Blender
+## 4c. Asset MCP servers — Sketchfab + Tripo + Blender
 
 Once `v0.1.3` lands its `ProfileBuilder` (per
 `docs/v0.1/SMART_OBJECTS.md`), the renderer needs real 3D assets
@@ -310,13 +310,100 @@ it on download.
 - **API rate limits.** Sketchfab's free tier rate-limits search
   to ~60/minute. Don't sweep the catalog in a tight loop.
 
-### 4c.2 Blender MCP — modeling + asset transformation
+### 4c.2 Tripo MCP — AI 3D generation (the specialist)
+
+When no library has what we need (a property-specific Chatvatar,
+a one-off ceremonial object, a stylized barista to match the
+atlas_coffee subject brief), Tripo MCP is the dedicated text-to-3D
+and image-to-3D generation path. From the Tripo team at VAST AI
+Research, who released the foundational TripoSR open-source
+model in 2024 and have since productised it.
+
+Tripo MCP is **preferred over Blender MCP's built-in Hyper3D /
+Hunyuan3D generators** for generative work. The Blender
+generators remain on file as fallbacks if Tripo is down or the
+prompt fails to converge, but Tripo is the specialist —
+purpose-built, single API, single license model. Don't multi-shop
+generative AI services for the same artifact unless you have a
+specific quality reason to compare.
+
+#### What it gives us
+
+- Text-to-3D generation (`mcp__Tripo__generate_text_to_model`).
+- Image-to-3D generation (`mcp__Tripo__generate_image_to_model`)
+  — useful when an artist hands you a reference still.
+- Refinement / texture / animation pipelines as separate tool
+  calls — generation is multi-pass by default.
+- Direct hand-off into Blender via the **Tripo Blender Addon**
+  (companion repo
+  [VAST-AI-Research/tripo-3d-for-blender](https://github.com/VAST-AI-Research/tripo-3d-for-blender)).
+  Result lands in the open Blender scene; Blender MCP can then
+  refine and export.
+
+#### Configuration (per-engineer, one-time)
+
+1. **Get a Tripo API token.** Free account at
+   [tripo3d.ai](https://www.tripo3d.ai); profile → API → create
+   key. Tripo's free tier covers exploratory work; paid tiers
+   kick in for high-volume / commercial use. Tag the key in the
+   key vault as project-specific so per-project cost attribution
+   stays clean.
+2. **Add to `~/.claude.json`:**
+
+   ```json
+   {
+     "mcpServers": {
+       "Tripo": {
+         "command": "uvx",
+         "args": ["tripo-mcp"],
+         "env": {
+           "TRIPO_API_KEY": "<your-key>"
+         }
+       }
+     }
+   }
+   ```
+
+3. **(Optional, for Blender hand-off)** install the
+   [Tripo Blender Addon](https://github.com/VAST-AI-Research/tripo-3d-for-blender)
+   into your local Blender install. Without it, Tripo MCP still
+   generates glb files — they just don't auto-open in Blender;
+   you receive a download URL or path and route them manually.
+4. **Restart Claude Code** to register the MCP server.
+
+#### Usage patterns
+
+| Want | Agent does |
+|---|---|
+| A barista chatvatar for the atlas_coffee subject | `mcp__Tripo__generate_text_to_model` with `prompt="stylized Guatemalan barista, apron, holding a coffee pour-over kettle, low-poly"`, then refine + texture passes |
+| Convert a reference photo of a producer into a 3D bust | `mcp__Tripo__generate_image_to_model` with the image URL or upload |
+| Land the result in Blender for re-rigging | Tripo Blender Addon picks it up if Blender is running with the addon active; otherwise fetch the glb from the result URL and load it manually |
+
+#### Boundaries
+
+- **Generated content gets license-tagged.** Tripo outputs are
+  generally permissive for commercial use under the free + paid
+  tiers (verify against Tripo's current terms before shipping
+  commercial properties), but the prompt + seed + output URL go
+  in `docs/ASSET_ATTRIBUTIONS.md` so the provenance is
+  reproducible.
+- **Don't iterate generation in a tight loop.** Each generation
+  costs credits + walltime. Reach for Sketchfab first; only
+  reach for Tripo when no library candidate fits.
+- **The MCP is currently alpha** (per the upstream repo's own
+  README as of mid-2026). Tool names and parameters may shift
+  between releases; pin the MCP version in `~/.claude.json`
+  rather than tracking `@latest` for cross-engineer reproducibility.
+
+### 4c.3 Blender MCP — modeling + asset transformation
 
 When Sketchfab doesn't have what we need (or what's there needs
 re-rigging, re-scaling, animation re-targeting, or stylization
-to match the world's aesthetic), Blender MCP lets an agent
-drive Blender directly: create scenes, modify objects, run
-Python, export glb.
+to match the world's aesthetic), and Tripo's generation doesn't
+land in a usable place either, Blender MCP lets an agent drive
+Blender directly: create scenes, modify objects, run Python,
+export glb. It's also the workshop where Tripo's output gets
+final touches before shipping.
 
 #### What it gives us
 
@@ -326,13 +413,15 @@ Python, export glb.
 - Pull from **Poly Haven** (CC0) and **Sketchfab** (forwarded
   through Blender MCP's own Sketchfab integration).
 - AI-generated geometry via **Hyper3D / Hunyuan3D** text-to-3D
-  (useful for v0.2+ generative Chatvatar work).
+  (kept on file as a fallback to Tripo MCP — see §4c.2).
 - Export the active scene or selection as `.glb` / `.gltf` /
   `.fbx` / `.obj`.
 
-Blender MCP is heavier than Sketchfab MCP — it talks to a
-running Blender instance via a Blender addon — but its scope
-covers the whole pipeline from blank scene to project-ready glb.
+Blender MCP is heavier than Sketchfab or Tripo MCPs — it talks
+to a running Blender instance via a Blender addon — but its
+scope covers any post-import refinement (UV cleanup, decimation,
+animation re-target, material baking) that the asset library
+or the generator didn't quite nail.
 
 #### Configuration (per-engineer, one-time)
 
@@ -394,7 +483,7 @@ covers the whole pipeline from blank scene to project-ready glb.
   outside the project's `web/themes/custom/drupal_threejs/assets/`
   tree without a clear reason.
 
-### 4c.3 When to use which (and when to use neither)
+### 4c.4 When to use which (and when to use none)
 
 Decision tree at the point of needing an asset:
 
@@ -406,24 +495,38 @@ Decision tree at the point of needing an asset:
 3. **Does Sketchfab have a near-fit under CC0 or CC-BY?**
    Sketchfab MCP, search + download, record attribution.
 4. **Does the asset need shape/material modification to fit
-   the world's aesthetic?** Sketchfab → Blender MCP for the
-   modification step → export glb.
+   the world's aesthetic?** Sketchfab (or three.js examples) →
+   Blender MCP for the modification step → export glb.
 5. **Is the asset something no library plausibly has** (the
-   property's brand persona, a custom Chatvatar)? Blender MCP
-   with Hyper3D for the generation step → manual review +
-   touch-up → export.
+   property's brand persona, a custom Chatvatar)? Tripo MCP for
+   the generation step → optionally Blender MCP for refinement
+   → export. Hyper3D / Hunyuan3D inside Blender MCP stay on file
+   as fallbacks if Tripo doesn't converge.
 
 Most v0.1.3 work (ProfileBuilder, first rigged figure) lives in
 step 2 or 3. Steps 4–5 wait for v0.2+ when the world's aesthetic
-is more crystallized.
+is more crystallized and the property-specific Chatvatars
+arrive.
 
-### 4c.4 Verifying the MCPs are wired
+The three MCPs form a clean pipeline rather than competing:
+**Sketchfab finds, Tripo generates, Blender refines.** Each is
+optional; each accelerates one stage; none can stand in for
+another's job.
 
-After restarting Claude Code with either or both configured:
+### 4c.5 Verifying the MCPs are wired
+
+After restarting Claude Code with any combination configured:
 
 - **Sketchfab:** the agent should see `mcp__Sketchfab__search`,
   `mcp__Sketchfab__get_model`, `mcp__Sketchfab__download_model`.
   Sanity query: search `q="cube"`, `license=cc0`, `count=1`.
+- **Tripo:** the agent should see
+  `mcp__Tripo__generate_text_to_model`,
+  `mcp__Tripo__generate_image_to_model`, plus refinement +
+  texture tool variants per the upstream README. Sanity query:
+  `generate_text_to_model` with `prompt="small wooden cube"`,
+  `seed=1` — returns a credit-cost preview before committing
+  the credits.
 - **Blender:** with Blender running + addon active + *Start MCP
   Server* clicked, the agent should see
   `mcp__Blender__get_scene_info`, `mcp__Blender__execute_python`,
@@ -431,15 +534,22 @@ After restarting Claude Code with either or both configured:
   `mcp__Blender__get_scene_info` → returns the current scene's
   object list (likely just the default cube + camera + light).
 
-If either MCP is registered but tools don't show up, check
-Claude Code's MCP logs (settings → MCP Servers → server name →
-*View logs*) for connection errors. The two most common scars:
+If any MCP is registered but tools don't show up, check Claude
+Code's MCP logs (settings → MCP Servers → server name →
+*View logs*) for connection errors. Common scars:
 
 - **Sketchfab token expired** — generate a new one; `npx` won't
   warn, the search just returns 401s.
+- **Tripo credits exhausted** — generation calls return a
+  quota-exceeded error; check `tripo3d.ai` account balance
+  before assuming the MCP is broken.
 - **Blender addon not listening** — the *Start MCP Server*
   button must be clicked each time Blender restarts; the addon
   doesn't auto-start.
+- **Tripo MCP version drift** — the upstream is alpha as of
+  mid-2026; pin a specific version in `args` rather than
+  letting `uvx` resolve `@latest` so cross-engineer behavior
+  stays reproducible.
 
 ## 4a. External service version notes — RESTHeart-mediated stack
 
