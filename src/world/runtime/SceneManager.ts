@@ -16,6 +16,7 @@ import { SurfaceCache } from "./SurfaceCache.js";
 import { CardController, type CardRecord } from "./CardController.js";
 import { BiomeMixer, type BiomePaletteEntry } from "./BiomeMixer.js";
 import { CameraController } from "./CameraController.js";
+import { PointerNavigator } from "./PointerNavigator.js";
 import { vantage } from "../vantage.js";
 
 interface BootOptions {
@@ -88,6 +89,7 @@ export class SceneManager {
   private cardController: CardController | null = null;
   private biomeMixer: BiomeMixer | null = null;
   private cameraController: CameraController | null = null;
+  private pointerNavigator: PointerNavigator | null = null;
   private ambientLight: THREE.AmbientLight | null = null;
 
   constructor(private readonly canvas: HTMLCanvasElement) {
@@ -152,6 +154,16 @@ export class SceneManager {
       surfaceCache: this.surfaceCache,
       setMode: (m) => this.setMode(m),
       onBloomedMesh: (mesh) => this.cameraController?.setBloomedMesh(mesh),
+    });
+    // v0.1.1: macro-navigation click router. Owns canvas pointer
+    // events; routes them to card / camera controllers by mesh tag.
+    this.pointerNavigator = new PointerNavigator({
+      canvas: this.canvas,
+      camera: this.camera,
+      scene: this.scene,
+      cardController: this.cardController,
+      cameraController: this.cameraController,
+      snapshot: snap,
     });
     // Sprint 6b: region biomes. Each sector contributes a tonal
     // overlay weighted by inverse-square distance from the camera's
@@ -282,6 +294,9 @@ export class SceneManager {
       });
       const mesh = new THREE.Mesh(geometry, material);
       mesh.position.set(pos.x, 6, pos.z);
+      // v0.1.1: tag the cube as a click target so PointerNavigator
+      // can route a click → "navigate to this entity's detail vantage."
+      mesh.userData.isEntityBody = true;
       mesh.userData.entityId = entity.id;
       this.scene.add(mesh);
 
@@ -294,7 +309,8 @@ export class SceneManager {
     }
     await Promise.allSettled(surfacePromises);
 
-    // Sector centroid pads.
+    // Sector centroid pads. v0.1.1: tagged as click targets so
+    // PointerNavigator routes a click → "navigate to this sector."
     const padGeo = new THREE.CircleGeometry(this.snapshot.world.radius * 0.25, 48);
     padGeo.rotateX(-Math.PI / 2);
     for (const sector of Object.values(this.snapshot.sectors)) {
@@ -304,6 +320,8 @@ export class SceneManager {
       });
       const pad = new THREE.Mesh(padGeo, padMaterial);
       pad.position.set(sector.centroid.x, 0.05, sector.centroid.z);
+      pad.userData.isSectorPad = true;
+      pad.userData.termId = sector.termId;
       this.scene.add(pad);
     }
 

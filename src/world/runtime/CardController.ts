@@ -69,8 +69,6 @@ interface ControllerOptions {
 const FULL_VIEW_MODE_DEFAULT = "full";
 
 export class CardController {
-  private readonly raycaster = new THREE.Raycaster();
-  private readonly pointerNdc = new THREE.Vector2();
   private readonly cards: CardRecord[] = [];
   private readonly overlay: CardOverlay;
   private bloomedRecord: CardRecord | null = null;
@@ -80,7 +78,9 @@ export class CardController {
   constructor(private readonly options: ControllerOptions) {
     this.fullViewMode = options.fullViewViewMode ?? FULL_VIEW_MODE_DEFAULT;
     this.overlay = new CardOverlay(() => this.exitFullView());
-    this.options.canvas.addEventListener("pointerdown", this.onPointerDown);
+    // v0.1.1: PointerNavigator owns the canvas pointer events and
+    // routes pad clicks via activatePad(). CardController no longer
+    // touches the canvas; it owns card *state*, not input.
     window.addEventListener("hashchange", this.onHashChange);
     window.addEventListener("keydown", this.onKeyDown);
   }
@@ -109,31 +109,22 @@ export class CardController {
   }
 
   dispose(): void {
-    this.options.canvas.removeEventListener("pointerdown", this.onPointerDown);
     window.removeEventListener("hashchange", this.onHashChange);
     window.removeEventListener("keydown", this.onKeyDown);
     this.overlay.dispose();
   }
 
-  // ─── Click router ────────────────────────────────────────────────────────
+  // ─── Public surface for PointerNavigator ─────────────────────────────────
 
-  private onPointerDown = (event: PointerEvent): void => {
-    if (this.fullViewRecord) return; // Overlay handles its own clicks.
-
-    const rect = this.options.canvas.getBoundingClientRect();
-    this.pointerNdc.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-    this.pointerNdc.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-    this.raycaster.setFromCamera(this.pointerNdc, this.options.camera);
-
-    const padMeshes = this.cards.map((c) => c.pad);
-    const hits = this.raycaster.intersectObjects(padMeshes, false);
-    if (hits.length === 0) {
-      // Empty-space click → collapse any bloomed card.
-      if (this.bloomedRecord) this.transitionTo(this.bloomedRecord, "hidden");
-      return;
-    }
-    const hitPad = hits[0].object as THREE.Mesh;
-    const record = this.cards.find((c) => c.pad === hitPad);
+  /**
+   * Activate a trigger pad by entityId — what happens when the user
+   * clicks a pad in the world. Drives the Hidden → Bloomed →
+   * FullView progression for that entity, collapsing any other
+   * card first (single-bloom invariant).
+   */
+  activatePad(entityId: string): void {
+    if (this.fullViewRecord) return; // Overlay owns interaction.
+    const record = this.cards.find((c) => c.entityId === entityId);
     if (!record) return;
 
     if (record.state === "hidden") {
@@ -144,7 +135,20 @@ export class CardController {
     } else if (record.state === "bloomed") {
       this.transitionTo(record, "fullView");
     }
-  };
+  }
+
+  /**
+   * Collapse any bloomed / FullView card back to Hidden. Called by
+   * PointerNavigator when the user clicks empty space at overview
+   * (per the navigation Q3 decision).
+   */
+  collapseAll(): void {
+    if (this.fullViewRecord) {
+      this.transitionTo(this.fullViewRecord, "hidden");
+    } else if (this.bloomedRecord) {
+      this.transitionTo(this.bloomedRecord, "hidden");
+    }
+  }
 
   // ─── State machine ───────────────────────────────────────────────────────
 

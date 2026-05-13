@@ -6,6 +6,35 @@ this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased] — v0.1 in progress
 
+### Added (v0.1.1 — PointerNavigator)
+
+- **`src/world/runtime/PointerNavigator.ts`** — macro-navigation
+  click router. Owns canvas pointer events; distinguishes click vs
+  drag by movement (>3px) and timing (>200ms); routes clicks by
+  mesh `userData` tags: `isEntityBody` → navigate to `/node/<id>`,
+  `isSectorPad` → navigate to `/sector/<termId>`, `isTriggerPad` →
+  card activation, untagged → empty-space step-out.
+- **Hover affordance** (Q1=yes): on `pointermove`, raycast (throttled
+  1-in-3 frames), apply an emissive lift to the hovered mesh, set
+  cursor to `pointer`. Stashes baseline emissive in
+  `mesh.userData._baseEmissive` so restoration is exact.
+- **Empty-space click semantics** (Q3=b): at `/`, clears any bloomed
+  / FullView card state; at `/sector/<n>`, navigates to overview;
+  at `/node/<n>`, navigates to that node's primary sector vantage
+  (falls back to overview if the sector can't be resolved).
+- **Entity cubes + sector centroid pads** now carry click-target
+  userData (`isEntityBody`+`entityId`, `isSectorPad`+`termId`); the
+  ground plane and compass posts stay untagged so clicks fall through.
+- **CardController slimmed.** Canvas `pointerdown` listener removed
+  (PointerNavigator owns it); raycaster + pointerNdc fields gone.
+  `activatePad(entityId)` and `collapseAll()` are now the public
+  interaction surface called by PointerNavigator.
+- **CameraController extended**: `navigateTo(uri)` writes
+  `history.pushState` and re-targets; `setUserInteracting(boolean)`
+  suppresses settle during drag; `applyDragDelta(dx, dy)` is a
+  stub (the polar-constrained drag-orbit math lands in v0.1.1
+  commit 2).
+
 ### Added (v0.1 — biome palette → config)
 
 - **`world_signature.palette.biomes`** is now a config sequence;

@@ -55,6 +55,7 @@ export class CameraController {
   private settleTimer = 0;
   private lastReportedUri: string | null = null;
   private bloomedMesh: THREE.Object3D | null = null;
+  private userInteracting = false;
   private readonly lambda: number;
   private readonly settleSeconds: number;
 
@@ -126,6 +127,49 @@ export class CameraController {
     // naturally on the next frame's damp, which resets the timer.
   }
 
+  /**
+   * Macro navigation: push a new URL into history and re-target
+   * the camera. Used by PointerNavigator on entity/sector clicks
+   * and (commit 2) by keyboard hotkeys.
+   *
+   * Uses pushState so the user can browser-back through navigation
+   * history. Settle detection still controls when the URL gets
+   * REwritten on natural arrival; this is for explicit jumps.
+   */
+  navigateTo(uri: string): void {
+    if (uri === window.location.pathname) return;
+    history.pushState(null, "", uri);
+    // pushState doesn't fire popstate/hashchange; route manually.
+    this.onHashChange();
+  }
+
+  /**
+   * Signal that the user is actively dragging or otherwise driving
+   * the camera. While true, settle detection is suppressed so the
+   * URL doesn't get rewritten mid-interaction.
+   *
+   * Wired by PointerNavigator. Drag-orbit math arrives in commit 2.
+   */
+  setUserInteracting(interacting: boolean): void {
+    this.userInteracting = interacting;
+    if (!interacting) {
+      // Reset the settle timer on release so the camera has to
+      // physically stop before a URL write happens.
+      this.settleTimer = 0;
+    }
+  }
+
+  /**
+   * Apply a pointer drag delta to the camera. Polar-constrained
+   * orbit around the current vantage's lookAt point (Q2=b).
+   *
+   * Stubbed for commit 1; real implementation lands in commit 2
+   * once we also have the spherical-coordinates state.
+   */
+  applyDragDelta(_dx: number, _dy: number): void {
+    // intentionally empty for v0.1.1 commit 1
+  }
+
   /** Free event listeners. Call when tearing down the runtime. */
   dispose(): void {
     window.removeEventListener("hashchange", this.onHashChange);
@@ -154,6 +198,12 @@ export class CameraController {
     const velocity = dist / dt;
     this.lastPos.copy(this.options.camera.position);
 
+    // During active user interaction (drag, etc.) suppress settle
+    // so URLs don't thrash mid-gesture.
+    if (this.userInteracting) {
+      this.settleTimer = 0;
+      return;
+    }
     if (velocity < SETTLE_VELOCITY_THRESHOLD) {
       this.settleTimer += dt;
       if (
