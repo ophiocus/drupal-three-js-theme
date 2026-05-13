@@ -6,6 +6,26 @@ this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased] — v0.1 in progress
 
+### Added (v0.1.1 — cypher routes for sector deep-links)
+
+- **`/sector/{termId}` route** in `world_signature.routing.yml`.
+  Controller method `WorldController::sector()` returns an empty
+  render array — the theme's `page.html.twig` provides the canvas,
+  the bundle boots, and CameraController reads the URL to derive
+  the right Vantage. No server-side rendering of sector contents
+  (that's the renderer's job).
+- **404 on unknown terms.** Stale bookmarks to deleted sectors
+  fail loudly rather than booting into an empty world. Cache
+  tagged to the term so editorial rename invalidates correctly.
+- **`sectorTitle()` callback** provides a friendly browser-tab
+  and crawler title from the term label (e.g. "Antigua,
+  Guatemala") rather than the generic route default.
+- **`/node/{id}` deliberately not overridden.** Drupal's
+  canonical node route already serves the world shell via the
+  theme's page template; overriding would lose edit UI,
+  contextual links, and access control plumbing for no gain.
+  Documented inline in routing.yml.
+
 ### Added (v0.1.1 — CameraController locomotion: drag, drift, keys)
 
 - **Drag-orbit (Q2=b polar-constrained).** PointerNavigator

@@ -1,9 +1,18 @@
-# The renderer's contract with Drupal lives here. Four routes:
+# The renderer's contract with Drupal lives here.
 #
+# JSON / data endpoints (the cypher's read API):
 #   /world/health                                  → status JSON
 #   /world/snapshot/full                           → full corpus snapshot JSON
-#   /world/descriptor/{id}                          → one descriptor JSON
-#   /world/card/{entity_type}/{id}/{view_mode}      → Drupal-rendered HTML for FullView
+#   /world/descriptor/{id}                         → one descriptor JSON
+#   /world/card/{entity_type}/{id}/{view_mode}     → Drupal-rendered HTML for FullView
+#
+# Vantage routes (v0.1.1 — deep-linkable world coordinates):
+#   /sector/{termId}                               → world shell at sector vantage
+#
+# Note: /node/{id} is already a Drupal canonical route and serves
+# the world shell via the theme's page.html.twig override. We do
+# NOT override it here — letting Drupal's node route stand keeps
+# editing UI, contextual links, and access control intact.
 #
 # Anonymous access for ALPHA. v0.0.2 may add per-property auth.
 
@@ -43,3 +52,17 @@ world_signature.card:
     entity_type: '[a-z_]+'
     id: '[0-9]+'
     view_mode: '[a-z_]+'
+
+# v0.1.1: /sector/{termId} is a world-coordinate URL. The controller
+# returns an empty render array — the theme's page.html.twig provides
+# the canvas, the bundle boots, and CameraController reads the URL
+# to derive the right Vantage. Page title is human-friendly for
+# crawlers and browser tabs.
+world_signature.sector:
+  path: '/sector/{termId}'
+  defaults:
+    _controller: '\Drupal\world_signature\Controller\WorldController::sector'
+    _title_callback: '\Drupal\world_signature\Controller\WorldController::sectorTitle'
+  requirements:
+    _access: 'TRUE'
+    termId: '[0-9]+'

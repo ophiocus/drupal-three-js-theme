@@ -140,4 +140,54 @@ final class WorldController extends ControllerBase {
     return $response;
   }
 
+  /**
+   * GET /sector/{termId}
+   *
+   * v0.1.1: a deep-linkable world-coordinate URL. The controller
+   * returns an empty render array — the theme's `page.html.twig`
+   * provides the canvas, the JS bundle boots, and CameraController
+   * reads the URL to derive the right Vantage. No server-side
+   * rendering of the sector contents here — that's the renderer's
+   * job, and `/world/snapshot/full` is its source.
+   *
+   * Returns 404 if the term doesn't exist OR isn't currently used
+   * as a sector — keeps stale bookmarks from booting into nothing.
+   */
+  public function sector(string $termId): array {
+    /** @var \Drupal\taxonomy\TermStorageInterface $storage */
+    $storage = $this->entityTypeManager()->getStorage('taxonomy_term');
+    $term = $storage->load($termId);
+    if ($term === NULL || !$term->access('view')) {
+      throw new NotFoundHttpException(sprintf('No sector for term %s.', $termId));
+    }
+
+    // Empty render with strict cache contexts: every URL gets the
+    // same payload (the canvas), but the page title varies per
+    // sector. Cache tag on the term so editorial rename invalidates.
+    return [
+      '#cache' => [
+        'contexts' => ['url.path'],
+        'tags' => $term->getCacheTags(),
+        'max-age' => 3600,
+      ],
+      // Empty body — the world canvas is provided by page.html.twig.
+      '#markup' => '',
+    ];
+  }
+
+  /**
+   * Title callback for /sector/{termId} — friendly browser tab and
+   * crawler signal. Falls through to the route's defined title if
+   * the term load fails.
+   */
+  public function sectorTitle(string $termId): string {
+    /** @var \Drupal\taxonomy\TermStorageInterface $storage */
+    $storage = $this->entityTypeManager()->getStorage('taxonomy_term');
+    $term = $storage->load($termId);
+    if ($term === NULL) {
+      return sprintf('Sector %s', $termId);
+    }
+    return (string) $term->label();
+  }
+
 }
