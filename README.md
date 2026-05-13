@@ -25,15 +25,16 @@ menus, Commerce, GTM — three.js is the presentation layer.
 - Licensing/ownership: may end up MIT-licensed and shared, while the
   platform repo stays private to client work.
 
-## Status — `v0.0.1-alpha`
+## Status — `v0.1.1`
 
-ALPHA shipped 2026-05-11. The thesis claim that *the world contains
-the document* is mechanically real: the same Drupal-rendered HTML
-that serves SEO and accessibility also paints the world's 3D
-surfaces. 20-entity corpus (atlas_coffee subject), 5 regions /
-sectors, 5 spatial biomes. URLs round-trip into the world's state.
+`v0.0.1-alpha` shipped 2026-05-11; `v0.1.1` adds the locomotion
+layer 2026-05-12. The five-coordinate stack
+(editorial / descriptor / 3D / URI / screen) commutes in both
+directions: URLs map to vantages, vantages settle back to URLs.
+Click navigation, drag-orbit, keyboard hotkeys, idle drift, and
+cypher routes for deep-linkable sector URLs are all in place.
 
-**[docs/WALKTHROUGH.md](docs/WALKTHROUGH.md)** — a 4-minute
+**[docs/WALKTHROUGH.md](docs/WALKTHROUGH.md)** — a 6-minute
 reproducible script for a first-time visit. Start there.
 
 Architectural commitments:

@@ -1,8 +1,8 @@
-# Walkthrough — `v0.0.1-alpha`
+# Walkthrough — `v0.1.1`
 
 A reproducible script for a first-time visitor to the world.
-Follow it top to bottom; the timings are real (no waiting for
-loading spinners). Total time to the bottom: about 4 minutes.
+Follow it top to bottom; timings are real. Total time: about
+6 minutes including all the gestures.
 
 ## Before you start
 
@@ -10,6 +10,7 @@ loading spinners). Total time to the bottom: about 4 minutes.
 cd ~/tecnocratica/projects/drupal-three-js-theme
 ddev start
 ddev exec npm run build
+ddev drush updb -y                              # ensure config is current
 ddev drush scr scaffold/seed-atlas-coffee.php   # idempotent
 ddev drush world:publish
 ddev drush scr scaffold/purge-orphans.php       # belt-and-suspenders
@@ -28,134 +29,144 @@ You should see:
 - **Twenty bundle-tinted cubes** distributed across five sectors
   arranged as a pentagon at radius ~100 from origin. Each cube
   has a small **green disc** (the trigger pad) in front of it.
-- **Twenty floating quads** above-and-behind each cube, each
-  painted with the title and metadata of its article.
-- **Camera held at the overview vantage** (v0.1: CameraController
-  reads the URL and seeds the camera; the ALPHA orbit is gone).
+- **Five larger sector centroid discs** on the ground — one at
+  each sector's centroid, lighter green than the entity pads.
+- **Twenty floating quads** above each cube, painted with the
+  title and metadata of the article they represent.
+- **Camera held at the overview vantage** — for the first 3
+  seconds. Then a **gentle idle drift** begins, a slow
+  sinusoidal sway around the overview position; biomes shift
+  subtly as the camera nudges around.
 
-Watch the Console for two lines:
+Watch the Console for:
 
 ```
 [world] canvas: <w>x<h>, camera at (...), palette: #d0dce6
 [world] mounted: 20 entities across 5 sectors, html-surface path: html-to-image (bridge)
 ```
 
-If you don't see the surfaces (just cubes), check Network for
-`/world/card/node/*/default` requests — they should return 200
-with HTML content. If you see *"HtmlSurface failed"* warnings,
-html-to-image choked on a fragment; report.
+## 0:15 — hover and discover
 
-## 0:15 — biomes are a function of position
+Move the mouse over the scene without clicking. As the pointer
+crosses a clickable mesh, it should:
 
-In v0.0.1-alpha the camera orbited slowly past sectors, demonstrating
-biomes automatically. v0.1's CameraController takes ownership of
-camera motion and removed that scaffold; the camera now sits still
-until you navigate. The biome you see at `/` is a near-equal blend
-of all five regions (the camera is at the world's center looking
-down).
+- **Light up** with a subtle emissive lift (entity cubes brighten;
+  trigger pads + sector pads glow a little more).
+- **Change cursor to `pointer`** so the user knows the click
+  target is registered.
 
-To see biomes shift, navigate. Try pasting these in succession:
+The decorative meshes (ground plane, compass posts) don't light
+up — clicks fall through them. The hover affordance is your
+"what would happen if I clicked here" preview.
 
-- `/sector/2` — drifts toward Antigua's golden volcanic warmth
-- `/sector/4` — into Boquete's cool blue-grey cloud forest
-- `/sector/6` — into Tarrazú's saturated green
+## 0:30 — macro navigation by click
 
-Each URL change triggers a damped camera transition (~250ms to
-90% convergence), and the biome blend follows continuously. The
-blend is *spatial, not temporal*: each sector contributes
-inverse-square-of-distance weight. There's no state machine, no
-timer — biome is a function of position, no different from
-gravity in a physics engine.
+Three click targets in the world, three different behaviors:
 
-(Note: as of v0.1.0, `/sector/<id>` URLs only work when entered
-via the URL bar after the initial page load. Drupal routes for
-sector/node deep-links are tracked for v0.1.1.)
+### Click a sector centroid pad (the larger ground disc)
 
-## 1:30 — pick a card and bloom it
+The camera dampens toward that sector's vantage. URL becomes
+`/sector/<termId>`. The biome blend shifts — Antigua's golden
+volcanic warmth, or Boquete's cool blue-grey, or whichever
+sector you landed on.
 
-Click a **green disc on the ground** (any of them — they're the
-trigger pads). The article's quad should:
+### Click an entity cube
 
-- Scale up by ~1.8×
-- Push toward the camera
-- Re-orient to face the camera
+The camera flies to a close-up vantage near that entity. URL
+becomes `/node/<id>`. You're now looking at one article from
+its detail vantage.
 
-The URL bar updates to:
+### Click a small trigger pad (the disc by an entity)
 
-```
-https://drupal-three-js-theme.ddev.site/#card=node-<n>
-```
+This is the **bloom interaction** (existing from v0.0.1-alpha,
+not navigation):
+- The article's floating quad scales up ~1.8× and pushes toward
+  the camera. URL gets `#card=node-<id>` appended.
+- Continuously re-orients to face the camera (v0.1 fix — used
+  to only face at bloom-time).
 
-This is the **Bloomed state**. The engine keeps running; the
-orbit continues. You're in *preview*.
+Click the pad **again** while bloomed → DOM overlay opens with
+the full article text. URL gets `&v=full`. Engine pauses
+(verify in Performance tab — no `requestAnimationFrame` ticks).
 
-## 2:00 — go deep, enter FullView
+### Click empty ground
 
-Click **the same pad again**. The world goes still and a
-full-screen overlay slides in with backdrop blur. The article
-shows briefly as *"Loading..."*, then the full body text
-appears in a centered white panel.
+- At `/` (overview): collapses any bloomed/FullView card to Hidden
+  state (Q3 from the locomotion proposal).
+- At `/sector/<id>`: navigates back to overview (`/`).
+- At `/node/<id>`: navigates to that node's primary sector.
 
-URL becomes:
+The semantics are deliberately layered — *click empty = step out*.
 
-```
-https://drupal-three-js-theme.ddev.site/#card=node-<n>&v=full
-```
+## 1:30 — micro browsing by drag
 
-In Performance tab, record for 2 seconds. The main thread should
-be **near-idle** — no `requestAnimationFrame` ticks. This is the
-engine pause from `ARCHITECTURE §4.3`: the world stops to honor
-the document.
+Press-and-hold mouse button **on empty ground**, then drag.
 
-Read a paragraph. The article is the genuine content the cypher
-served via `/world/card/node/<n>/full`. Same Drupal entity, same
-view-mode, painted into the document via the overlay rather than
-onto a quad.
+- The camera **orbits around the current vantage's lookAt point**.
+- Horizontal drag rotates azimuth (yaw); vertical drag tilts polar
+  (pitch), clamped to a sensible band so you can never flip the
+  camera overhead or burrow it below the floor (Q2 from the
+  locomotion proposal).
+- The drag **sticks on release** — your new angle persists. There's
+  no snap-back. Only a URL change will re-anchor the camera.
 
-## 2:30 — leave gracefully
+This is *ephemeral* navigation: the URL doesn't change while
+dragging. Settle detection is suppressed during interaction
+(the `userInteracting` flag).
 
-Three ways out, each different:
+## 2:00 — keyboard navigation
 
-- **× button** (top-right of the white panel) — closes the
-  overlay, returns to Bloomed. Orbit resumes.
-- **Click the dark backdrop** — same: returns to Bloomed.
-- **Esc key** — collapses straight to Hidden, skipping Bloomed.
-  URL clears entirely.
+| Key | Action |
+|---|---|
+| `Tab` | Cycle to next entity within current sector (or corpus-wide at overview) |
+| `Shift+Tab` | Cycle to previous entity |
+| `1`–`5` | Jump to sector N (`termId`-ascending order — same as the biome palette) |
+| `6`–`9` | No-op (only 5 sectors in the atlas_coffee corpus) |
+| `Escape` | Return to overview (`/`) |
+| `Esc` (while card bloomed/FullView) | Collapse card state |
+| Browser back/forward | Replay vantage history |
 
-Try each. URL updates accordingly each time.
+The keyboard nav is gated on focus — if you're typing in an
+input field, hotkeys don't fire.
 
-## 3:00 — deep link
+## 2:30 — engine pause on FullView
 
-Copy this URL:
+With a card in Bloomed state (`#card=node-<n>`), click the trigger
+pad **a second time**. DOM overlay opens. In Performance tab,
+record for 2 seconds. Main thread is **near-idle**.
 
-```
-https://drupal-three-js-theme.ddev.site/#card=node-12&v=full
-```
+This is the engine pause from `ARCHITECTURE §4.3`: the world
+stops to honor the document. Battery, focus, and computational
+quiet all benefit.
 
-Open it in a new tab. The site should boot directly into
-FullView for *Boquete Geisha Cup 2026: final scoring announced*.
-No intermediate state. The URL was the address; the world
-honored it.
+Three ways out of FullView:
 
-Try this one too:
+- **× button** (top-right) → back to Bloomed; engine resumes.
+- **Click the dark backdrop** → back to Bloomed.
+- **Esc** → straight to Hidden, skip Bloomed.
 
-```
-https://drupal-three-js-theme.ddev.site/#card=node-3
-```
+URL updates correctly at each transition.
 
-Boots into Bloomed state for *Doña Rosa Méndez — three
-generations on the slopes of Acatenango*.
+## 3:00 — deep link round-trip
 
-This is the URI-as-coordinate claim made mechanical. Type any
-URL → the world arrives there. Paste any URL → the world arrives
-there. The five layers (editorial / descriptor / 3D / URI /
-screen) form a commutative diagram; you've just walked across
-two of its longest arrows.
+Open these URLs in fresh tabs:
+
+| URL | What you should see |
+|---|---|
+| `/` | Overview vantage; idle drift after 3s |
+| `/sector/2` | Antigua's sector vantage (high above Antigua) |
+| `/node/5` | Close-up vantage on the Carbonic Maceration article |
+| `/node/12#card=node-12` | Boquete Geisha Cup, bloomed |
+| `/node/12#card=node-12&v=full` | Boquete Geisha Cup, FullView, engine paused |
+
+Every one survives a full reload (v0.1.1 cypher routes). The
+URL is the address; the world honors it.
 
 ## 4:00 — what you've verified
 
 - ✓ 20-entity corpus across 5 sectors (Sprint 6a)
 - ✓ Five region biomes blend spatially as the camera moves (Sprint 6b)
+- ✓ Biome palette read from `world_signature.palette.biomes` config (v0.1)
 - ✓ HTML surfaces paint live Drupal-rendered articles on 3D quads
   (Sprint 5a+5b)
 - ✓ Trigger pads bloom cards in 3D space (Sprint 5c)
@@ -163,40 +174,37 @@ two of its longest arrows.
   (Sprint 5e)
 - ✓ Engine pauses on FullView entry; resumes on exit (Sprint 5e)
 - ✓ URL hash captures both spatial and lifecycle state (Sprint 5e)
-- ✓ Deep links round-trip into the matching state (Sprint 5e)
-- ✓ Surface fetches share a cache; LRU eviction on overflow
-  (Sprint 5d)
+- ✓ Camera → URL settles to vantage URI (v0.1 CameraController)
+- ✓ Bloomed surface continuously faces camera (v0.1)
+- ✓ Click sector pad → navigate (v0.1.1 PointerNavigator)
+- ✓ Click entity cube → navigate (v0.1.1 PointerNavigator)
+- ✓ Empty-space click → step out / clear cards (v0.1.1)
+- ✓ Hover affordance with emissive lift + cursor pointer (v0.1.1)
+- ✓ Drag-orbit around current vantage's lookAt, polar-clamped (v0.1.1)
+- ✓ Idle drift after 3s of no input (v0.1.1)
+- ✓ Tab/Shift+Tab cycle entities; 1–9 jump sectors (v0.1.1)
+- ✓ `/sector/<termId>` deep-links survive reload (v0.1.1 cypher route)
+- ✓ Deep links round-trip in both directions (Sprint 5e + v0.1)
 
-That's the ALPHA. Everything below the hood is in place. v0.1
-moves the biome palette to config, adds proper SmartObject
-metaphor geometry, opens the descriptor schema to editor
-extension, and starts wiring Sprint 5's deferred items
-(continuous facing while bloomed, camera→URL update, hover
-affordances, smooth bloom tweens).
+That's v0.1.1. The five-coordinate stack commutes in both
+directions. Every layer round-trips.
 
-## Known sharp edges for ALPHA
+## Known sharp edges still standing
 
-1. ~~**Bloomed surface faces the camera at bloom time only.**~~
-   Fixed in v0.1 — CameraController re-orients bloomed surfaces
-   each frame.
-2. **Camera position doesn't update the URL.** The URL→world
-   direction commutes; the world→URL direction is half-built
-   (only the card state machine syncs the hash, not the
-   camera).
-3. **Biome palette is hardcoded** in `BiomeMixer.ts`. Editors
-   can't tune their world without code. v0.1 moves it to
-   `world_signature.palette` config.
-4. **`profile` and `event` bundles** are absent — all 20
-   entities are `article`. The bundle-color hint exists in
-   the palette but only `article` is currently in use. The
-   bundle distinction was a stand-in for per-bundle metaphor
-   geometry, which is deferred.
-5. **The entity_delete hook doesn't always clean RESTHeart.**
+1. **`profile` and `event` bundles** are absent — all 20 entities
+   are `article`. The bundle-color hint exists in the palette but
+   only `article` is currently in use. Per-bundle metaphor
+   geometry (SmartObject base class) is the v0.1.2 target.
+2. **The entity_delete hook doesn't always clean RESTHeart.**
    Worked around with `scaffold/purge-orphans.php`. Real fix
-   tracked for v0.1.
-6. **No tests for the runtime DOM components** (CardController,
-   CardOverlay, BiomeMixer). They depend on a real DOM/canvas;
-   `jsdom`-based testing is on the v0.1 list.
+   tracked.
+3. **No tests for the runtime DOM components** beyond CameraController
+   (CardController, CardOverlay, PointerNavigator, BiomeMixer). They
+   depend on a real DOM/canvas; `jsdom`-based test coverage
+   continues on the v0.1.x list.
+4. **Camera at overview drifts indefinitely** if the user never
+   interacts. Should we add a "pause on tab inactive"? Tracked
+   for follow-up; not blocking ALPHA.
 
 ## Reproducing the world from scratch
 
@@ -213,4 +221,4 @@ ddev exec npm install && ddev exec npm run build
 ddev launch
 ```
 
-Times out at about 90 seconds on a warm DDEV.
+About 90 seconds on a warm DDEV.
