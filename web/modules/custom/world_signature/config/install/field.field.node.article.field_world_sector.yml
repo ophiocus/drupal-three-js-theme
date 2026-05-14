@@ -1,0 +1,34 @@
+# field_world_sector instance on the article bundle. The cypher's
+# NodeMetaphorBase reads this to derive sector membership.
+#
+# Targets the `topics` vocabulary. Editor-visible: this is how an
+# editor places content into a sector (unlike field_world_signature,
+# which is machine-written and hidden).
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_world_sector
+    - node.type.article
+    - taxonomy.vocabulary.topics
+id: node.article.field_world_sector
+field_name: field_world_sector
+entity_type: node
+bundle: article
+label: 'World Sector'
+description: 'Taxonomy terms placing this entity in one or more world sectors. The cypher reads this to derive sector membership and place the entity in the 3D world.'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:taxonomy_term'
+  handler_settings:
+    target_bundles:
+      topics: topics
+    sort:
+      field: name
+      direction: asc
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

@@ -1,0 +1,26 @@
+# Storage for the computed signature field. The queue worker
+# writes a JSON-serialized Signature here; the snapshot publisher
+# reads it. string_long because the payload is JSON text, not a
+# structured Drupal value.
+#
+# Was floating config before v0.2.x — created at runtime by an
+# early session, never shipped. Now module-owned, so a fresh
+# install brings it.
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+id: node.field_world_signature
+field_name: field_world_signature
+entity_type: node
+type: string_long
+settings:
+  case_sensitive: false
+module: core
+locked: false
+cardinality: 1
+translatable: false
+indexes: {  }
+persist_with_no_fields: true
+custom_storage: false

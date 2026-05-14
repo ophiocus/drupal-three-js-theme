@@ -81,14 +81,20 @@ final class SnapshotPublisher {
   }
 
   /**
-   * Read world_signature.palette config; fall back to baked-in
-   * defaults so the renderer always gets a usable palette even
-   * before hook_update_10001 has run.
+   * Read world_signature.palette config and resolve it into the
+   * shape the renderer's Palette interface expects.
    *
-   * Snake_case → camelCase for renderer keys: the config schema
-   * uses Drupal's snake_case (active_atmosphere); the renderer's
-   * Palette interface expects camelCase (activeAtmosphere). The
-   * mapping happens here as a single explicit translation.
+   * Three transforms happen here, in order:
+   *   1. Merge config over the baked-in fallback so every key the
+   *      renderer needs is present even on a config-less install.
+   *   2. Apply the active atmosphere's overlay (option-f, per
+   *      docs/v0.2/ROADMAP.md §P1) — atmosphere_overrides[<active>]
+   *      merged onto the base palette. The biome blend runs on top
+   *      of this on the renderer side.
+   *   3. snake_case → camelCase + strip config-only keys: Drupal
+   *      config uses active_atmosphere; the renderer wants
+   *      activeAtmosphere. atmosphere_overrides is config-only and
+   *      never reaches the renderer.
    */
   private function loadPalette(): array {
     $config = $this->configFactory->get('world_signature.palette');
@@ -96,14 +102,25 @@ final class SnapshotPublisher {
     if ($palette === []) {
       return self::FALLBACK_PALETTE;
     }
-    // Don't trust partial overrides; merge against the fallback
-    // to guarantee every key the renderer expects is present.
+    // 1. Merge config over the fallback.
     $merged = array_replace_recursive(self::FALLBACK_PALETTE, $palette);
-    // snake_case → camelCase translations.
+
+    // 2. Apply the active atmosphere's palette overlay.
+    $active = $merged['active_atmosphere'] ?? 'none';
+    if ($active !== 'none') {
+      $overlay = $merged['atmosphere_overrides'][$active] ?? [];
+      if ($overlay !== []) {
+        $merged = array_replace_recursive($merged, $overlay);
+      }
+    }
+
+    // 3. snake_case → camelCase; strip config-only keys.
     if (isset($merged['active_atmosphere'])) {
       $merged['activeAtmosphere'] = $merged['active_atmosphere'];
       unset($merged['active_atmosphere']);
     }
+    unset($merged['atmosphere_overrides']);
+
     return $merged;
   }
 

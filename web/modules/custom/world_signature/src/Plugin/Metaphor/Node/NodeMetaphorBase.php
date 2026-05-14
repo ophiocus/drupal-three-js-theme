@@ -13,7 +13,7 @@ use Drupal\world_signature\Signature\EntityFacts;
  * Base for node-shaped Metaphor plugins.
  *
  * Provides defaults that read the most common Drupal-node fields
- * (body, field_tags, field_paragraphs, field_image, etc.) so that a
+ * (body, field_world_sector, field_paragraphs, field_image, etc.) so that a
  * concrete bundle plugin (e.g. Article, Profile, Event) only has to
  * declare its annotation. Subclasses override the protected helpers
  * when their bundle's schema diverges.
@@ -80,11 +80,17 @@ abstract class NodeMetaphorBase extends MetaphorPluginBase {
 
   public function sectorTermIds(EntityInterface $entity): array {
     assert($entity instanceof NodeInterface);
-    if (!$entity->hasField('field_tags')) {
+    // v0.2.x: read the module-owned field_world_sector rather than
+    // piggybacking on Standard's field_tags. world_signature ships
+    // field_world_sector as config/install/, so the field is
+    // guaranteed present after `drush en world_signature` — the
+    // hasField guard stays only for non-article entity types that
+    // don't carry the field.
+    if (!$entity->hasField('field_world_sector')) {
       return [];
     }
     $terms = [];
-    foreach ($entity->get('field_tags') as $item) {
+    foreach ($entity->get('field_world_sector') as $item) {
       if (!empty($item->target_id)) {
         $terms[] = (string) $item->target_id;
       }

@@ -9,7 +9,7 @@ namespace Drupal\world_signature\Plugin\Metaphor\Node;
  *
  * The first concrete metaphor: an Article becomes a *room* in the
  * world (per THESIS.md's article→room mapping). Its sector is
- * derived from `field_tags`; its single ALPHA card is the `full`
+ * derived from `field_world_sector`; its single ALPHA card is the `full`
  * view mode. NodeMetaphorBase covers all of this with sane defaults
  * so this plugin contains only its annotation.
  *

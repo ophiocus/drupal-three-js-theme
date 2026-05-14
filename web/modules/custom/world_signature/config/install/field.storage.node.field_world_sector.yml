@@ -1,0 +1,29 @@
+# Storage for the sector-membership field. Entity-reference to
+# taxonomy_term, unlimited cardinality (an entity can belong to
+# more than one sector — the descriptor's sectorTermIds is plural).
+#
+# Replaces the v0.1.x piggyback on Standard's field_tags. The
+# cypher used to hardcode-read field_tags; that meant the
+# "article is tagged into a sector" wiring lived as a modification
+# of Standard's config, which a module can't ship cleanly. A
+# module-owned field_world_sector is the honest fix — world_signature
+# owns every field it reads.
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - taxonomy
+id: node.field_world_sector
+field_name: field_world_sector
+entity_type: node
+type: entity_reference
+settings:
+  target_type: taxonomy_term
+module: core
+locked: false
+cardinality: -1
+translatable: false
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

@@ -202,3 +202,85 @@ world_signature.palette:
               intensity:
                 type: float
                 label: 'Ambient intensity'
+    atmosphere_overrides:
+      type: sequence
+      label: 'Per-atmosphere palette overlays, keyed by atmosphere name. When active_atmosphere matches a key here, SnapshotPublisher merges that overlay onto the base palette. Partial — only the fields an atmosphere wants to change. See docs/ATMOSPHERES.md.'
+      sequence:
+        type: mapping
+        label: 'Palette overlay for one atmosphere'
+        mapping:
+          background:
+            type: string
+            label: 'Background colour override'
+          fog:
+            type: mapping
+            label: 'Fog override'
+            mapping:
+              color:
+                type: string
+              near:
+                type: float
+              far:
+                type: float
+          ambient:
+            type: mapping
+            label: 'Ambient light override'
+            mapping:
+              color:
+                type: string
+              intensity:
+                type: float
+          sun:
+            type: mapping
+            label: 'Key light override'
+            mapping:
+              color:
+                type: string
+              intensity:
+                type: float
+              position:
+                type: sequence
+                sequence:
+                  type: float
+          fill:
+            type: mapping
+            label: 'Fill light override'
+            mapping:
+              color:
+                type: string
+              intensity:
+                type: float
+              position:
+                type: sequence
+                sequence:
+                  type: float
+          ground:
+            type: mapping
+            label: 'Ground material override'
+            mapping:
+              color:
+                type: string
+          sectorPad:
+            type: mapping
+            label: 'Sector pad material override'
+            mapping:
+              color:
+                type: string
+          compassPost:
+            type: mapping
+            label: 'Compass post material override'
+            mapping:
+              color:
+                type: string
+          bundleColors:
+            type: mapping
+            label: 'Per-bundle colour overrides'
+            mapping:
+              article:
+                type: string
+              profile:
+                type: string
+              event:
+                type: string
+              default:
+                type: string

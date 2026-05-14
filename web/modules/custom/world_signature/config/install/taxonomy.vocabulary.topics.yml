@@ -1,0 +1,22 @@
+# The sector vocabulary. Every term becomes a world sector; the
+# cypher derives sector membership from field_world_sector
+# references into this vocabulary.
+#
+# Machine name stays `topics` (it predates the cypher and is
+# referenced by field_world_sector's handler settings). The label
+# is "Regions" for the atlas_coffee reference project; a different
+# property overrides the label via config_sync without touching
+# the machine name.
+#
+# Shipped by world_signature so a fresh `drush en world_signature`
+# brings the full sector structure — no seeder, no drush
+# adaptation, no hook. The terms themselves are content and stay
+# in scaffold/seed-atlas-coffee.php.
+langcode: en
+status: true
+dependencies: {  }
+name: Regions
+vid: topics
+description: 'Taxonomy whose terms become world sectors. The reference project tags it with atlas_coffee origin regions; per-property subjects substitute their own terms.'
+weight: 0
+new_revision: false

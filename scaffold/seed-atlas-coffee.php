@@ -180,23 +180,18 @@ foreach ($topicsTerms as $t) {
   $t->delete();
 }
 
-echo "\n[seed-atlas-coffee] phase 2: rebuild taxonomy\n";
+echo "\n[seed-atlas-coffee] phase 2: rebuild taxonomy terms\n";
 
-// Ensure the topics vocabulary exists with the friendlier label
-// "Regions." Machine name stays as topics so field_tags continues
-// to work without field-config changes.
-$vocab = Vocabulary::load('topics');
-if (!$vocab) {
-  $vocab = Vocabulary::create([
-    'vid' => 'topics',
-    'name' => 'Regions',
-    'description' => 'Atlas_coffee origin regions. Each term becomes a sector.',
-  ]);
-  $vocab->save();
-} else {
-  $vocab->set('name', 'Regions')
-    ->set('description', 'Atlas_coffee origin regions. Each term becomes a sector.')
-    ->save();
+// The `topics` vocabulary is module-owned config (shipped by
+// world_signature as config/install/taxonomy.vocabulary.topics.yml)
+// — a fresh `drush en world_signature` brings it. The seeder no
+// longer creates or renames the vocabulary; it only creates the
+// terms (content) inside it. If the vocabulary is somehow absent,
+// that's a module-install problem, not a seeder problem — fail
+// loud rather than papering over it.
+if (!Vocabulary::load('topics')) {
+  echo "  ! FATAL: vocabulary 'topics' missing. Enable world_signature first.\n";
+  return;
 }
 
 $termByRegion = [];
@@ -228,7 +223,7 @@ foreach ($articles as $article) {
       'format' => 'basic_html',
       'summary' => '',
     ],
-    'field_tags' => [['target_id' => $tid]],
+    'field_world_sector' => [['target_id' => $tid]],
     'status' => 1,
     'uid' => 1,
   ]);

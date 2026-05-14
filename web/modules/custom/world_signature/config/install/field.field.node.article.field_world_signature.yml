@@ -1,0 +1,24 @@
+# field_world_signature instance on the article bundle. Hidden
+# from the editor — written by the queue worker, read by the
+# snapshot publisher, never hand-edited.
+#
+# Future bundles (profile, event, chatvatar) get their own
+# instance file shipped alongside this one as they're added.
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_world_signature
+    - node.type.article
+id: node.article.field_world_signature
+field_name: field_world_signature
+entity_type: node
+bundle: article
+label: 'World Signature'
+description: 'JSON-serialized cypher signature. Written by the queue worker; read by the snapshot publisher. Hidden from the editor.'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string_long

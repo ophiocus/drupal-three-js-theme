@@ -10,12 +10,21 @@
 #
 # Color values are CSS hex strings; three.js parses them via THREE.Color.
 
-# Active atmosphere — whole-world visual idiom. "none" leaves the
-# renderer in its default SmartObject builders (cubes + word-count
-# side modulation). Other values trigger lazy-load of the matching
-# atmosphere module in src/world/runtime/atmospheres/<name>/.
+# Active atmosphere — whole-world visual idiom.
+#
+#   'none'  → default SmartObject builders: UE5-style blockout
+#             (transparent color slots, UV-test textures, meta
+#             geometry). A deliberate "configure me" state, not
+#             a half-finished one.
+#   other   → lazy-loads the matching atmosphere module in
+#             src/world/runtime/atmospheres/<name>/ and merges
+#             its palette from atmosphere_overrides below.
+#
+# The reference project ships 'forest' — condensed here from what
+# was a floating `drush config:set` adaptation. A property using
+# this theme overrides the value via config_sync.
 # See docs/ATMOSPHERES.md.
-active_atmosphere: 'none'
+active_atmosphere: 'forest'
 
 background: '#d0dce6'
 fog:
@@ -102,3 +111,39 @@ biomes:
     ambient:
       color: '#e0e8d8'
       intensity: 0.88
+
+# Per-atmosphere palette overlays (option-f, per docs/v0.2/ROADMAP.md
+# §P1). When active_atmosphere matches a key here, SnapshotPublisher
+# merges that overlay onto the base palette before the biome blend
+# runs on top. Partial — an atmosphere only declares the fields it
+# wants to change.
+#
+# DISCIPLINE: these values are the machine-readable consequence of
+# the atmosphere's CHARTER. When you change a value here, update the
+# matching CHARTER's "Palette overrides" table in the same commit.
+# The CHARTER is intent; this is deployment; they must agree.
+atmosphere_overrides:
+  forest:
+    # Deep forest dusk — see docs/atmospheres/forest/CHARTER.md.
+    background: '#1d2a1f'
+    fog:
+      color: '#2a3a30'
+      near: 40
+      far: 380
+    ambient:
+      color: '#c8d2a0'
+      intensity: 0.55
+    sun:
+      color: '#ffe2a0'
+      intensity: 1.3
+      position:
+        - 120
+        - 80
+        - 40
+    ground:
+      color: '#3a4a2a'
+    bundleColors:
+      article: '#5a7a3a'
+      profile: '#7a5a3a'
+      event: '#8a6a40'
+      default: '#4a3828'
