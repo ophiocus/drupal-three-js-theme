@@ -6,6 +6,73 @@ this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased] — v0.1 in progress
 
+### Changed (v0.2.x — config-scaffold consolidation; UE5-meta defaults)
+
+Carlos's directive: remove all `hook_update_N`, condense floating
+config into the module's `config/install/`, make the module *be*
+the project's Drupal scaffold. Plus option-f for atmosphere
+palettes and a deliberate UE5-style blockout for the default
+atmosphere.
+
+**Hooks removed.**
+- `world_signature.install` deleted entirely. It held five
+  `hook_update_N` functions and no `hook_install` — pure
+  migration theater for installs that don't exist. The
+  `config/install/*.yml` files already do the real work on a
+  fresh module enable.
+- `docs/PROTOCOL.md` §6b records the rule: pre-release config
+  changes don't get `hook_update_N`. The first one gets written
+  the day before the first production deploy, not before.
+
+**Floating config condensed into `config/install/`.**
+- `taxonomy.vocabulary.topics.yml` — the sector vocabulary, was
+  created at runtime by the seeder / setup-sandbox.php.
+- `field.{storage,field}.node.*.field_world_signature.yml` — the
+  computed-signature field, was floating config never shipped.
+- `field.{storage,field}.node.*.field_world_sector.yml` — NEW,
+  module-owned, replaces the v0.1.x piggyback on Standard's
+  `field_tags`. A module can't ship a colliding config id, so
+  the honest fix is world_signature owning every field it reads.
+  `NodeMetaphorBase` now reads `field_world_sector`.
+- `scaffold/setup-sandbox.php` deleted — its entire job is now
+  module config + the Standard profile.
+- `active_atmosphere: forest` condensed from a floating
+  `drush config:set` into the palette install yml.
+- The seeder no longer creates/renames the vocabulary; it only
+  creates terms + nodes (content). Site-building is the module's
+  job now.
+- Verified on a clean `drush si standard` → `drush en
+  world_signature`: the module is the scaffold.
+
+**Option f — atmosphere palette overlays.**
+- `world_signature.palette` gains an `atmosphere_overrides`
+  sequence, keyed by atmosphere name; each value is a partial
+  palette overlay. `SnapshotPublisher::loadPalette()` merges in
+  three ordered steps: fallback ← config ← active atmosphere's
+  overlay. Chosen over per-atmosphere config entities or
+  YAML-in-`docs/` for free per-property override, write-time
+  schema validation, and lowest maintenance.
+- The forest atmosphere's deep-dusk palette (per its CHARTER)
+  ships in `atmosphere_overrides.forest`. Snapshot verified:
+  `background: #1d2a1f`, `atmosphere_overrides` stripped before
+  reaching the renderer.
+
+**UE5-meta default atmosphere.**
+- `src/world/runtime/uv-test-texture.ts` — procedural UV-checker
+  texture (two neutral grays, orientation gradient, grid lines,
+  origin marker) + a neutral `metaMaterial()` whose base color
+  is pure white (the "transparent color slot": no tint, texture
+  shows true).
+- `FallbackBuilder` and the default `ArticleBuilder` reworked:
+  no more bundle-tinted cubes. When no atmosphere claims a
+  bundle, entities render as honest UE5-style blockout — the
+  cube's *size* still carries the word-count signature mapping,
+  its *skin* is deliberate placeholder. "None" reads as
+  "configure me," never as "half-finished."
+- The forest atmosphere's `ArticleAsTree` is unaffected — it
+  re-skins with real materials; the meta defaults only apply to
+  unclaimed bundles and the `none` atmosphere.
+
 ### Added (v0.2.0 — Atmospheres + forest pilot)
 
 A new editorial-to-render layer: **Atmosphere = whole-world

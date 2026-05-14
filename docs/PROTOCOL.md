@@ -627,6 +627,42 @@ seed.
 - **Deploy on a property:** `drush deploy` followed by
   `drush world:publish` so the snapshot reflects live config.
 
+## 6b. Pre-release config discipline — no `hook_update_N`
+
+Until the project ships to a real install, **configuration
+changes do not get `hook_update_N` hooks.** `hook_update_N` is
+migration infrastructure for *deployed* installs — it bridges
+schema changes across versions that exist in production. We have
+one disposable dev sandbox and zero production installs. A
+`hook_update_N` written now migrates nothing; it's theater.
+
+The rule:
+
+- **Site-building config** (vocabularies, fields, content types,
+  view modes, queues, the palette, the manifesto) lives as
+  static `config/install/*.yml` in `web/modules/custom/world_signature/`.
+  The module *is* the project's Drupal scaffold — a fresh
+  `drush si standard && drush en world_signature` brings the
+  full structure with no hooks, no scaffold scripts, no
+  `drush config:set` adaptations.
+- **Changing a shipped default:** edit the `config/install/`
+  yml. Re-apply to the sandbox by reinstalling the module, or
+  with a one-off `scaffold/*.php` script, or `drush config:set`
+  for a single key. The sandbox is disposable — a full
+  `drush si` rebuild is a known, cheap quantity.
+- **Content** (taxonomy terms, nodes) is *not* config — it stays
+  in `scaffold/seed-atlas-coffee.php`. The seeder creates content
+  *inside* the structure the module's config/install/ already
+  established; it never builds structure itself.
+- **The first `hook_update_N`** gets written the day before the
+  first production deploy — not before. At that point it earns
+  its keep: it migrates the real install that now exists.
+
+This rule was applied retroactively in v0.2.x: `world_signature.install`
+(five update hooks, no `hook_install`) was deleted outright, and
+the floating site-building it half-managed was condensed into
+`config/install/`.
+
 ## 7. Cross-toolchain etiquette
 
 - Don't import PHP-side enums into TS or vice versa. Keep type

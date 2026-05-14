@@ -29,50 +29,49 @@ Priority ordering: **P1** highest-impact / lowest-effort first;
 (<50 LOC), "medium" (50–150), or "large" (150+). Dependencies
 called out where they exist.
 
-### P1 — Wire CHARTER palette overrides into the live world
+### P1 — Wire CHARTER palette overrides into the live world ✅ DONE (2026-05-14, commit 8364613)
 
-**Observed:** the sandbox loads with the pastel ALPHA palette
-still active (`#d0dce6` background, `#c4dec4` ground). The
-CHARTER specified deep forest dusk (`#1d2a1f` background,
-`#3a4a2a` ground, low warm golden sun). The atmosphere file
-documents the override but nothing reads it.
+**Observed:** the sandbox loaded with the pastel ALPHA palette
+still active. The CHARTER specified deep forest dusk but the
+atmosphere file documented the override and nothing read it.
 
-**Root cause:** atmospheres currently can declare visual
-intent in their CHARTER but have no mechanism to push palette
-changes into the `world_signature.palette` config. The
-CHARTER's "Palette overrides" table is informational only.
+**Resolution — Q1 decided: option (f), not the originally-listed
+(a) or (b).** Neither original fork won. Through the Q1
+discussion a fourth option emerged and was chosen:
 
-**Fix:** introduce per-atmosphere palette overlays that the
-SnapshotPublisher merges onto the base palette when an
-atmosphere is active. Two design forks (need decision):
+- **(f) Nested `atmosphere_overrides` inside the existing
+  `world_signature.palette` config.** One config entity, one
+  schema, one file. `atmosphere_overrides` is a sequence keyed
+  by atmosphere name; each value is a partial palette overlay.
+  `SnapshotPublisher.loadPalette()` merges in three ordered
+  steps: fallback ← config ← active atmosphere's overlay, then
+  snake→camel + strip config-only keys.
 
-- **(a) Atmosphere ships its own palette YAML.** A new file
-  `web/modules/custom/world_signature/config/install/world_signature.atmosphere.forest.yml`
-  carries the forest palette. SnapshotPublisher merges
-  `palette` ← `atmosphere.<name>` ← base. Clean separation;
-  more files.
-- **(b) Atmosphere overrides live inside `mappings.yml`.**
-  Add a `palette_overrides:` block at the top of the
-  per-atmosphere mappings file. The renderer reads it
-  alongside the bundle mappings. Fewer files; the YAML
-  becomes the single source of truth per atmosphere.
+Why (f) over (a)/(b):
+- **Per-property override comes free** — a property tunes the
+  forest palette via standard `config_sync`. Option (b)
+  (YAML in `docs/`) lost this.
+- **Schema validation at write time** — typo'd hex colors fail
+  loudly. Option (b) was runtime-only.
+- **Lowest maintenance** — one schema, one file. Option (a)'s
+  per-atmosphere config entities accumulate.
 
-Recommendation: **(b)** — keeps the atmosphere's editorial
-intent (CHARTER) and machine-readable consequences
-(mappings.yml) co-located in `docs/atmospheres/<name>/`. The
-SnapshotPublisher needs a tiny YAML parser pass on mount; the
-overrides flow into `world.palette` already-merged.
+The editorial-colocation cost (CHARTER prose in `docs/`, live
+values in `config/install/`) is mitigated by a discipline note
+in the palette yml: change a value here, update the CHARTER's
+table in the same commit.
 
-**Files:** `docs/atmospheres/forest/mappings.yml` (add
-`palette_overrides`), `SnapshotPublisher.php`, possibly a new
-service to read the YAML at runtime (or move the YAML into
-Drupal config — see open question Q1).
+**Shipped:**
+- `world_signature.schema.yml` — `atmosphere_overrides` sequence.
+- `world_signature.palette.yml` — `atmosphere_overrides.forest`
+  with the CHARTER's deep-dusk values.
+- `SnapshotPublisher::loadPalette()` — the three-step merge.
+- Verified on a fresh install: snapshot carries
+  `background: #1d2a1f`, `atmosphere_overrides` absent (stripped).
 
-**Size:** medium (~100 LOC + schema work if it lands in config).
-
-**Priority:** **P1.** Highest single visual-impact fix.
-Without it, the atmosphere reads as "trees on a meadow,"
-not "forest at dusk."
+**Note:** the original P1 estimate mentioned `hook_update` —
+removed. Pre-release config changes don't get hooks
+(`docs/PROTOCOL.md` §6b). Edit `config/install/`, re-install.
 
 ---
 
@@ -120,7 +119,12 @@ forest palette.
 
 ---
 
-### P3 — Remove (or re-skin) compass posts in atmosphere mode
+### P3 — Remove (or re-skin) compass posts in atmosphere mode — SHELVED (Q3, 2026-05-14)
+
+> **Shelved per Carlos.** Compass posts stay for now. Revisit
+> once A4 (scenery layer) gives the forest enough density that
+> the posts read as redundant. The analysis below is preserved
+> for that revisit.
 
 **Observed:** the four grey compass posts at (±60, 0) and
 (0, ±60) are visible in every atmosphere. They were ALPHA
@@ -318,25 +322,51 @@ A4.
 
 ## v0.2.1 — Order of build, suggested
 
-Assuming we tackle them sequentially (vs in parallel branches):
+Assuming we tackle them sequentially (vs in parallel branches).
+Status as of 2026-05-14:
 
-1. **P3** (remove compass posts) — 10 LOC, immediate atmospheric
-   coherence win
-2. **P1** (palette overrides) — biggest visual lift; everything
-   downstream looks better against the right palette
+1. ~~**P3** (remove compass posts)~~ — **SHELVED** (Q3).
+2. ✅ **P1** (palette overrides) — **DONE** (commit 8364613).
+   Option f shipped; the forest dusk palette now reaches the
+   renderer.
 3. **P4** (HTML surface visibility) — functional fix; navigation
-   integrity
+   integrity. ← next
 4. **P2** (tree-vs-pad scale) — second-biggest visual lift; reads
    better against the now-correct palette
 5. **P5** (tree silhouette variation) — polish; trees recognizable
    without it but better with
 6. **A3** (Profile + Event builders, primitive) — opens v0.2.2's
-   doors
-7. **A4** (decorative scenery) — ambient density
+   doors. Q2 held: builders only, no corpus seeding.
+7. **A4** (decorative scenery) — ambient density. Also the trigger
+   for revisiting shelved P3.
 8. **A5** (particles) — final touch
 
-Rough total: ~600 LOC, ~3 working days end-to-end if no
-surprises.
+Remaining after P1: ~450 LOC, ~2 working days.
+
+## v0.2.x — config-scaffold consolidation (done 2026-05-14)
+
+Out-of-band from the original v0.2.1 punch list, but landed in
+the same window — Carlos's directive to remove all `hook_update_N`
+and condense floating config into the module's `config/install/`:
+
+- `world_signature.install` deleted (five update hooks, no
+  `hook_install` — pure theater).
+- `taxonomy.vocabulary.topics`, `field_world_signature` (storage
+  + instance), and a new module-owned `field_world_sector`
+  (storage + instance, replacing the Standard `field_tags`
+  piggyback) shipped as `config/install/`.
+- `scaffold/setup-sandbox.php` deleted — its site-building is
+  now module config + the Standard profile.
+- `active_atmosphere: forest` condensed from a floating
+  `drush config:set` into the palette install yml.
+- UE5-meta default builders: `uv-test-texture.ts` (procedural
+  UV checker + neutral `metaMaterial()`), FallbackBuilder and
+  the default ArticleBuilder reworked to render honest blockout
+  when no atmosphere claims a bundle.
+- `docs/PROTOCOL.md` §6b records the pre-release no-hooks rule.
+
+Verified on a clean `drush si standard` → `drush en
+world_signature`: the module *is* the scaffold now.
 
 ---
 
@@ -360,19 +390,24 @@ What v0.2.1 unlocks that becomes the v0.2.2 conversation:
 
 ## Open questions
 
-**Q1.** Atmosphere palette: per-atmosphere YAML files OR
-inside `mappings.yml`? Recommended **inside mappings.yml**
-(single editorial source per atmosphere) but the schema work
-is slightly different — needs decision before P1 starts.
+**Q1. — RESOLVED (2026-05-14).** Atmosphere palette location.
+Neither original fork (per-atmosphere YAML / inside
+`mappings.yml`) won. Option **(f)** — nested
+`atmosphere_overrides` inside the existing `world_signature.palette`
+config — was chosen for per-property-override-for-free, schema
+validation, and lowest maintenance. Shipped in commit 8364613.
+See P1 above for the full reasoning.
 
-**Q2.** Profile/Event fixtures: should we extend the
-atlas_coffee seeder to create those bundles now (A3 option b),
-or wait until the editorial subject brief organically demands
-them? Currently all entities are articles because that's what
-Drupal Standard ships; adding bundles is real work in the
-fixture path.
+**Q2. — HELD (per Carlos, 2026-05-14).** Profile/Event fixtures:
+extend the seeder to create those bundles now, or wait. Held;
+A3 stays "build the builders, leave the corpus alone." The
+builders are cheap and the abstraction's value is real even
+unrun; seeding profile/event content waits for an explicit
+editorial demand.
 
-**Q3.** Compass posts: remove entirely (P3.a) or save as a
-v0.2.2 "atmosphere-replacement" task (P3.b)? Removal is one
-boolean now; replacement is "design four navigation markers
-per atmosphere," which is bigger.
+**Q3. — DECIDED (per Carlos, 2026-05-14): do not remove yet.**
+Compass posts stay. P3 is shelved — neither removal (P3.a) nor
+atmosphere-replacement (P3.b) happens in v0.2.1. Revisit when
+the forest atmosphere's scenery layer (A4) gives the world
+enough thematic density that the posts read as redundant
+rather than load-bearing.

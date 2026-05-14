@@ -27,6 +27,7 @@ import type { BuilderContext, SmartObjectBuilder } from "../Builder.js";
 import { MeshComponent } from "../components/MeshComponent.js";
 import { TriggerPadComponent } from "../components/TriggerPadComponent.js";
 import { HtmlSurfaceComponent } from "../components/HtmlSurfaceComponent.js";
+import { metaMaterial, META_PAD_COLOR } from "../../uv-test-texture.js";
 
 /**
  * Word count → cube side. Log scale; clamped to a readable range.
@@ -52,22 +53,19 @@ export class ArticleBuilder implements SmartObjectBuilder {
     const obj = new SmartObject(descriptor.id, this.name);
     obj.position.copy(ctx.worldPosition);
 
-    // Universal size: wordCount → uniform cube side.
+    // Universal size: wordCount → uniform cube side. Geometry
+    // still carries the signature mapping; the *skin* is now
+    // UE5-meta (UV-test texture, no bundle tint). This is the
+    // default-atmosphere look — the cube's SIZE is meaningful,
+    // its surface is honest blockout. Atmospheres re-skin via
+    // their own builders (ArticleAsTree etc.).
     const wordCount = descriptor.signature.structural.wordCount;
     const side = wordCountToSide(wordCount);
 
-    const bundleColor = ctx.palette.bundleColors[descriptor.bundle]
-      ?? ctx.palette.bundleColors.default
-      ?? "#808080";
-
     const geometry = new THREE.BoxGeometry(side, side, side);
-    const material = new THREE.MeshStandardMaterial({
-      color: bundleColor,
-      roughness: 0.65,
-      metalness: 0.08,
-    });
     obj.attach(new MeshComponent({
-      geometry, material,
+      geometry,
+      material: metaMaterial(),
       offset: { x: 0, y: side / 2, z: 0 },
       entityBody: true,
     }));
@@ -76,7 +74,7 @@ export class ArticleBuilder implements SmartObjectBuilder {
     // front face. Pad radius also scales modestly with side so
     // bigger cubes don't dwarf their pad.
     obj.attach(new TriggerPadComponent({
-      color: bundleColor,
+      color: META_PAD_COLOR,
       offset: { x: 0, y: 0.1, z: side / 2 + 2 },
       radius: 2.4 * (0.7 + 0.3 * (side / 12)),
     }));

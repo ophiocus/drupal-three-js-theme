@@ -1,18 +1,17 @@
-// FallbackBuilder — the safety net.
+// FallbackBuilder — the safety net + the UE5-meta blockout.
 //
 // Matches every descriptor (its matches() always returns true).
-// Produces a SmartObject that looks like the v0.0.1-alpha
-// placeholder: a bundle-tinted cube + a small trigger pad in
-// front + an HTML surface floating above.
+// Used directly when no more-specific builder claims a descriptor
+// (no atmosphere active, or a bundle the active atmosphere doesn't
+// claim), and as the error-recovery target when a more-specific
+// builder throws (see SmartObjectRegistry.build).
 //
-// Used directly when no more-specific builder claims a
-// descriptor, and as the error-recovery target when a
-// more-specific builder throws (see SmartObjectRegistry.build).
-//
-// The cube here is a fixed 12-unit cube — no signature mapping.
-// ArticleBuilder is what introduces word-count→side modulation;
-// the fallback stays plain so failures are visually distinct
-// from the "real" article geometry.
+// v0.2.x: the fallback is now a deliberate UE5-style blockout —
+// a fixed 12-unit cube wearing the UV-test texture, neutral
+// material, no bundle tint ("transparent color slot"). It reads
+// as "this is placeholder, configure me" rather than "this is
+// finished." When the world has no atmosphere, every entity is
+// honest graybox.
 
 import * as THREE from "three";
 import type { Entity } from "../../../types.js";
@@ -21,6 +20,7 @@ import type { BuilderContext, SmartObjectBuilder } from "../Builder.js";
 import { MeshComponent } from "../components/MeshComponent.js";
 import { TriggerPadComponent } from "../components/TriggerPadComponent.js";
 import { HtmlSurfaceComponent } from "../components/HtmlSurfaceComponent.js";
+import { metaMaterial, META_PAD_COLOR } from "../../uv-test-texture.js";
 
 const FALLBACK_CUBE_SIDE = 12;
 
@@ -35,27 +35,22 @@ export class FallbackBuilder implements SmartObjectBuilder {
     const obj = new SmartObject(descriptor.id, this.name);
     obj.position.copy(ctx.worldPosition);
 
-    // Bundle-tinted cube. The fallback uses the bundle color hint
-    // so even unrecognized bundles get differentiated visually.
-    const bundleColor = ctx.palette.bundleColors[descriptor.bundle]
-      ?? ctx.palette.bundleColors.default
-      ?? "#808080";
+    // UE5-meta cube — UV-test texture, neutral material, no bundle
+    // tint. The "transparent color slot" lives in metaMaterial():
+    // base color is white, the texture shows true. Unrecognized
+    // bundles all read identically — graybox is graybox.
     const geometry = new THREE.BoxGeometry(
       FALLBACK_CUBE_SIDE, FALLBACK_CUBE_SIDE, FALLBACK_CUBE_SIDE,
     );
-    const material = new THREE.MeshStandardMaterial({
-      color: bundleColor,
-      roughness: 0.65,
-      metalness: 0.08,
-    });
     obj.attach(new MeshComponent({
-      geometry, material,
+      geometry,
+      material: metaMaterial(),
       offset: { x: 0, y: FALLBACK_CUBE_SIDE / 2, z: 0 },
       entityBody: true,
     }));
 
     obj.attach(new TriggerPadComponent({
-      color: bundleColor,
+      color: META_PAD_COLOR,
       offset: { x: 0, y: 0.1, z: 7 },
     }));
 

@@ -211,15 +211,47 @@ Atmosphere builders register **before** the default builders in
 atmosphere claims its bundles; anything it doesn't claim falls
 through to defaults (FallbackBuilder, ArticleBuilder, etc.).
 
-**Atmosphere selection** lives in `world_signature.palette`:
+**Atmosphere selection + palette** both live in
+`world_signature.palette` (decided 2026-05-14, option f):
 
 ```yaml
-active_atmosphere: forest   # default: "none" → no atmosphere builders register
+active_atmosphere: forest   # "none" → default builders; UE5 blockout
+
+atmosphere_overrides:
+  forest:
+    # partial palette overlay — only the fields this atmosphere
+    # changes. SnapshotPublisher merges it onto the base palette
+    # when active_atmosphere == "forest".
+    background: '#1d2a1f'
+    ground: { color: '#3a4a2a' }
+    # ...
 ```
 
-The snapshot's `world.activeAtmosphere` field carries it to the
-renderer; SceneManager reads it on mount and conditionally
-imports + registers the matching atmosphere module.
+`SnapshotPublisher::loadPalette()` resolves it in three ordered
+steps: **fallback ← config ← active atmosphere's overlay**, then
+snake→camel (`active_atmosphere` → `activeAtmosphere`) and strips
+the config-only `atmosphere_overrides` key. The renderer receives
+an already-merged `world.palette` plus `world.palette.activeAtmosphere`;
+SceneManager reads the latter on mount and conditionally
+lazy-imports + registers the matching atmosphere module. The
+biome blend runs on the renderer side *on top of* the merged
+palette.
+
+Why option f (nested in the existing palette config) over a
+per-atmosphere config entity or a YAML-in-`docs/` approach:
+per-property override comes free via `config_sync`, schema
+validates at write time, and there's one file to reason about.
+The cost — CHARTER prose and live values living in different
+files — is mitigated by a discipline note in the palette yml:
+change a value, update the CHARTER's table in the same commit.
+
+**The default atmosphere ("none") is not nothing.** It renders
+a deliberate UE5-style blockout: `uv-test-texture.ts` supplies a
+procedural UV-checker texture and a neutral `metaMaterial()`
+(white base color — the "transparent color slot" — so the
+texture shows true). FallbackBuilder and the default
+ArticleBuilder wear it. "None" reads as "configure me," never
+as "half-finished."
 
 **Pending-asset handling:**
 
