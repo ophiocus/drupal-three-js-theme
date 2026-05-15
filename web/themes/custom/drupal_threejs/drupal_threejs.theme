@@ -16,3 +16,18 @@ declare(strict_types=1);
 function drupal_threejs_preprocess_html(array &$variables): void {
   $variables['attributes']['class'][] = 'world-shell';
 }
+
+/**
+ * Implements hook_page_attachments_alter().
+ *
+ * Suppress the default favicon 404 — Drupal's Standard install
+ * ships no favicon for custom themes, and the resulting console
+ * red distracts from real errors. `data:,` is a no-op data URI;
+ * the browser stops asking.
+ */
+function drupal_threejs_page_attachments_alter(array &$attachments): void {
+  $attachments['#attached']['html_head_link'][] = [[
+    'rel' => 'icon',
+    'href' => 'data:,',
+  ]];
+}

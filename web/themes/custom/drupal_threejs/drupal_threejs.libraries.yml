@@ -1,5 +1,13 @@
+# Cache-bust the bundle URL by bumping `version` whenever a build
+# ships. Drupal appends `?v=<version>` so browsers re-fetch.
+# v0.3 may automate this via library_info_alter + content hash;
+# for now it's a manual bump per release. If a user reports "I'm
+# still seeing the old bug after you said you fixed it," the
+# answer is almost certainly: bump this version + tell them to
+# clear browser cache OR bump in the same release that ships the
+# fix.
 world:
-  version: 1.x
+  version: 0.2.1-p4
   js:
     dist/world.bundle.js:
       minified: true

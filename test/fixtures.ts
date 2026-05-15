@@ -58,13 +58,17 @@ export function fixtureCorpus(): CorpusSnapshot {
         radius: 30,
       },
     },
+    // Keys carry the entity-type prefix to match the cypher's
+    // production snapshot shape ("node-19" etc.). The URLs in
+    // vantage.test.ts strip the prefix (`/node/fish-1`); parseUrl
+    // reconstructs `node-${id}` for the lookup.
     entities: {
-      "fish-1": entity("fish-1", "article", ["fishing"]),
-      "fish-2": entity("fish-2", "article", ["fishing"], sig(800, 3)),
-      "climb-1": entity("climb-1", "article", ["climbing"]),
-      "climb-2": entity("climb-2", "article", ["climbing"]),
-      "cook-1": entity("cook-1", "article", ["cooking"]),
-      "borderland": entity("borderland", "article", ["fishing", "climbing"]),
+      "node-fish-1": entity("node-fish-1", "article", ["fishing"]),
+      "node-fish-2": entity("node-fish-2", "article", ["fishing"], sig(800, 3)),
+      "node-climb-1": entity("node-climb-1", "article", ["climbing"]),
+      "node-climb-2": entity("node-climb-2", "article", ["climbing"]),
+      "node-cook-1": entity("node-cook-1", "article", ["cooking"]),
+      "node-borderland": entity("node-borderland", "article", ["fishing", "climbing"]),
     },
   };
 }

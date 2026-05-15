@@ -23,7 +23,7 @@ describe("vantage(): URI as coordinate", () => {
     it("is stable across every URL kind", () => {
       const urls = [
         "/",
-        "/section/fishing",
+        "/sector/fishing",
         "/node/fish-1",
         "/articles",
         "/some/unknown/path",
@@ -42,8 +42,8 @@ describe("vantage(): URI as coordinate", () => {
     });
 
     it("a section vantage's sectorId matches its term", () => {
-      expect(vantage("/section/fishing", corpus).sectorId).toBe("fishing");
-      expect(vantage("/section/climbing", corpus).sectorId).toBe("climbing");
+      expect(vantage("/sector/fishing", corpus).sectorId).toBe("fishing");
+      expect(vantage("/sector/climbing", corpus).sectorId).toBe("climbing");
     });
 
     it("front and listing vantages have no sectorId", () => {
@@ -65,7 +65,7 @@ describe("vantage(): URI as coordinate", () => {
 
   describe("invariant 4 — section vantage faces its sector", () => {
     it("section lookAt is at the sector centroid and camera is outside it", () => {
-      const v = vantage("/section/fishing", corpus);
+      const v = vantage("/sector/fishing", corpus);
       const sector = corpus.sectors["fishing"]!;
       expect(v.lookAt.x).toBe(sector.centroid.x);
       expect(v.lookAt.z).toBe(sector.centroid.z);
@@ -146,9 +146,9 @@ describe("vantage(): URI as coordinate", () => {
     it("different known URLs produce different vantages", () => {
       const urls = [
         "/",
-        "/section/fishing",
-        "/section/climbing",
-        "/section/cooking",
+        "/sector/fishing",
+        "/sector/climbing",
+        "/sector/cooking",
         "/node/fish-1",
         "/node/fish-2",
         "/node/climb-1",

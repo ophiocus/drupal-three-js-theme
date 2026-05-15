@@ -54,8 +54,11 @@ export function vantage(url: string, snapshot: CorpusSnapshot): Vantage {
     }
 
     case "detail": {
-      const entity = snapshot.entities[parsed.entityId];
-      if (!entity) throw new Error(`Unknown entity: ${parsed.entityId}`);
+      // Snapshot keys are `${entityType}-${entityId}` (e.g. "node-19");
+      // the URL carries them split (/node/19). Reconstruct.
+      const key = `${parsed.entityType}-${parsed.entityId}`;
+      const entity = snapshot.entities[key];
+      if (!entity) throw new Error(`Unknown entity: ${key}`);
       const pos = entityPosition(entity, snapshot);
       // Camera stands back from the object along the vector from
       // world origin to object — the natural "approach angle" from
@@ -72,7 +75,7 @@ export function vantage(url: string, snapshot: CorpusSnapshot): Vantage {
       const primarySector = entity.taxonomyTerms[0] ?? null;
       return {
         kind: "detail",
-        uri: `/node/${parsed.entityId}`,
+        uri: `/${parsed.entityType}/${parsed.entityId}`,
         sectorId: primarySector,
         position: camera,
         // v0.2.1-P4: aim partway up so the HTML surface (which
