@@ -34,12 +34,18 @@ final class SnapshotPublisher {
   private const float SECTOR_LOCAL_RADIUS = 30.0;
 
   /** Renderer-side world constants — match src/world/types.ts shape. */
+  // closeUpDistance / closeUpHeight were tuned in ALPHA for
+  // 12-unit cubes. The SmartObject era renders entities as trees
+  // up to ~28 units tall with an HTML surface floating beside
+  // them; a camera 8 units back at height 2 frames the trunk
+  // base and nothing else. v0.2.1-P4 bumps them so the detail
+  // vantage frames the entity AND its card surface.
   private const array WORLD_CONSTANTS = [
     'radius' => 200.0,
     'overviewHeight' => 200.0,
     'sectionVantageHeight' => 30.0,
-    'closeUpDistance' => 8.0,
-    'closeUpHeight' => 2.0,
+    'closeUpDistance' => 32.0,
+    'closeUpHeight' => 14.0,
   ];
 
   public function __construct(

@@ -26,7 +26,7 @@ import { SmartObject } from "../SmartObject.js";
 import type { BuilderContext, SmartObjectBuilder } from "../Builder.js";
 import { MeshComponent } from "../components/MeshComponent.js";
 import { TriggerPadComponent } from "../components/TriggerPadComponent.js";
-import { HtmlSurfaceComponent } from "../components/HtmlSurfaceComponent.js";
+import { HtmlSurfaceComponent, cardPlacement } from "../components/HtmlSurfaceComponent.js";
 import { metaMaterial, META_PAD_COLOR } from "../../uv-test-texture.js";
 
 /**
@@ -79,8 +79,9 @@ export class ArticleBuilder implements SmartObjectBuilder {
       radius: 2.4 * (0.7 + 0.3 * (side / 12)),
     }));
 
-    // HTML surface floats above the cube. Position scales with
-    // side so the surface stays "just above the top."
+    // HTML surface — shared cardPlacement (v0.2.1-P4) so the
+    // detail vantage frames it consistently. Card sits at a fixed
+    // readable height + outward offset, regardless of cube size.
     try {
       const dashIdx = descriptor.id.indexOf("-");
       if (dashIdx > 0) {
@@ -94,17 +95,8 @@ export class ArticleBuilder implements SmartObjectBuilder {
           heightWorld: 12,
           transparent: true,
         });
-        // Push outward from world origin so the camera at overview
-        // reads a readable angle. Local-space offset on the group.
-        const wp = ctx.worldPosition;
-        const dist = Math.sqrt(wp.x * wp.x + wp.z * wp.z) || 1;
-        const outX = (wp.x / dist) * (side * 0.6);
-        const outZ = (wp.z / dist) * (side * 0.6);
-        obj.attach(new HtmlSurfaceComponent({
-          surface,
-          offset: { x: outX, y: side + 6, z: outZ },
-          lookAt: { x: -wp.x, y: side + 6, z: -wp.z },
-        }));
+        const { offset, lookAt } = cardPlacement(ctx.worldPosition);
+        obj.attach(new HtmlSurfaceComponent({ surface, offset, lookAt }));
       }
     } catch (err) {
       console.warn(`[world] ArticleBuilder HtmlSurface failed for ${descriptor.id}:`, err);

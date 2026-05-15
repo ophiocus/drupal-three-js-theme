@@ -26,7 +26,7 @@ import type {
 } from "../../smart-objects/Builder.js";
 import { MeshComponent } from "../../smart-objects/components/MeshComponent.js";
 import { TriggerPadComponent } from "../../smart-objects/components/TriggerPadComponent.js";
-import { HtmlSurfaceComponent } from "../../smart-objects/components/HtmlSurfaceComponent.js";
+import { HtmlSurfaceComponent, cardPlacement } from "../../smart-objects/components/HtmlSurfaceComponent.js";
 import { wordCountToSide } from "../../smart-objects/builders/ArticleBuilder.js";
 
 /** Forest atmosphere bark palette by atlas_coffee region. */
@@ -133,8 +133,10 @@ export class ArticleAsTree implements SmartObjectBuilder {
       radius: 2.4 * (0.7 + 0.3 * (totalHeight / 14)),
     }));
 
-    // HTML surface — same fetch pattern as ArticleBuilder. The
-    // surface floats next to the canopy.
+    // HTML surface — shared cardPlacement (v0.2.1-P4) so the
+    // detail vantage frames the card consistently regardless of
+    // tree size. The trunk-and-canopy still scales with word
+    // count; the card sits at a fixed readable height outward.
     try {
       const dashIdx = descriptor.id.indexOf("-");
       if (dashIdx > 0) {
@@ -148,15 +150,8 @@ export class ArticleAsTree implements SmartObjectBuilder {
           heightWorld: 12,
           transparent: true,
         });
-        const wp = ctx.worldPosition;
-        const dist = Math.sqrt(wp.x * wp.x + wp.z * wp.z) || 1;
-        const outX = (wp.x / dist) * (totalHeight * 0.6);
-        const outZ = (wp.z / dist) * (totalHeight * 0.6);
-        obj.attach(new HtmlSurfaceComponent({
-          surface,
-          offset: { x: outX, y: totalHeight + 4, z: outZ },
-          lookAt: { x: -wp.x, y: totalHeight + 4, z: -wp.z },
-        }));
+        const { offset, lookAt } = cardPlacement(ctx.worldPosition);
+        obj.attach(new HtmlSurfaceComponent({ surface, offset, lookAt }));
       }
     } catch (err) {
       console.warn(`[atmosphere:forest] HtmlSurface failed for ${descriptor.id}:`, err);

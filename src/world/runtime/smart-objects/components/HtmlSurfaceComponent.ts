@@ -13,6 +13,56 @@
 import type { Component, SmartObject } from "../SmartObject.js";
 import type { HtmlSurface } from "../../HtmlSurface.js";
 
+/**
+ * Card height — matches the lookAt-y in vantage.ts's detail case
+ * so the detail camera frames the card consistently. Both ends of
+ * the diagram (Drupal's WORLD_CONSTANTS closeUpHeight in the
+ * cypher, this constant here in the renderer) need to land
+ * roughly in the same band: camera at ~14, card at ~8, entity
+ * base at ~0 — the camera looks slightly down at the card with
+ * the entity below.
+ */
+export const CARD_Y = 8;
+
+/** How far outward (toward the detail camera) the card sits. */
+const CARD_OUTWARD = 8;
+
+/**
+ * Shared card-placement math for every builder. Returns the local
+ * offset (within the SmartObject group) and the world-space
+ * lookAt target so the card's front face points OUTWARD — toward
+ * the detail-vantage camera, which always approaches along the
+ * origin → entity ray.
+ *
+ * three.js's Object3D.lookAt orients -Z at the target; we want +Z
+ * (the textured front) facing outward, so the lookAt target is
+ * the entity's mirror across origin: a point far INWARD. The
+ * mesh's -Z points inward → +Z points outward toward the camera.
+ *
+ * For entities at the origin (centroid 0,0), the outward direction
+ * is undefined; default to +Z so the world doesn't crash.
+ */
+export function cardPlacement(worldPosition: { x: number; z: number }): {
+  offset: { x: number; y: number; z: number };
+  lookAt: { x: number; y: number; z: number };
+} {
+  const dist = Math.sqrt(
+    worldPosition.x * worldPosition.x + worldPosition.z * worldPosition.z,
+  );
+  if (dist < 0.001) {
+    return {
+      offset: { x: 0, y: CARD_Y, z: CARD_OUTWARD },
+      lookAt: { x: 0, y: CARD_Y, z: -CARD_OUTWARD },
+    };
+  }
+  const outX = worldPosition.x / dist;
+  const outZ = worldPosition.z / dist;
+  return {
+    offset: { x: outX * CARD_OUTWARD, y: CARD_Y, z: outZ * CARD_OUTWARD },
+    lookAt: { x: -worldPosition.x, y: CARD_Y, z: -worldPosition.z },
+  };
+}
+
 export interface HtmlSurfaceComponentOptions {
   /** Pre-acquired surface (the Builder did the await before constructing). */
   surface: HtmlSurface;

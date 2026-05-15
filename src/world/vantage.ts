@@ -75,7 +75,13 @@ export function vantage(url: string, snapshot: CorpusSnapshot): Vantage {
         uri: `/node/${parsed.entityId}`,
         sectorId: primarySector,
         position: camera,
-        lookAt: pos,
+        // v0.2.1-P4: aim partway up so the HTML surface (which
+        // floats at y≈CARD_Y, per cardPlacement) is in frame.
+        // Aiming at the entity's foot at y=0 framed the trunk
+        // base and missed the card. CARD_Y is duplicated rather
+        // than imported because vantage.ts is renderer-pure
+        // (no smart-objects dependency); 8 matches.
+        lookAt: { x: pos.x, y: 8, z: pos.z },
         fov: DEFAULT_FOV,
       };
     }

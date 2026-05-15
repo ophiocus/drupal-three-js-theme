@@ -19,7 +19,7 @@ import { SmartObject } from "../SmartObject.js";
 import type { BuilderContext, SmartObjectBuilder } from "../Builder.js";
 import { MeshComponent } from "../components/MeshComponent.js";
 import { TriggerPadComponent } from "../components/TriggerPadComponent.js";
-import { HtmlSurfaceComponent } from "../components/HtmlSurfaceComponent.js";
+import { HtmlSurfaceComponent, cardPlacement } from "../components/HtmlSurfaceComponent.js";
 import { metaMaterial, META_PAD_COLOR } from "../../uv-test-texture.js";
 
 const FALLBACK_CUBE_SIDE = 12;
@@ -54,8 +54,10 @@ export class FallbackBuilder implements SmartObjectBuilder {
       offset: { x: 0, y: 0.1, z: 7 },
     }));
 
-    // HTML surface, when acquirable. Failure to fetch is logged
-    // by the SurfaceCache; we degrade to "just the cube" gracefully.
+    // HTML surface — shared cardPlacement (v0.2.1-P4) so the
+    // detail vantage frames it consistently regardless of which
+    // builder produced the SmartObject. Failure to fetch degrades
+    // to "just the cube" — the SurfaceCache logs the error.
     try {
       const dashIdx = descriptor.id.indexOf("-");
       if (dashIdx > 0) {
@@ -70,20 +72,8 @@ export class FallbackBuilder implements SmartObjectBuilder {
           heightWorld: 12,
           transparent: true,
         });
-        // Position the surface outward from origin so the
-        // overview camera reads a readable angle.
-        const wp = ctx.worldPosition;
-        const distFromOrigin = Math.sqrt(wp.x * wp.x + wp.z * wp.z) || 1;
-        const outX = (wp.x / distFromOrigin) * 12;
-        const outZ = (wp.z / distFromOrigin) * 12;
-        obj.attach(new HtmlSurfaceComponent({
-          surface,
-          offset: { x: outX, y: 14, z: outZ },
-          // Face the world origin from the offset position
-          // (interpreted relative to host group, so the lookAt
-          // target is the negative of the offset direction).
-          lookAt: { x: -wp.x, y: 14, z: -wp.z },
-        }));
+        const { offset, lookAt } = cardPlacement(ctx.worldPosition);
+        obj.attach(new HtmlSurfaceComponent({ surface, offset, lookAt }));
       }
     } catch (err) {
       console.warn(`[world] HtmlSurface failed for ${descriptor.id}:`, err);
