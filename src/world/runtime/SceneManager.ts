@@ -23,6 +23,7 @@ import { FallbackBuilder } from "./smart-objects/builders/FallbackBuilder.js";
 import { ArticleBuilder } from "./smart-objects/builders/ArticleBuilder.js";
 import { LoaderOverlay } from "./LoaderOverlay.js";
 import { FLOOR_LAYERS } from "./floor-layers.js";
+import { sectorPadDecal } from "./sector-pad-texture.js";
 import { vantage } from "../vantage.js";
 
 interface BootOptions {
@@ -102,6 +103,13 @@ export class SceneManager {
   private readonly surfaceCache = new SurfaceCache();
   private registry: SmartObjectRegistry | null = null;
   private readonly smartObjects = new Map<string, SmartObject>();
+  /**
+   * Per-frame updaters registered by atmospheres (particles,
+   * sky shifts, audio cues). Atmospheres register via their
+   * setupXEnvironment hook; SceneManager ticks them in the
+   * animation loop.
+   */
+  private readonly atmosphereUpdaters: ((elapsed: number, dt: number) => void)[] = [];
   private cardController: CardController | null = null;
   private biomeMixer: BiomeMixer | null = null;
   private cameraController: CameraController | null = null;
@@ -376,17 +384,32 @@ export class SceneManager {
 
     // Sector centroid pads. v0.1.1: tagged as click targets so
     // PointerNavigator routes a click → "navigate to this sector."
+    // v0.2.1-P2: alphaMap radial gradient (sector-pad-texture)
+    // fades the pad into the ground so it reads as a clearing,
+    // not a poker chip. Atmospheres tune `sectorPad.color`;
+    // the gradient shape is universal.
     const padGeo = new THREE.CircleGeometry(this.snapshot.world.radius * 0.25, 48);
     padGeo.rotateX(-Math.PI / 2);
+    const padAlpha = sectorPadDecal();
     for (const sector of Object.values(this.snapshot.sectors)) {
       const padMaterial = new THREE.MeshStandardMaterial({
         color: new THREE.Color(p.sectorPad.color),
-        roughness: 0.9,
+        roughness: 0.95,
+        metalness: 0,
+        alphaMap: padAlpha,
+        transparent: true,
+        // depthWrite off so transparent edges don't write a hard
+        // depth boundary the canopy would z-fight against.
+        depthWrite: false,
       });
       const pad = new THREE.Mesh(padGeo, padMaterial);
       pad.position.set(sector.centroid.x, FLOOR_LAYERS.sector_pad, sector.centroid.z);
       pad.userData.isSectorPad = true;
       pad.userData.termId = sector.termId;
+      // Render before opaque geometry so the alpha blend uses the
+      // ground beneath it as background, not whatever happened to
+      // render first by entity-order accident.
+      pad.renderOrder = -1;
       this.scene.add(pad);
     }
 
@@ -412,6 +435,17 @@ export class SceneManager {
         case "forest": {
           const mod = await import("./atmospheres/forest/index.js");
           mod.registerForestAtmosphere(this.registry);
+          // Environment setup (scenery, particles, atmosphere-
+          // wide visual elements). Atmospheres without env work
+          // simply don't export setupXEnvironment; the duck-
+          // typed call no-ops cleanly.
+          if (this.snapshot) {
+            mod.setupForestEnvironment?.(
+              this.scene,
+              this.snapshot,
+              (fn) => this.atmosphereUpdaters.push(fn),
+            );
+          }
           break;
         }
         default:
@@ -460,6 +494,12 @@ export class SceneManager {
           currentSectorId: null,
         };
         for (const obj of this.smartObjects.values()) obj.update(dt, ctx);
+      }
+      // v0.2.1-A5: atmosphere-registered per-frame updaters
+      // (forest's pollen layer; future atmospheres' equivalents).
+      if (this.atmosphereUpdaters.length > 0) {
+        const elapsed = time / 1000;
+        for (const fn of this.atmosphereUpdaters) fn(elapsed, dt);
       }
       this.renderer.render(this.scene, this.camera);
     });

@@ -75,7 +75,24 @@ removed. Pre-release config changes don't get hooks
 
 ---
 
-### P2 — Reconcile tree vs sector-pad scale
+### P2 — Reconcile tree vs sector-pad scale ✅ DONE (2026-05-14)
+
+Implemented both halves of the recommendation. Forest trees use
+a dedicated `forestTreeHeight()` function with range [8, 35]
+(was [5.6, 28] via the cube-edge multiplier). Sector pads now
+have a procedural radial-gradient `alphaMap` (`sector-pad-texture.ts`):
+85%-opaque core fading to 0 at the edge, `transparent: true`,
+`depthWrite: false`. Reads as a softly-lit clearing in the
+forest floor, not a poker chip.
+
+Forest's palette overlay gains a lighter-olive `sectorPad.color`
+(`#5a6a3a`) so the gradient resolves against the surrounding
+ground (`#3a4a2a`) as a brightening rather than a contrast.
+
+Original text preserved below for archaeology:
+
+---
+
 
 **Observed:** sector pads (diameter ≈ 100 units at
 `world.radius * 0.25`) dominate the visual field. Trees
@@ -155,7 +172,30 @@ coherence improvement.
 
 ---
 
-### P4 — HTML surface visibility at detail vantages
+### P4 — HTML surface visibility at detail vantages ✅ DONE (2026-05-14, commits 68572e6 + d020eaf + 18f2c5b)
+
+Three coordinated fixes shipped together:
+
+- **SnapshotPublisher WORLD_CONSTANTS:** `closeUpDistance` 8→32,
+  `closeUpHeight` 2→14. The ALPHA cube-scale values framed the
+  trunk base; tree-scale needs more room.
+- **`vantage.ts` detail lookAt y → 8** (was the entity's foot at
+  y=0). Camera now looks at the card band with the entity
+  descending below.
+- **`cardPlacement()` shared helper** in HtmlSurfaceComponent.ts.
+  All three builders use it. Card at fixed `y=8`, outward by
+  `CARD_OUTWARD=8`, faces outward via lookAt at the inward
+  mirror of `worldPosition`.
+
+Plus the p4b cluster: `parseUrl` rework (entityType+entityId
+separated, `/sector/` recognised), boot() idempotency guard, and
+the floor-layers z-fighting fix (p4c — separate roadmap item but
+landed together).
+
+Original text preserved below for archaeology:
+
+---
+
 
 **Observed:** at `/node/12`'s close-up vantage, the floating
 HTML quad isn't visible. Either the surface is behind the
@@ -197,7 +237,23 @@ this, navigation arrives at a place that doesn't deliver.
 
 ---
 
-### P5 — Tree silhouette variation
+### P5 — Tree silhouette variation ✅ DONE (2026-05-14)
+
+Deterministic per-tree variation seeded from FNV-1a hash of the
+entity id. Four independent 8-bit channels off the same hash:
+canopy radius jitter (±15%), canopy height jitter (±20%),
+canopy XZ offset for leaning silhouettes, and a boolean for an
+optional second smaller canopy stacked atop tall trees.
+
+Rotation jitter dropped — cylinder + cone are rotationally
+symmetric, so Y rotation is invisible on these shapes. The
+readable variations are the dimensional jitters + the XZ
+canopy offset.
+
+Original text preserved below for archaeology:
+
+---
+
 
 **Observed:** all 20 trees are identical cone+cylinder
 silhouettes at different sizes. The CHARTER said "rough canopy
@@ -293,7 +349,25 @@ to validate the visual).
 primitive geometries) + small (~50 LOC for the fixture
 seeder extension).
 
-### A4 — Decorative scenery primitives
+### A4 — Decorative scenery primitives ✅ DONE (2026-05-14)
+
+Forest atmosphere now ships `scenery.ts` — mushrooms (red cone),
+ferns (thin green cone), stones (squashed icosahedron) scattered
+near each sector centroid. Density per `mappings.yml`:
+6 mushrooms, 4 ferns, 3 stones per sector. Deterministic
+placement via FNV-1a hash of `${sectorTermId}:${asset}:${index}`.
+Per-item size jitter 0.7–1.3×.
+
+Plumbed via a new optional atmosphere export
+`setupForestEnvironment(scene, snapshot, registerUpdater)`.
+SceneManager calls it after entity placement. Future atmospheres
+follow the same shape; absent export = no environment work,
+no error.
+
+Original text preserved below for archaeology:
+
+---
+
 
 `mappings.yml` describes mushroom clusters, ferns, mossy
 stones around sector centroids. Pure cosmetic but
@@ -308,7 +382,25 @@ Determinism via FNV-1a hash of sector termId + index.
 
 **Priority:** ambient feel improvement; do after P1–P5.
 
-### A5 — Pollen particle layer
+### A5 — Pollen particle layer ✅ DONE (2026-05-14)
+
+`pollen.ts` ships a 80-particle `THREE.Points` field with a
+procedural soft-circle alpha sprite, additive blending, warm
+amber color (`#f0e8c8`), drifting sinusoidally in three
+independent phases per particle so the field doesn't pulse
+coherently. Spawn band y=5–25, uniform-area XZ scatter in
+90% of world radius.
+
+Plumbed via a new generic per-frame updater hook —
+`atmosphereUpdaters` on SceneManager. `setupForestEnvironment`
+takes a `registerUpdater` callback; passes it a closure that
+ticks the pollen field each frame. Sets the pattern for future
+animated environment elements (sky shifts, audio cues).
+
+Original text preserved below for archaeology:
+
+---
+
 
 `mappings.yml` describes drifting motes. three.js `Points` +
 sprite texture. Pure cosmetic; sells "the air has weight."

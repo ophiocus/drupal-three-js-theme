@@ -9,19 +9,57 @@
 // First-match-wins ordering means the atmosphere claims its
 // bundles; anything it doesn't claim falls through to defaults.
 
+import type * as THREE from "three";
+import type { CorpusSnapshot } from "../../../types.js";
 import type { SmartObjectRegistry } from "../../smart-objects/Builder.js";
 import { ArticleAsTree } from "./ArticleAsTree.js";
+import { placeForestScenery } from "./scenery.js";
+import { PollenField } from "./pollen.js";
+
+/**
+ * Per-frame updater an atmosphere can register with the host
+ * (SceneManager) for animated environment elements (particles,
+ * sky shifts, audio cues). Called every frame with
+ * (elapsedSeconds, dt). Atmospheres without animations simply
+ * don't register one.
+ */
+export type AtmosphereUpdater = (elapsed: number, dt: number) => void;
 
 /**
  * Register every Builder this atmosphere ships with. Add new
  * builders here as `mappings.yml` grows beyond bundle.article.
  *
- * Status (2026-05-13):
+ * Status (2026-05-14):
  *   - ArticleAsTree:        shipped (primitive geometry; oak-stylized.glb pending)
  *   - ProfileAsSpirit:      pending (sapling-figure.glb)
  *   - EventAsTotem:         pending (standing-stone.glb)
- *   - ChatvatarAsForestBeing: deferred to v0.2
+ *   - ChatvatarAsForestBeing: deferred to v0.3
  */
 export function registerForestAtmosphere(registry: SmartObjectRegistry): void {
   registry.register(new ArticleAsTree());
+}
+
+/**
+ * Set up the forest atmosphere's environment — decorative
+ * scenery (mushrooms, ferns, stones) scattered near sector
+ * centroids, plus (when implemented) particle layers and any
+ * other atmosphere-wide visual elements.
+ *
+ * Optional companion to registerForestAtmosphere. SceneManager
+ * calls it after the builders are registered and entities are
+ * placed. Atmospheres without environment work simply omit this
+ * export; the contract is duck-typed at the SceneManager side.
+ */
+export function setupForestEnvironment(
+  scene: THREE.Scene,
+  snapshot: CorpusSnapshot,
+  registerUpdater: (fn: AtmosphereUpdater) => void,
+): void {
+  placeForestScenery(scene, snapshot);
+  // Pollen — 80 drifting motes catching the low golden sun.
+  // Per-frame sinusoidal drift; registered with the host so
+  // SceneManager can tick it from its animation loop.
+  const pollen = new PollenField(snapshot);
+  scene.add(pollen.points);
+  registerUpdater((elapsed) => pollen.update(elapsed));
 }

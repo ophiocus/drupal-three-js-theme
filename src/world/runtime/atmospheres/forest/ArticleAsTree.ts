@@ -19,6 +19,7 @@
 
 import * as THREE from "three";
 import type { Entity } from "../../../types.js";
+import { hashString } from "../../../layout.js";
 import { SmartObject } from "../../smart-objects/SmartObject.js";
 import type {
   BuilderContext,
@@ -28,7 +29,6 @@ import { MeshComponent } from "../../smart-objects/components/MeshComponent.js";
 import { TriggerPadComponent } from "../../smart-objects/components/TriggerPadComponent.js";
 import { HtmlSurfaceComponent, cardPlacement } from "../../smart-objects/components/HtmlSurfaceComponent.js";
 import { FLOOR_LAYERS } from "../../floor-layers.js";
-import { wordCountToSide } from "../../smart-objects/builders/ArticleBuilder.js";
 
 /** Forest atmosphere bark palette by atlas_coffee region. */
 const FOREST_BARK_PALETTE: Record<string, string> = {
@@ -46,6 +46,29 @@ const FOREST_BARK_DEFAULT = "#4a3828";
 /** Foliage base color for the forest atmosphere. */
 const FOREST_FOLIAGE_COLOR = "#5a7a3a";
 
+/**
+ * Forest-atmosphere tree height function. Bumped from the
+ * default ArticleBuilder's cube range so the silhouette
+ * dominates the sector pads instead of garnishing them
+ * (P2 from docs/v0.2/ROADMAP.md).
+ *
+ * Anchors (log10(wordCount), totalHeight):
+ *   1 word     →  8 units
+ *   100 words  → 21.5
+ *   10,000     → 35 units
+ *
+ * Trees now overlap the canopy band of neighbouring trees in
+ * the same sector — the forest feels like a forest, not a
+ * spaced-out garden.
+ */
+function forestTreeHeight(wordCount: number): number {
+  return THREE.MathUtils.mapLinear(
+    Math.log10(Math.max(wordCount, 1)),
+    0, 4,
+    8, 35,
+  );
+}
+
 export class ArticleAsTree implements SmartObjectBuilder {
   readonly name = "forest:article-as-tree";
 
@@ -57,17 +80,39 @@ export class ArticleAsTree implements SmartObjectBuilder {
     const obj = new SmartObject(descriptor.id, this.name);
     obj.position.copy(ctx.worldPosition);
 
-    // Same word-count → size mapping as the default ArticleBuilder;
-    // we just route it to total tree height instead of cube side.
-    // The default range [4, 20] reads as cube edges; for trees we
-    // remap to a slightly taller, more dramatic range so a forest
-    // visibly silhouettes.
-    const baseSize = wordCountToSide(descriptor.signature.structural.wordCount);
-    const totalHeight = baseSize * 1.4;   // trees feel taller than cubes
+    // v0.2.1-P2: forest trees use their own size function (range
+    // [8, 35]) so they read at sector-pad scale, not garnish.
+    const totalHeight = forestTreeHeight(descriptor.signature.structural.wordCount);
     const trunkHeight = totalHeight * 0.45;
     const trunkRadius = totalHeight * 0.06;
-    const canopyHeight = totalHeight * 0.65;
-    const canopyRadius = totalHeight * 0.32;
+    const canopyHeightBase = totalHeight * 0.65;
+    const canopyRadiusBase = totalHeight * 0.32;
+
+    // v0.2.1-P5: deterministic per-tree silhouette variation.
+    // Hash the entity id once; slice 8-bit channels for
+    // independent jitters. Stable across reloads (FNV-1a is
+    // pure), so the world's trees keep their identities.
+    //
+    // Cylinder + cone are rotationally symmetric around Y, so
+    // a Y rotation would be visually invisible — the readable
+    // variations are canopy radius, canopy height, slight XZ
+    // offset (leaning canopy), and an optional second smaller
+    // canopy stacked atop tall trees.
+    const seed = hashString(descriptor.id);
+    const r1 = (seed         & 0xff) / 255;         // canopy radius
+    const r2 = ((seed >>>  8) & 0xff) / 255;        // canopy height
+    const r3 = ((seed >>> 16) & 0xff) / 255 - 0.5;  // canopy X offset, ±0.5
+    const r4 = ((seed >>> 24) & 0xff) / 255 - 0.5;  // canopy Z offset, ±0.5
+    const upperCanopyBit = ((seed >>> 4) & 1) === 1;
+
+    const canopyRadius = canopyRadiusBase * (1 + (r1 - 0.5) * 0.30); // ±15%
+    const canopyHeight = canopyHeightBase * (1 + (r2 - 0.5) * 0.40); // ±20%
+    const canopyXOff = r3 * canopyRadiusBase * 0.18;
+    const canopyZOff = r4 * canopyRadiusBase * 0.18;
+    // Upper canopy on ~50% of tall trees: a smaller cone stacked
+    // above the main canopy. Breaks the rigid single-cone silhouette
+    // for the trees that have room for it.
+    const hasUpperCanopy = totalHeight > 18 && upperCanopyBit;
 
     const primarySector = descriptor.taxonomyTerms[0] ?? null;
     const barkHex = primarySector
@@ -117,13 +162,44 @@ export class ArticleAsTree implements SmartObjectBuilder {
       geometry: canopyGeo,
       material: canopyMat,
       // Sit the canopy on top of the trunk. Cone's center is
-      // halfway up its height; add trunkHeight + canopyHeight/2
-      // to land its base at the trunk's top.
-      offset: { x: 0, y: trunkHeight + canopyHeight / 2, z: 0 },
+      // halfway up its height. v0.2.1-P5: XZ offset makes the
+      // canopy lean off-axis from the trunk, breaking the
+      // perfect-cone silhouette.
+      offset: {
+        x: canopyXOff,
+        y: trunkHeight + canopyHeight / 2,
+        z: canopyZOff,
+      },
       // Canopy is also a click target (the cube's top face was
       // clickable in the default Builder; trees should be too).
       entityBody: true,
     }));
+
+    // v0.2.1-P5: optional upper canopy for tall trees. Smaller
+    // cone stacked at ~80% of the main canopy's top, leaning
+    // in a slightly different direction (the offset signs flip
+    // intentionally — gives the layered crown a natural twist).
+    if (hasUpperCanopy) {
+      const upperRadius = canopyRadius * 0.62;
+      const upperHeight = canopyHeight * 0.55;
+      const upperGeo = new THREE.ConeGeometry(upperRadius, upperHeight, 8, 2);
+      const upperMat = new THREE.MeshStandardMaterial({
+        color: FOREST_FOLIAGE_COLOR,
+        roughness: 0.7,
+        metalness: 0,
+        flatShading: true,
+      });
+      obj.attach(new MeshComponent({
+        geometry: upperGeo,
+        material: upperMat,
+        offset: {
+          x: -canopyXOff * 0.6,
+          y: trunkHeight + canopyHeight * 0.85 + upperHeight / 2,
+          z: -canopyZOff * 0.6,
+        },
+        entityBody: true,
+      }));
+    }
 
     // Trigger pad — the bloom interaction. Same shape and
     // tinting logic as the default ArticleBuilder; scales with

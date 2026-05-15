@@ -142,6 +142,10 @@ atmosphere_overrides:
         - 40
     ground:
       color: '#3a4a2a'
+    # Lighter olive than ground so the radial-gradient pad reads
+    # as a brighter clearing rather than a stark contrast.
+    sectorPad:
+      color: '#5a6a3a'
     bundleColors:
       article: '#5a7a3a'
       profile: '#7a5a3a'

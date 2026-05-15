@@ -1,4 +1,4 @@
-# Walkthrough — `v0.1.1`
+# Walkthrough — `v0.2.1`
 
 A reproducible script for a first-time visitor to the world.
 Follow it top to bottom; timings are real. Total time: about
@@ -10,40 +10,67 @@ Follow it top to bottom; timings are real. Total time: about
 cd ~/tecnocratica/projects/drupal-three-js-theme
 ddev start
 ddev exec npm run build
-ddev drush updb -y                              # ensure config is current
 ddev drush scr scaffold/seed-atlas-coffee.php   # idempotent
 ddev drush world:publish
 ddev drush scr scaffold/purge-orphans.php       # belt-and-suspenders
 ```
 
+Note: as of v0.2.x, `hook_update_N` is no longer used — module
+config lands on a fresh `drush en world_signature` directly from
+`config/install/`. No `drush updb` needed.
+
 Open `https://drupal-three-js-theme.ddev.site/` in Chrome with
 DevTools docked (Console + Network tabs visible). Hard-refresh
-(`Ctrl+Shift+R`) so nothing comes from the browser cache.
+(`Ctrl+Shift+R`) so nothing comes from the browser cache. After
+each rebuild, hard-refresh once so the new `?v=…` cache-buster
+takes effect.
 
 ## 0:00 — first paint
 
-You should see:
+You should see (the forest atmosphere is active by default):
 
-- **A pastel green-blue overview** of the world. Light green
-  ground plane, four grey compass posts at N/S/E/W.
-- **Twenty bundle-tinted cubes** distributed across five sectors
-  arranged as a pentagon at radius ~100 from origin. Each cube
-  has a small **green disc** (the trigger pad) in front of it.
-- **Five larger sector centroid discs** on the ground — one at
-  each sector's centroid, lighter green than the entity pads.
-- **Twenty floating quads** above each cube, painted with the
-  title and metadata of the article they represent.
-- **Camera held at the overview vantage** — for the first 3
-  seconds. Then a **gentle idle drift** begins, a slow
-  sinusoidal sway around the overview position; biomes shift
-  subtly as the camera nudges around.
+- **Deep forest-dusk overview**. Dark olive ground (`#3a4a2a`),
+  warm golden-green ambient at low intensity (forest filters
+  the light). Distant fog at the horizon — the world has edges
+  that fade rather than ending.
+- **Twenty trees** scattered across five sectors arranged as a
+  pentagon at radius ~100 from origin. Each tree is a cylinder
+  trunk + cone canopy; heights vary by article word count
+  (range [8, 35] world units). Bark colors region-tinted
+  (Antigua warm-dark, Cauca mid-bark, Boquete moss-darkened,
+  etc.). Per-tree silhouette variation: canopy radius and
+  height jitter ±15–20%, leaning slightly off-axis; tall
+  trees often have a second smaller canopy stacked above
+  (deterministic from entity id, stable across reloads).
+- **Five soft clearings** at sector centroids — radial-gradient
+  alpha pads that fade into the ground rather than reading as
+  poker chips. Lighter olive than the surrounding ground.
+- **Mushrooms, ferns, and stones** scattered near each sector
+  centroid — primitive geometry placeholders for real Stage 4
+  glb assets. Mushrooms are muted brick-red cones; ferns
+  thinner green cones; stones squashed icosahedrons. ~13 items
+  per sector, deterministic placement.
+- **Drifting motes of pollen** — 80 warm-amber particles
+  catching the low golden sun, additive-blended, slowly
+  sinusoidally drifting at y=5–25. Sells "the air has weight."
+- **Small trigger pads** in front of each tree — the article's
+  bloom click target.
+- **Twenty floating quads** offset outward from each tree at
+  y≈8, painted with the title and metadata of the article they
+  represent.
+- **Camera held at the overview vantage** for the first 3
+  seconds. Then a **gentle idle drift** begins around the
+  overview position.
 
 Watch the Console for:
 
 ```
-[world] canvas: <w>x<h>, camera at (...), palette: #d0dce6
+[world] canvas: <w>x<h>, camera at (...), palette: #1d2a1f
 [world] mounted: 20 entities across 5 sectors, html-surface path: html-to-image (bridge)
 ```
+
+(`palette: #1d2a1f` confirms the forest atmosphere's deep-dusk
+overlay merged onto the base palette.)
 
 ## 0:15 — hover and discover
 
@@ -185,26 +212,59 @@ URL is the address; the world honors it.
 - ✓ Tab/Shift+Tab cycle entities; 1–9 jump sectors (v0.1.1)
 - ✓ `/sector/<termId>` deep-links survive reload (v0.1.1 cypher route)
 - ✓ Deep links round-trip in both directions (Sprint 5e + v0.1)
+- ✓ Atmosphere as a whole-world visual idiom (v0.2.0); forest
+  pilot active by default
+- ✓ Hook-free, config/install/-driven module — fresh
+  `drush en world_signature` brings the full structure (v0.2.x)
+- ✓ UE5-meta default atmosphere — UV-test texture, transparent
+  color slots — when `active_atmosphere: 'none'` (v0.2.x)
+- ✓ `atmosphere_overrides` palette overlays merged onto base
+  by `SnapshotPublisher` (v0.2.1-P1)
+- ✓ Detail vantage frames entity + card via `cardPlacement()`
+  shared helper (v0.2.1-P4)
+- ✓ `parseUrl` carries `entityType` separately from `entityId`;
+  `/sector/<id>` recognised (v0.2.1-p4b)
+- ✓ Library version cache-busts the bundle URL (v0.2.1-p4b)
+- ✓ Floor layers prevent z-fighting between ground, sector pads,
+  trigger pads (v0.2.1-p4c)
+- ✓ Forest trees in [8, 35] range with per-tree silhouette
+  variation (v0.2.1-P2 + P5)
+- ✓ Soft clearing decals replace solid sector pads (v0.2.1-P2)
+- ✓ Scenery clutter — mushrooms, ferns, mossy stones near
+  each sector centroid (v0.2.1-A4)
+- ✓ Drifting pollen motes — 80-particle layer with sinusoidal
+  drift (v0.2.1-A5)
 
-That's v0.1.1. The five-coordinate stack commutes in both
-directions. Every layer round-trips.
+That's v0.2.1. The forest atmosphere is no longer "trees on a
+meadow" — it's a world.
 
 ## Known sharp edges still standing
 
-1. **`profile` and `event` bundles** are absent — all 20 entities
-   are `article`. The bundle-color hint exists in the palette but
-   only `article` is currently in use. Per-bundle metaphor
-   geometry (SmartObject base class) is the v0.1.2 target.
+1. **`profile` and `event` bundles** absent in the corpus —
+   all 20 entities are `article`. ProfileAsSpirit and
+   EventAsTotem builders are documented (mappings.yml) but not
+   yet implemented; held pending Q2's "extend fixtures or
+   wait" decision.
 2. **The entity_delete hook doesn't always clean RESTHeart.**
    Worked around with `scaffold/purge-orphans.php`. Real fix
-   tracked.
-3. **No tests for the runtime DOM components** beyond CameraController
-   (CardController, CardOverlay, PointerNavigator, BiomeMixer). They
-   depend on a real DOM/canvas; `jsdom`-based test coverage
-   continues on the v0.1.x list.
-4. **Camera at overview drifts indefinitely** if the user never
-   interacts. Should we add a "pause on tab inactive"? Tracked
-   for follow-up; not blocking ALPHA.
+   tracked for v0.3.
+3. **No tests for the runtime DOM components** beyond
+   CameraController (CardController, CardOverlay,
+   PointerNavigator, BiomeMixer, LoaderOverlay,
+   atmosphere environment). They depend on a real DOM/canvas;
+   jsdom-based coverage continues on the v0.3 list.
+4. **Camera at overview drifts indefinitely.** Should we
+   pause-on-tab-inactive? Tracked for v0.3.
+5. **Compass posts at cardinal directions** still visible
+   (shelved per Q3). Revisit when atmosphere-replacement
+   alternatives are designed.
+6. **Real glb assets pending** — the forest atmosphere ships
+   primitives waiting for Stage 4 acquisition via Sketchfab /
+   Tripo / Blender MCPs (per docs/atmospheres/forest/asset-log.yml
+   and docs/PROTOCOL.md §4c).
+7. **Library cache-bust is manual** — bump `version:` in
+   `drupal_threejs.libraries.yml` each release. v0.3 should
+   automate via `library_info_alter` + content hash.
 
 ## Reproducing the world from scratch
 
