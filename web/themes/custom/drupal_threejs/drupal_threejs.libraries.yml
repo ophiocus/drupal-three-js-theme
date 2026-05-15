@@ -7,7 +7,7 @@
 # clear browser cache OR bump in the same release that ships the
 # fix.
 world:
-  version: 0.2.1-p4
+  version: 0.2.1-p4c
   js:
     dist/world.bundle.js:
       minified: true

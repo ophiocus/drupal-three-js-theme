@@ -27,6 +27,7 @@ import type {
 import { MeshComponent } from "../../smart-objects/components/MeshComponent.js";
 import { TriggerPadComponent } from "../../smart-objects/components/TriggerPadComponent.js";
 import { HtmlSurfaceComponent, cardPlacement } from "../../smart-objects/components/HtmlSurfaceComponent.js";
+import { FLOOR_LAYERS } from "../../floor-layers.js";
 import { wordCountToSide } from "../../smart-objects/builders/ArticleBuilder.js";
 
 /** Forest atmosphere bark palette by atlas_coffee region. */
@@ -129,7 +130,7 @@ export class ArticleAsTree implements SmartObjectBuilder {
     // the tree's footprint so it stays proportional.
     obj.attach(new TriggerPadComponent({
       color: ctx.palette.bundleColors.article ?? "#5a7a3a",
-      offset: { x: 0, y: 0.1, z: trunkRadius + 3 },
+      offset: { x: 0, y: FLOOR_LAYERS.trigger_pad, z: trunkRadius + 3 },
       radius: 2.4 * (0.7 + 0.3 * (totalHeight / 14)),
     }));
 

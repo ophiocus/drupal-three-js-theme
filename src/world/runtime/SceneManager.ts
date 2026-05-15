@@ -22,6 +22,7 @@ import { SmartObjectRegistry } from "./smart-objects/Builder.js";
 import { FallbackBuilder } from "./smart-objects/builders/FallbackBuilder.js";
 import { ArticleBuilder } from "./smart-objects/builders/ArticleBuilder.js";
 import { LoaderOverlay } from "./LoaderOverlay.js";
+import { FLOOR_LAYERS } from "./floor-layers.js";
 import { vantage } from "../vantage.js";
 
 interface BootOptions {
@@ -383,7 +384,7 @@ export class SceneManager {
         roughness: 0.9,
       });
       const pad = new THREE.Mesh(padGeo, padMaterial);
-      pad.position.set(sector.centroid.x, 0.05, sector.centroid.z);
+      pad.position.set(sector.centroid.x, FLOOR_LAYERS.sector_pad, sector.centroid.z);
       pad.userData.isSectorPad = true;
       pad.userData.termId = sector.termId;
       this.scene.add(pad);

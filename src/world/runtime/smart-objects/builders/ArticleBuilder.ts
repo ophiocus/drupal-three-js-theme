@@ -28,6 +28,7 @@ import { MeshComponent } from "../components/MeshComponent.js";
 import { TriggerPadComponent } from "../components/TriggerPadComponent.js";
 import { HtmlSurfaceComponent, cardPlacement } from "../components/HtmlSurfaceComponent.js";
 import { metaMaterial, META_PAD_COLOR } from "../../uv-test-texture.js";
+import { FLOOR_LAYERS } from "../../floor-layers.js";
 
 /**
  * Word count → cube side. Log scale; clamped to a readable range.
@@ -75,7 +76,7 @@ export class ArticleBuilder implements SmartObjectBuilder {
     // bigger cubes don't dwarf their pad.
     obj.attach(new TriggerPadComponent({
       color: META_PAD_COLOR,
-      offset: { x: 0, y: 0.1, z: side / 2 + 2 },
+      offset: { x: 0, y: FLOOR_LAYERS.trigger_pad, z: side / 2 + 2 },
       radius: 2.4 * (0.7 + 0.3 * (side / 12)),
     }));
 

@@ -21,6 +21,7 @@ import { MeshComponent } from "../components/MeshComponent.js";
 import { TriggerPadComponent } from "../components/TriggerPadComponent.js";
 import { HtmlSurfaceComponent, cardPlacement } from "../components/HtmlSurfaceComponent.js";
 import { metaMaterial, META_PAD_COLOR } from "../../uv-test-texture.js";
+import { FLOOR_LAYERS } from "../../floor-layers.js";
 
 const FALLBACK_CUBE_SIDE = 12;
 
@@ -51,7 +52,7 @@ export class FallbackBuilder implements SmartObjectBuilder {
 
     obj.attach(new TriggerPadComponent({
       color: META_PAD_COLOR,
-      offset: { x: 0, y: 0.1, z: 7 },
+      offset: { x: 0, y: FLOOR_LAYERS.trigger_pad, z: 7 },
     }));
 
     // HTML surface — shared cardPlacement (v0.2.1-P4) so the
