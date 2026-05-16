@@ -4,7 +4,8 @@
 # declares: what does an instance LOOK LIKE in the forest
 # atmosphere, and which signature axes drive which visual
 # parameters. Drafted by the agent (per docs/ATMOSPHERES.md
-# §"Stage 2 — Mapping"); editorial review pending.
+# §"Stage 2 — Mapping"); editorial review approved 2026-05-14
+# by Carlos (A1 closed).
 #
 # YAML schema, per docs/ATMOSPHERES.md:
 #   bundle.<name>.visual           short noun for the element

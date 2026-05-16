@@ -297,7 +297,17 @@ These weren't in the original critique but emerge when I look
 at v0.2.0 systematically. Lower urgency than P1–P5 but on the
 list.
 
-### A1 — Editorial review of CHARTER + mappings
+### A1 — Editorial review of CHARTER + mappings ✅ APPROVED (2026-05-14, Carlos)
+
+Approved as-is. CHARTER mood/palette/motifs, mappings.yml
+per-bundle visual choices, and the forest_bark_palette by
+region all locked in their v0.2.0 form. Future tuning lands
+as edits to those files with the same "approved <date>" markers.
+
+Original text preserved below for archaeology:
+
+---
+
 
 The Forest atmosphere docs are marked "editorial review
 pending." Carlos's eyes should land on:
@@ -313,7 +323,20 @@ Action: review pass; mark "editorial-approved 2026-XX-XX" or
 edit and re-mark. Not blocking on code work; can happen any
 time before v0.2.x's first non-Carlos viewer.
 
-### A2 — Editorial-approved CHARTER → palette pipeline test
+### A2 — Editorial-approved CHARTER → palette pipeline test ✅ DONE (2026-05-14)
+
+A new "Tuning the world's palette (editorial loop)" section
+added to `docs/WALKTHROUGH.md`. Walks the editorial-loop
+recipe (CHARTER edit → yml edit → `drush config:set` → hard
+refresh), names the discipline (CHARTER intent vs yml
+deployment must stay synced; doc note in the yml carries it),
+and lists what the loop verifies + deliberately does not
+touch (bundle, biomes).
+
+Original text preserved below for archaeology:
+
+---
+
 
 Once P1 is wired and A1 is approved, run a full
 "edit CHARTER → re-publish → see change" cycle to verify the

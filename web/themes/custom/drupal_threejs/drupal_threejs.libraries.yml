@@ -1,11 +1,8 @@
-# Cache-bust the bundle URL by bumping `version` whenever a build
-# ships. Drupal appends `?v=<version>` so browsers re-fetch.
-# v0.3 may automate this via library_info_alter + content hash;
-# for now it's a manual bump per release. If a user reports "I'm
-# still seeing the old bug after you said you fixed it," the
-# answer is almost certainly: bump this version + tell them to
-# clear browser cache OR bump in the same release that ships the
-# fix.
+# `version:` is auto-stamped by drupal_threejs_library_info_alter
+# in drupal_threejs.theme — it computes md5 of dist/world.bundle.js
+# and appends a 12-char hash, so `?v=0.2.x.<hash>` changes exactly
+# when the bundle content does. The string below is the fallback
+# used if the bundle is missing (fresh install pre-build).
 world:
   version: 0.2.1
   js:

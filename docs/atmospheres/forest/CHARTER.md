@@ -115,9 +115,9 @@ subject's source-of-truth.
 
 | Stage | Status |
 |---|---|
-| 1 Charter | **this doc; editorial review pending** |
-| 2 Mapping | drafted in `mappings.yml`; editorial review pending |
+| 1 Charter | **editorial review approved 2026-05-14 (Carlos) — A1 closed** |
+| 2 Mapping | drafted in `mappings.yml`; editorial review approved 2026-05-14 (Carlos) — A1 closed |
 | 3 Inventory | generated in `assets-needed.yml` |
 | 4 Acquisition | `asset-log.yml` template ready; MCPs pending; entries `status: pending` |
 | 5 Processing | deferred until stage 4 completes |
-| 6 Integration | `ArticleAsTree` shipped with primitives |
+| 6 Integration | `ArticleAsTree` + scenery + pollen shipped (v0.2.1); ProfileAsSpirit / EventAsTotem held per Q2 |

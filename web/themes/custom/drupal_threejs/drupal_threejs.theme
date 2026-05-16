@@ -31,3 +31,47 @@ function drupal_threejs_page_attachments_alter(array &$attachments): void {
     'href' => 'data:,',
   ]];
 }
+
+/**
+ * Implements hook_library_info_alter().
+ *
+ * Cache-bust the `world` library's bundle URL automatically by
+ * computing a content hash of dist/world.bundle.js and using it
+ * as the version string. Drupal renders this as `?v=<hash>`.
+ *
+ * Replaces the v0.2.x "remember to bump libraries.yml version"
+ * manual discipline. The hash changes only when the bundle
+ * content actually changes, so browsers refetch exactly when
+ * they need to and never when they don't.
+ *
+ * Drupal calls this every time the library registry is built
+ * (post-cache-rebuild). The file_get_hash is cheap (md5 on a
+ * ~540KB file ≈ 1ms); Drupal additionally caches the resulting
+ * library definition.
+ *
+ * Falls back to libraries.yml's `version:` value if the bundle
+ * doesn't exist yet (fresh install pre-build). The fallback
+ * stays meaningful for that edge case and as a human-readable
+ * "this is the v0.2.x library" stamp.
+ */
+function drupal_threejs_library_info_alter(array &$libraries, string $extension): void {
+  if ($extension !== 'drupal_threejs') {
+    return;
+  }
+  if (!isset($libraries['world'])) {
+    return;
+  }
+  $theme_path = \Drupal::service('extension.list.theme')->getPath('drupal_threejs');
+  $bundle_path = DRUPAL_ROOT . '/' . $theme_path . '/dist/world.bundle.js';
+  if (!is_readable($bundle_path)) {
+    // Fresh install pre-build, or the bundle was moved. Keep
+    // libraries.yml's `version:` as the fallback — browsers
+    // will refetch on the next rebuild regardless.
+    return;
+  }
+  $hash = @md5_file($bundle_path);
+  if ($hash === FALSE) {
+    return;
+  }
+  $libraries['world']['version'] = '0.2.x.' . substr($hash, 0, 12);
+}

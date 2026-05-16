@@ -138,6 +138,11 @@ export class SceneManager {
     );
 
     window.addEventListener("resize", () => this.resize());
+    // v0.2.x: pause-on-tab-inactive. Listening on document, not
+    // window — Page Visibility API ships visibilitychange on
+    // document. Suspends the animation loop while the tab is
+    // hidden; resumes on focus.
+    document.addEventListener("visibilitychange", this.onVisibilityChange);
   }
 
   /**
@@ -262,13 +267,35 @@ export class SceneManager {
   setMode(mode: Mode): void {
     if (mode === this.mode) return;
     this.mode = mode;
-    if (mode === "reading") {
-      // Engine pause per ARCHITECTURE §4.3.
-      this.renderer.setAnimationLoop(null);
-    } else {
-      this.startLoop();
-    }
+    this.refreshLoopState();
   }
+
+  /**
+   * Idempotent loop-state evaluation: starts the animation loop
+   * if-and-only-if the world is in `exploration` mode AND the
+   * browser tab is visible. Called by setMode() and by the
+   * visibilitychange listener. Either source can independently
+   * pause; both must agree to run.
+   */
+  private refreshLoopState(): void {
+    if (this.mode === "reading" || document.hidden) {
+      this.renderer.setAnimationLoop(null);
+      return;
+    }
+    this.startLoop();
+  }
+
+  /**
+   * Tab visibility listener — v0.2.x cleanup. With the world's
+   * idle drift running indefinitely on every visit, an inactive
+   * tab kept burning CPU + battery. visibilitychange suspends
+   * the loop while hidden; setMode("exploration") on the
+   * (already-set) mode safely no-ops, so we just call
+   * refreshLoopState() directly.
+   */
+  private onVisibilityChange = (): void => {
+    this.refreshLoopState();
+  };
 
   // ─── Internal ────────────────────────────────────────────────────────────
 

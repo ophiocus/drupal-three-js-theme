@@ -266,6 +266,76 @@ meadow" — it's a world.
    `drupal_threejs.libraries.yml` each release. v0.3 should
    automate via `library_info_alter` + content hash.
 
+## Tuning the world's palette (editorial loop)
+
+A2 verification: the CHARTER → palette → rendered-world loop
+works without code changes. An editor changes a hex value in the
+forest atmosphere's palette overlay and sees the world reflect it
+within seconds.
+
+### What changes where
+
+The forest atmosphere has two artifacts in the editorial loop:
+
+- **`docs/atmospheres/forest/CHARTER.md`** — prose. The
+  "Palette overrides" table is editorial *intent*.
+- **`web/modules/custom/world_signature/config/install/world_signature.palette.yml`** —
+  the `atmosphere_overrides.forest` block is the deployed
+  *values*. The discipline noted in the yml: when one changes,
+  the other changes in the same commit.
+
+### The loop (one-shot example)
+
+Pick a value to tune. We'll shift the forest's ambient warmth
+from `#c8d2a0` (current golden-green) toward `#d8d2a0` (warmer).
+
+```bash
+# 1. Edit the CHARTER's table to reflect the new intent.
+# (Manually — the CHARTER's prose is yours to author.)
+vim docs/atmospheres/forest/CHARTER.md
+#  → change the ambient row to '#d8d2a0' in the table.
+
+# 2. Edit the deployed yml to match.
+vim web/modules/custom/world_signature/config/install/world_signature.palette.yml
+#  → under atmosphere_overrides.forest.ambient.color, set '#d8d2a0'.
+
+# 3. Push the value into the running sandbox's active config.
+#    For a one-key change, drush config:set is enough.
+ddev drush config:set world_signature.palette \
+  atmosphere_overrides.forest.ambient.color '#d8d2a0' -y
+
+# 4. (No bundle rebuild needed — the palette is data, not code.
+#    The renderer reads it from the snapshot per request.)
+
+# 5. (No drush cr needed either — the snapshot endpoint
+#    doesn't cache the palette read.)
+
+# 6. Hard-refresh the browser. The forest's ambient warms.
+```
+
+Total time: under a minute.
+
+### What this verifies
+
+- The atmosphere palette overlay reaches the renderer
+  unmediated by code changes.
+- `SnapshotPublisher::loadPalette()` merges in the correct order
+  (fallback ← config ← active atmosphere overlay) every request.
+- The Drupal-side typed config schema validates the new value
+  at save time (typo'd hex would fail loudly).
+- The renderer's `BiomeMixer` continues to layer biome overlays
+  on top of the atmosphere's ambient, so per-sector tonal
+  shifts compose correctly.
+
+### What this does NOT change (and shouldn't)
+
+- The bundle (`world.bundle.js`) — palette is data; no recompile.
+- The biome overlays themselves — those are a separate
+  config block.
+- The CHARTER's intent vs the yml's deployment can drift if you
+  forget to keep them in sync. The discipline note in the yml
+  reminds you; code review catches the rest.
+
 ## Reproducing the world from scratch
 
 ```bash
