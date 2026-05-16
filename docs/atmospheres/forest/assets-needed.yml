@@ -10,6 +10,13 @@
 # decorative clutter, scenery / overhead, textures. Tighten
 # the budget on whichever bucket the property's polycount
 # pressure lives in.
+#
+# Curation status (2026-05-16, v0.3.x):
+#   The agent has done a candidate sweep — see
+#   assets/props/CANDIDATES.md for the per-slot shortlist with
+#   source URLs, licenses, polycount notes, and recommendations.
+#   This file remains the slot-binding contract; the catalog is
+#   where candidates are evaluated before acquisition.
 
 # ─── Primary mesh per bundle ──────────────────────────────────
 
