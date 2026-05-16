@@ -138,19 +138,17 @@ export class SceneManager {
     );
 
     window.addEventListener("resize", () => this.resize());
-    // v0.2.2: pause-on-window-blur. Per Carlos's call: pause
-    // when the browser window loses focus (switching apps,
-    // minimising), NOT when switching tabs within the same
-    // window. Multi-window workflows (browser beside Slack /
-    // terminal / DevTools-as-window) reclaim CPU + battery
-    // whenever the user is genuinely looking elsewhere.
-    //
-    // Trade-off accepted: switching tabs within the same browser
-    // window keeps the loop running — those tabs share the
-    // window's focus state. Add visibilitychange back if you
-    // want tab-switching pauses too.
+    // v0.2.2: pause-on-window-blur AND tab-visibility. Either
+    // source pauses; both must be true to run. Covers:
+    //   - tab change within the same browser window  (visibility)
+    //   - switching apps / windows                    (focus)
+    //   - browser minimise                            (both)
+    //   - undocked DevTools claims focus              (focus)
+    // CPU + battery reclaimed whenever the user is no longer
+    // looking at the world.
     window.addEventListener("blur", this.onWindowFocusChange);
     window.addEventListener("focus", this.onWindowFocusChange);
+    document.addEventListener("visibilitychange", this.onWindowFocusChange);
   }
 
   /**
@@ -290,45 +288,44 @@ export class SceneManager {
   /**
    * Idempotent loop-state evaluation: starts the animation loop
    * if-and-only-if the world is in `exploration` mode AND the
-   * browser window has focus. Called by setMode(), the
-   * window blur/focus listeners, and the mount path.
+   * window has focus AND the tab is visible. Any of the three
+   * pulling low triggers a pause; all three must be true to run.
    *
    * Logs each transition so an operator can verify the pause is
    * firing from the browser console — alt-tab to another app
-   * and you should see "loop paused"; come back and you should
-   * see "loop running".
+   * OR switch tabs and you should see "loop paused"; come back
+   * and you should see "loop running". The log shows which
+   * flag is preventing run when paused.
    */
   private refreshLoopState(): void {
     const focused = typeof document.hasFocus === "function"
       ? document.hasFocus()
       : true;
-    const shouldRun = this.mode !== "reading" && focused;
+    const visible = !document.hidden;
+    const shouldRun = this.mode !== "reading" && focused && visible;
     if (shouldRun === this.loopRunning) return;
     this.loopRunning = shouldRun;
     if (shouldRun) {
       this.startLoop();
       console.info(
-        `[world] loop running (mode=${this.mode}, windowFocused=true)`,
+        `[world] loop running (mode=${this.mode}, focused=true, visible=true)`,
       );
     } else {
       this.renderer.setAnimationLoop(null);
       console.info(
-        `[world] loop paused (mode=${this.mode}, windowFocused=${focused})`,
+        `[world] loop paused (mode=${this.mode}, focused=${focused}, visible=${visible})`,
       );
     }
   }
 
   /**
-   * Window blur/focus listener — v0.2.2 cleanup. With the
-   * world's idle drift running indefinitely on every visit, a
-   * background window kept burning CPU + battery. Per Carlos's
-   * choice: pause on window-blur (not on tab-visibility), so
-   * multi-window workflows pause the world whenever the user
-   * is looking at another app entirely.
-   *
-   * One listener bound to both `blur` and `focus` events; the
-   * direction is resolved by document.hasFocus() inside
-   * refreshLoopState().
+   * Window focus + tab visibility listener — v0.2.2 cleanup.
+   * One handler wired to three events (window blur, window
+   * focus, document visibilitychange); each fire triggers a
+   * fresh refreshLoopState() evaluation. The state-determining
+   * reads (document.hasFocus + document.hidden) happen inside
+   * refreshLoopState, so the handler doesn't care which event
+   * arrived.
    */
   private onWindowFocusChange = (): void => {
     this.refreshLoopState();
