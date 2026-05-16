@@ -1,0 +1,28 @@
+# Asset content type — the prop curation library, surfaced as
+# editable Drupal content rather than markdown.
+#
+# An asset node represents one 3D model in the metaphor's
+# inventory: where it came from, what license, raw file, curated
+# .glb, which slot it fills, which atmospheres can use it, lifecycle
+# stage. Replaces (and improves on) assets/props/CANDIDATES.md by
+# making the catalog queryable and editable through the UI.
+#
+# Notably absent: field_world_sector, field_world_signature. Asset
+# nodes are SUPPORT content — they describe the building blocks
+# the world uses, not entities placed in the 3D world. The cypher
+# hook silently ignores bundles without a Metaphor plugin; assets
+# get no plugin, so they get no descriptor, no placement, no
+# signature.
+#
+# Shipped by world_signature so a fresh `drush en world_signature`
+# brings the bundle.
+langcode: en
+status: true
+dependencies: {  }
+name: Asset
+type: asset
+description: 'A 3D model in the metaphor inventory — source, license, raw file, curated .glb, slot binding. Catalog content, not world content.'
+help: ''
+new_revision: true
+preview_mode: 1
+display_submitted: false

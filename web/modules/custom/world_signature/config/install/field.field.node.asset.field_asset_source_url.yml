@@ -1,0 +1,23 @@
+# source_url instance on the asset bundle.
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_asset_source_url
+    - node.type.asset
+  module:
+    - link
+id: node.asset.field_asset_source_url
+field_name: field_asset_source_url
+entity_type: node
+bundle: asset
+label: 'Source URL'
+description: 'Where this asset was found — Sketchfab, itch.io, Poly Haven, etc.'
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  link_type: 17
+  title: 0
+field_type: link

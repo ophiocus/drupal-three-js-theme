@@ -1,0 +1,28 @@
+# Curated asset: the world-ready normalized .glb. Pivot at base
+# (or per field_asset_curated_pivot), scale 1m=1unit, single
+# material slot, polycount within the slot's budget. This is the
+# file the renderer actually loads at runtime.
+langcode: en
+status: true
+dependencies:
+  module:
+    - file
+    - node
+id: node.field_asset_curated_file
+field_name: field_asset_curated_file
+entity_type: node
+type: file
+settings:
+  display_field: false
+  display_default: false
+  uri_scheme: public
+  target_type: file
+module: file
+locked: false
+cardinality: 1
+translatable: false
+indexes:
+  target_id:
+    - target_id
+persist_with_no_fields: false
+custom_storage: false

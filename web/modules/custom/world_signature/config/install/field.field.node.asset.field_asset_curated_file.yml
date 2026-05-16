@@ -1,0 +1,27 @@
+# curated_file instance on the asset bundle.
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_asset_curated_file
+    - node.type.asset
+  module:
+    - file
+id: node.asset.field_asset_curated_file
+field_name: field_asset_curated_file
+entity_type: node
+bundle: asset
+label: 'Curated file'
+description: 'The world-ready normalized .glb the renderer loads. Pivot at base (or per curated_pivot), scale 1m=1unit, single material slot.'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  file_directory: 'assets/curated/[date:custom:Y-m]'
+  file_extensions: 'glb gltf'
+  max_filesize: ''
+  description_field: false
+  handler: 'default:file'
+  handler_settings: {  }
+field_type: file

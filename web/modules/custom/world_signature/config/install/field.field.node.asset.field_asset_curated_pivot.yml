@@ -1,0 +1,22 @@
+# curated_pivot instance on the asset bundle. Allowed values are in
+# the storage (base / center / custom).
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_asset_curated_pivot
+    - node.type.asset
+  module:
+    - options
+id: node.asset.field_asset_curated_pivot
+field_name: field_asset_curated_pivot
+entity_type: node
+bundle: asset
+label: 'Pivot origin'
+description: 'Where the .glb''s pivot/origin sits. Base for upright props, center for symmetric props, custom for authored offsets.'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: list_string

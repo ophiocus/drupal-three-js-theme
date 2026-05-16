@@ -1,0 +1,22 @@
+# Raw asset: triangle count of the raw mesh. Drives the polycount
+# budget conversation — a 60k-tri Sketchfab scan needs decimation
+# before it reads as a 4k-tri stylized prop.
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+id: node.field_asset_raw_polycount
+field_name: field_asset_raw_polycount
+entity_type: node
+type: integer
+settings:
+  unsigned: true
+  size: normal
+module: core
+locked: false
+cardinality: 1
+translatable: false
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

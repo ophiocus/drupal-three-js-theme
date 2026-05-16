@@ -1,0 +1,22 @@
+# Provenance: link to the specific license text for this asset.
+# CC0/CC-BY/etc. all have canonical license URLs, but some sources
+# (Sketchfab Standard, itch.io paid) need a per-asset link to the
+# license-of-purchase or the source-page license declaration.
+langcode: en
+status: true
+dependencies:
+  module:
+    - link
+    - node
+id: node.field_asset_license_url
+field_name: field_asset_license_url
+entity_type: node
+type: link
+settings: {  }
+module: link
+locked: false
+cardinality: 1
+translatable: false
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

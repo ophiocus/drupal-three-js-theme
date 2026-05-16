@@ -1,0 +1,27 @@
+# raw_file instance on the asset bundle.
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_asset_raw_file
+    - node.type.asset
+  module:
+    - file
+id: node.asset.field_asset_raw_file
+field_name: field_asset_raw_file
+entity_type: node
+bundle: asset
+label: 'Raw file'
+description: 'The file as downloaded from source. .zip / .blend / .fbx / .obj / .glb. Preserved verbatim for provenance.'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  file_directory: 'assets/raw/[date:custom:Y-m]'
+  file_extensions: 'zip blend fbx obj glb gltf'
+  max_filesize: ''
+  description_field: false
+  handler: 'default:file'
+  handler_settings: {  }
+field_type: file

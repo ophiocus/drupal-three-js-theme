@@ -1,0 +1,20 @@
+# Asset licenses vocabulary.
+#
+# Each term is a license tier under which a sourced .glb can live.
+# field_asset_license on the asset bundle references a single term
+# here. The runtime attribution surface reads which assets carry
+# CC-BY (attribution required) vs CC0 (no attribution needed) and
+# composes the credits accordingly.
+#
+# Canonical terms (CC0, CC-BY, CC-BY-SA, CC-BY-NC, Sketchfab
+# Standard, itch.io paid, Custom in-house) are seeded by
+# scaffold/seed-asset-vocab.php — the module ships the vocab; the
+# seeder ships the terms. Same split as Regions.
+langcode: en
+status: true
+dependencies: {  }
+name: Asset licenses
+vid: asset_licenses
+description: 'License tiers an asset can carry. Drives runtime attribution and per-property license-compatibility checks.'
+weight: 1
+new_revision: false

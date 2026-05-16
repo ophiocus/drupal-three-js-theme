@@ -1,0 +1,31 @@
+# license instance on the asset bundle. References the asset_licenses
+# vocabulary; required because attribution and compatibility checks
+# depend on knowing the tier.
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_asset_license
+    - node.type.asset
+    - taxonomy.vocabulary.asset_licenses
+id: node.asset.field_asset_license
+field_name: field_asset_license
+entity_type: node
+bundle: asset
+label: 'License'
+description: 'License tier. Drives runtime attribution and per-property compatibility checks.'
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:taxonomy_term'
+  handler_settings:
+    target_bundles:
+      asset_licenses: asset_licenses
+    sort:
+      field: name
+      direction: asc
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

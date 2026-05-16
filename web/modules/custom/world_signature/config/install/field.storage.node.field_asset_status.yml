@@ -1,0 +1,24 @@
+# Binding: lifecycle stage. Entity-reference to the asset_status
+# vocabulary (shortlisted, acquired, curated, live, deprecated).
+# Only one asset per (atmosphere, slot) cell should be `live` at
+# any time; the renderer picks that one. Others sit at earlier
+# stages or are `deprecated` (archival).
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - taxonomy
+id: node.field_asset_status
+field_name: field_asset_status
+entity_type: node
+type: entity_reference
+settings:
+  target_type: taxonomy_term
+module: core
+locked: false
+cardinality: 1
+translatable: false
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

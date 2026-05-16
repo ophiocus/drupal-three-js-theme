@@ -1,0 +1,28 @@
+# Raw asset: the file as downloaded from source. Can be .zip,
+# .blend, .fbx, .obj, .glb, .gltf — formats vary by pack. The
+# raw file is preserved verbatim for provenance; the curated_file
+# below is the world-ready normalized version.
+langcode: en
+status: true
+dependencies:
+  module:
+    - file
+    - node
+id: node.field_asset_raw_file
+field_name: field_asset_raw_file
+entity_type: node
+type: file
+settings:
+  display_field: false
+  display_default: false
+  uri_scheme: public
+  target_type: file
+module: file
+locked: false
+cardinality: 1
+translatable: false
+indexes:
+  target_id:
+    - target_id
+persist_with_no_fields: false
+custom_storage: false

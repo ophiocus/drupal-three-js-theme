@@ -1,0 +1,23 @@
+# curated_polycount instance on the asset bundle.
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_asset_curated_polycount
+    - node.type.asset
+id: node.asset.field_asset_curated_polycount
+field_name: field_asset_curated_polycount
+entity_type: node
+bundle: asset
+label: 'Curated polycount'
+description: 'Triangle count post-decimation. Should fall within the slot''s poly budget.'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: 0
+  max: null
+  prefix: ''
+  suffix: ' tris'
+field_type: integer

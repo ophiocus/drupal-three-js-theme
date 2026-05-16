@@ -1,0 +1,36 @@
+# Raw asset: the file format as downloaded. Enum so the curator
+# can filter / report by format without parsing extensions.
+# Allowed values seeded into the field instance, not the storage —
+# storage is just list_string.
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - options
+id: node.field_asset_raw_format
+field_name: field_asset_raw_format
+entity_type: node
+type: list_string
+settings:
+  allowed_values:
+    - value: glb
+      label: 'glTF binary (.glb)'
+    - value: gltf
+      label: 'glTF JSON (.gltf)'
+    - value: fbx
+      label: 'Autodesk FBX (.fbx)'
+    - value: obj
+      label: 'Wavefront OBJ (.obj)'
+    - value: blend
+      label: 'Blender (.blend)'
+    - value: zip
+      label: 'Archive (.zip)'
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: false
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

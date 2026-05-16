@@ -1,0 +1,30 @@
+# status instance on the asset bundle. Required — drives which
+# assets the renderer actually loads.
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_asset_status
+    - node.type.asset
+    - taxonomy.vocabulary.asset_status
+id: node.asset.field_asset_status
+field_name: field_asset_status
+entity_type: node
+bundle: asset
+label: 'Status'
+description: 'Lifecycle stage. Only `live` assets are loaded by the renderer.'
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:taxonomy_term'
+  handler_settings:
+    target_bundles:
+      asset_status: asset_status
+    sort:
+      field: weight
+      direction: asc
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

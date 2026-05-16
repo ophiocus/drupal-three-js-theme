@@ -1,0 +1,37 @@
+# Curated asset: where the .glb's pivot/origin is. Enum:
+#   base   — origin at the bottom of the mesh; default for upright
+#            props (trees, totems, figures). Builder places the
+#            SmartObject and the mesh sits on top.
+#   center — origin at the bounding-box center; for symmetric props
+#            (mushrooms, flying particles) where centering reads
+#            cleanest.
+#   custom — origin at an authored offset; the curator documents
+#            the offset in field_asset_curation_notes.
+#
+# Allowed values seeded in the field instance, not the storage.
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - options
+id: node.field_asset_curated_pivot
+field_name: field_asset_curated_pivot
+entity_type: node
+type: list_string
+settings:
+  allowed_values:
+    - value: base
+      label: 'Base (bottom of mesh)'
+    - value: center
+      label: 'Center (bounding-box center)'
+    - value: custom
+      label: 'Custom (authored offset)'
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: false
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

@@ -1,0 +1,23 @@
+# Asset slots vocabulary.
+#
+# A "slot" is a named role an asset fulfills in the metaphor —
+# standing-stone, sapling-figure, oak-stylized, forest-scenery-*,
+# etc. mappings.yml under each atmosphere binds a bundle (article,
+# profile, event) to a slot; the asset bundle's field_asset_slot
+# declares which slot a given asset can fill.
+#
+# An atmosphere uses a slot via mappings.yml; an asset declares it
+# fills a slot via this taxonomy. The renderer joins the two via
+# field_asset_atmospheres + field_asset_status (live) to pick the
+# active asset per (atmosphere, slot) cell.
+#
+# Canonical terms seeded by scaffold/seed-asset-vocab.php. As new
+# atmospheres ship and new slots appear, add their terms there.
+langcode: en
+status: true
+dependencies: {  }
+name: Asset slots
+vid: asset_slots
+description: 'Named roles an asset can fill in the metaphor — standing-stone, sapling-figure, oak-stylized, scenery props, etc. Atmosphere mappings.yml references these slot names.'
+weight: 2
+new_revision: false

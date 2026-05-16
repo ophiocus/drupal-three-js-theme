@@ -1,0 +1,25 @@
+# Asset status vocabulary.
+#
+# The lifecycle stage an asset is in:
+#
+#   shortlisted — a candidate sourced from the web; URL + license
+#                 + preview recorded; no file uploaded yet
+#   acquired    — the raw file (as found, often .zip/.blend/.fbx)
+#                 has been downloaded and uploaded to Drupal
+#   curated     — a normalized .glb (pivot at base, scale 1m=1unit,
+#                 single material slot, polycount within budget)
+#                 has been produced from the raw asset
+#   live        — the curated asset is wired into mappings.yml and
+#                 the renderer loads it at runtime
+#   deprecated  — superseded by a newer asset; retained for
+#                 provenance and rollback
+#
+# Canonical terms seeded by scaffold/seed-asset-vocab.php.
+langcode: en
+status: true
+dependencies: {  }
+name: Asset status
+vid: asset_status
+description: 'Lifecycle stage: shortlisted → acquired → curated → live → deprecated. Drives which assets the renderer actually loads (live) vs which are work-in-progress vs which are archival.'
+weight: 3
+new_revision: false

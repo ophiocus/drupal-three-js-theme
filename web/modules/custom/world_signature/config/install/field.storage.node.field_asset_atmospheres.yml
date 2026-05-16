@@ -1,0 +1,34 @@
+# Binding: which atmospheres this asset is eligible for. Multi-value
+# list_string ("forest", "default", and future names as they ship).
+# An asset filling slot=oak-stylized for the forest atmosphere is
+# not automatically valid for a cyber atmosphere — the curator
+# declares eligibility per asset.
+#
+# String list rather than entity_reference because atmospheres are
+# config-defined (world_signature.palette.yml), not content
+# entities. A future migration could move atmospheres into a
+# taxonomy, but the field is the wrong place to force that.
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - options
+id: node.field_asset_atmospheres
+field_name: field_asset_atmospheres
+entity_type: node
+type: list_string
+settings:
+  allowed_values:
+    - value: default
+      label: 'Default (UE5-meta blockout)'
+    - value: forest
+      label: 'Forest'
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: -1
+translatable: false
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

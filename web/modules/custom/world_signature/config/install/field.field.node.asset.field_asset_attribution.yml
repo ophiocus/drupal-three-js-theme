@@ -1,0 +1,19 @@
+# attribution instance on the asset bundle.
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_asset_attribution
+    - node.type.asset
+id: node.asset.field_asset_attribution
+field_name: field_asset_attribution
+entity_type: node
+bundle: asset
+label: 'Attribution string'
+description: 'Verbatim credit line for the runtime credits surface. Required for CC-BY; empty for CC0.'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string_long

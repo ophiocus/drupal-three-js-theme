@@ -1,0 +1,23 @@
+# atmospheres instance on the asset bundle. Multi-value list of
+# atmosphere names this asset is eligible for. Allowed values are
+# in the storage; as new atmospheres ship, add their values there.
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_asset_atmospheres
+    - node.type.asset
+  module:
+    - options
+id: node.asset.field_asset_atmospheres
+field_name: field_asset_atmospheres
+entity_type: node
+bundle: asset
+label: 'Eligible atmospheres'
+description: 'Atmospheres that may use this asset for its slot.'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: list_string

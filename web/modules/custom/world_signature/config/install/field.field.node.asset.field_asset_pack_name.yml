@@ -1,0 +1,19 @@
+# pack_name instance on the asset bundle.
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_asset_pack_name
+    - node.type.asset
+id: node.asset.field_asset_pack_name
+field_name: field_asset_pack_name
+entity_type: node
+bundle: asset
+label: 'Pack name'
+description: 'Pack / bundle this asset came from, when applicable. Empty for single-asset sources.'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

@@ -1,0 +1,22 @@
+# Provenance: the verbatim attribution string to display in the
+# runtime credits surface. E.g. "Forest Nature Pack by Kay Lousberg
+# (kaykit.itch.io), licensed CC-BY 4.0". Empty for CC0 / public
+# domain assets where no attribution is required.
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+id: node.field_asset_attribution
+field_name: field_asset_attribution
+entity_type: node
+type: string_long
+settings:
+  case_sensitive: false
+module: core
+locked: false
+cardinality: 1
+translatable: false
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

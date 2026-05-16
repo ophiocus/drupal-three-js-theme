@@ -1,0 +1,24 @@
+# Binding: which slot this asset fills. Entity-reference to the
+# asset_slots vocabulary (standing-stone, sapling-figure,
+# oak-stylized, forest-scenery-*, etc.). Atmosphere mappings.yml
+# binds bundles to slot names; this field is the asset side of
+# that join.
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - taxonomy
+id: node.field_asset_slot
+field_name: field_asset_slot
+entity_type: node
+type: entity_reference
+settings:
+  target_type: taxonomy_term
+module: core
+locked: false
+cardinality: 1
+translatable: false
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false
