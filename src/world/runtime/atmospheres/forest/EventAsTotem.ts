@@ -88,9 +88,13 @@ export class EventAsTotem implements SmartObjectBuilder {
     obj.attach(new MeshComponent({
       geometry: mossGeo,
       material: mossMat,
-      // Sit between ground (y=0) and the trigger pad layer so the
-      // pad still receives clicks cleanly.
-      offset: { x: 0, y: FLOOR_LAYERS.trigger_pad * 0.5, z: 0 },
+      // Dedicated ground_decal layer — sits ABOVE the sector pad
+      // (0.5) and BELOW the trigger pad (1.0). Using
+      // trigger_pad * 0.5 here was a v0.3.0 bug — that math
+      // landed at 0.5, coplanar with sector_pad → z-fighting
+      // across the moss ring whenever an event sat over a sector
+      // centroid. floor-layers.ts exists precisely for this case.
+      offset: { x: 0, y: FLOOR_LAYERS.ground_decal, z: 0 },
       // Moss isn't the click target — the totem column is.
     }));
 
