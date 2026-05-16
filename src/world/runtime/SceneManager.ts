@@ -256,7 +256,10 @@ export class SceneManager {
       );
     }
     await this.placeEntities(loader);
-    this.startLoop();
+    // Single entry point for "start the loop." Drives through
+    // refreshLoopState so the initial start gets the same
+    // transition-log treatment as later state changes.
+    this.refreshLoopState();
     console.info(
       `[world] mounted: ${Object.keys(this.snapshot.entities).length} entities ` +
         `across ${Object.keys(this.snapshot.sectors).length} sectors, ` +
@@ -270,19 +273,39 @@ export class SceneManager {
     this.refreshLoopState();
   }
 
+  /** Whether the animation loop is currently running. Mirrors the
+   *  result of refreshLoopState() so we only log + dispatch on
+   *  actual state transitions, not on every visibility tick.
+   */
+  private loopRunning = false;
+
   /**
    * Idempotent loop-state evaluation: starts the animation loop
    * if-and-only-if the world is in `exploration` mode AND the
-   * browser tab is visible. Called by setMode() and by the
-   * visibilitychange listener. Either source can independently
-   * pause; both must agree to run.
+   * browser tab is visible. Called by setMode(), the
+   * visibilitychange listener, and the mount path. Either source
+   * can independently pause; both must agree to run.
+   *
+   * Logs the transition so an operator can verify the
+   * tab-pause works from the browser console — open another
+   * browser tab and you should see "loop paused"; come back
+   * and you should see "loop running".
    */
   private refreshLoopState(): void {
-    if (this.mode === "reading" || document.hidden) {
+    const shouldRun = this.mode !== "reading" && !document.hidden;
+    if (shouldRun === this.loopRunning) return;
+    this.loopRunning = shouldRun;
+    if (shouldRun) {
+      this.startLoop();
+      console.info(
+        `[world] loop running (mode=${this.mode}, tab visible)`,
+      );
+    } else {
       this.renderer.setAnimationLoop(null);
-      return;
+      console.info(
+        `[world] loop paused (mode=${this.mode}, tabHidden=${document.hidden})`,
+      );
     }
-    this.startLoop();
   }
 
   /**
