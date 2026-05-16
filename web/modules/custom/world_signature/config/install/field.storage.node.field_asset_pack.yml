@@ -1,0 +1,24 @@
+# Asset → pack reference. Every asset belongs to exactly one pack
+# (the asset's parent acquisition unit); even single-mesh sources
+# get a "pack of one" so the data shape stays uniform.
+#
+# Entity-reference targets node (the pack bundle); cardinality 1
+# because an asset comes from one source.
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+id: node.field_asset_pack
+field_name: field_asset_pack
+entity_type: node
+type: entity_reference
+settings:
+  target_type: node
+module: core
+locked: false
+cardinality: 1
+translatable: false
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

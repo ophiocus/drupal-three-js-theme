@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Verify the asset content type, vocabularies, and fields are
- * present after `drush en world_signature`. One-off check used
- * during v0.3.x; safe to keep around as a smoke test.
+ * Verify the pack + asset content types, vocabularies, and fields
+ * are present after `drush en world_signature`. Smoke test used
+ * during v0.3.x asset-schema work; safe to keep around.
  */
 
 declare(strict_types=1);
@@ -14,14 +14,23 @@ echo "node bundles: " . implode(', ', $bundles) . "\n";
 $vocabs = array_keys(\Drupal::entityTypeManager()->getStorage('taxonomy_vocabulary')->loadMultiple());
 echo "vocabularies: " . implode(', ', $vocabs) . "\n";
 
-$fields = \Drupal::service('entity_field.manager')->getFieldDefinitions('node', 'asset');
-$assetFields = array_filter(
-  array_keys($fields),
-  fn($k) => str_starts_with($k, 'field_asset_') || $k === 'body',
-);
-sort($assetFields);
-echo "asset fields (" . count($assetFields) . "):\n";
-foreach ($assetFields as $f) {
-  $def = $fields[$f];
-  echo sprintf("  %-32s %s\n", $f, $def->getType());
+foreach (['pack', 'asset'] as $bundle) {
+  $fields = \Drupal::service('entity_field.manager')->getFieldDefinitions('node', $bundle);
+  $prefix = 'field_' . $bundle . '_';
+  $bundleFields = array_filter(
+    array_keys($fields),
+    fn($k) => str_starts_with($k, $prefix) || $k === 'body',
+  );
+  sort($bundleFields);
+  echo "\n" . $bundle . " fields (" . count($bundleFields) . "):\n";
+  foreach ($bundleFields as $f) {
+    $def = $fields[$f];
+    $extra = '';
+    if ($def->getType() === 'entity_reference') {
+      $handler = $def->getSetting('handler_settings') ?? [];
+      $targets = array_keys($handler['target_bundles'] ?? []);
+      $extra = ' → ' . implode(',', $targets);
+    }
+    echo sprintf("  %-32s %s%s\n", $f, $def->getType(), $extra);
+  }
 }

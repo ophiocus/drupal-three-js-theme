@@ -1,0 +1,21 @@
+# Provenance: link to the specific license text for this pack.
+# CC0 and CC-BY have canonical URLs; some sources (Sketchfab
+# Standard, itch.io paid) need per-pack license links.
+langcode: en
+status: true
+dependencies:
+  module:
+    - link
+    - node
+id: node.field_pack_license_url
+field_name: field_pack_license_url
+entity_type: node
+type: link
+settings: {  }
+module: link
+locked: false
+cardinality: 1
+translatable: false
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

@@ -1,14 +1,14 @@
-# source_author instance on the asset bundle.
+# source_author instance on the pack bundle.
 langcode: en
 status: true
 dependencies:
   config:
-    - field.storage.node.field_asset_source_author
-    - node.type.asset
-id: node.asset.field_asset_source_author
-field_name: field_asset_source_author
+    - field.storage.node.field_pack_source_author
+    - node.type.pack
+id: node.pack.field_pack_source_author
+field_name: field_pack_source_author
 entity_type: node
-bundle: asset
+bundle: pack
 label: 'Source author'
 description: 'Creator name as credited at source — used in attribution strings.'
 required: false

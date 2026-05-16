@@ -1,5 +1,5 @@
-# Provenance: the URL where this asset was found. Sketchfab page,
-# itch.io page, Poly Haven page, etc. Single value — an asset has
+# Provenance: the URL where this pack was found. Sketchfab page,
+# itch.io page, Poly Haven page, etc. Single value — a pack has
 # one canonical source.
 langcode: en
 status: true
@@ -7,8 +7,8 @@ dependencies:
   module:
     - link
     - node
-id: node.field_asset_source_url
-field_name: field_asset_source_url
+id: node.field_pack_source_url
+field_name: field_pack_source_url
 entity_type: node
 type: link
 settings: {  }

@@ -1,0 +1,21 @@
+# raw_format instance on the pack bundle.
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_pack_raw_format
+    - node.type.pack
+  module:
+    - options
+id: node.pack.field_pack_raw_format
+field_name: field_pack_raw_format
+entity_type: node
+bundle: pack
+label: 'Raw format'
+description: 'Container format of the downloaded file. .zip means multi-mesh pack; .glb means single ready-to-curate mesh.'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: list_string

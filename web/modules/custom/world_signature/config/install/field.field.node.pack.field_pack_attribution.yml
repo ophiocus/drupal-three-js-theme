@@ -1,14 +1,14 @@
-# attribution instance on the asset bundle.
+# attribution instance on the pack bundle.
 langcode: en
 status: true
 dependencies:
   config:
-    - field.storage.node.field_asset_attribution
-    - node.type.asset
-id: node.asset.field_asset_attribution
-field_name: field_asset_attribution
+    - field.storage.node.field_pack_attribution
+    - node.type.pack
+id: node.pack.field_pack_attribution
+field_name: field_pack_attribution
 entity_type: node
-bundle: asset
+bundle: pack
 label: 'Attribution string'
 description: 'Verbatim credit line for the runtime credits surface. Required for CC-BY; empty for CC0.'
 required: false

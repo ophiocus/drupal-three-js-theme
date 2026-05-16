@@ -1,0 +1,22 @@
+# Provenance: the license tier under which this pack was released.
+# Entity-reference to a term in the asset_licenses vocabulary.
+# License is pack-wide; individual assets inherit it.
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - taxonomy
+id: node.field_pack_license
+field_name: field_pack_license
+entity_type: node
+type: entity_reference
+settings:
+  target_type: taxonomy_term
+module: core
+locked: false
+cardinality: 1
+translatable: false
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

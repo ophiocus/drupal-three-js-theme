@@ -1,19 +1,19 @@
-# license instance on the asset bundle. References the asset_licenses
+# license instance on the pack bundle. References the asset_licenses
 # vocabulary; required because attribution and compatibility checks
 # depend on knowing the tier.
 langcode: en
 status: true
 dependencies:
   config:
-    - field.storage.node.field_asset_license
-    - node.type.asset
+    - field.storage.node.field_pack_license
+    - node.type.pack
     - taxonomy.vocabulary.asset_licenses
-id: node.asset.field_asset_license
-field_name: field_asset_license
+id: node.pack.field_pack_license
+field_name: field_pack_license
 entity_type: node
-bundle: asset
+bundle: pack
 label: 'License'
-description: 'License tier. Drives runtime attribution and per-property compatibility checks.'
+description: 'License tier for the whole pack. Individual assets inherit it.'
 required: true
 translatable: false
 default_value: {  }
@@ -24,7 +24,7 @@ settings:
     target_bundles:
       asset_licenses: asset_licenses
     sort:
-      field: name
+      field: weight
       direction: asc
     auto_create: false
     auto_create_bundle: ''

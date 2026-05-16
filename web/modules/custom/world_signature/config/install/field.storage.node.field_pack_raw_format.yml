@@ -1,15 +1,15 @@
-# Raw asset: the file format as downloaded. Enum so the curator
-# can filter / report by format without parsing extensions.
-# Allowed values seeded into the field instance, not the storage —
-# storage is just list_string.
+# The downloaded pack's container format. Drives expectations
+# about whether the curator needs to extract individual meshes
+# (zip / blend with multiple objects) or whether the pack is
+# already a single mesh ready for use (glb / gltf).
 langcode: en
 status: true
 dependencies:
   module:
     - node
     - options
-id: node.field_asset_raw_format
-field_name: field_asset_raw_format
+id: node.field_pack_raw_format
+field_name: field_pack_raw_format
 entity_type: node
 type: list_string
 settings:

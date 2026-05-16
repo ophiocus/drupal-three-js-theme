@@ -1,13 +1,13 @@
-# Provenance: the pack / bundle this asset came from, when
-# applicable. E.g. "KayKit Forest Nature Pack", "Quaternius
-# Ultimate Stylized Nature Pack". Empty for single-asset sources.
+# Provenance: the author / creator name as credited at the source.
+# E.g. "Kay Lousberg", "Quaternius". Used in the attribution string
+# and the runtime credits surface.
 langcode: en
 status: true
 dependencies:
   module:
     - node
-id: node.field_asset_pack_name
-field_name: field_asset_pack_name
+id: node.field_pack_source_author
+field_name: field_pack_source_author
 entity_type: node
 type: string
 settings:

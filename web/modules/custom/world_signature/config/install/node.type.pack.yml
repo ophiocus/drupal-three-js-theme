@@ -1,0 +1,35 @@
+# Pack content type — the unit of asset acquisition.
+#
+# A pack represents one downloaded thing: a Sketchfab single model,
+# a KayKit zip, a Quaternius pack of 60 meshes, an in-house Blender
+# export. Whatever shape it arrived in lives in field_pack_raw_file
+# as-is; no extraction or curation happens at this layer.
+#
+# Every asset node belongs to exactly one pack (asset's
+# field_asset_pack is required). Standalone single-mesh sources
+# get a "pack of one" — one pack node + one asset child. This
+# uniformity eliminates the "asset without pack" branch in queries
+# and templates.
+#
+# Provenance lives at the pack level: source URL, license, author,
+# attribution. The license tier is pack-wide; individual assets
+# inherit. The asset-level fields are the per-mesh metadata that
+# can't be expressed at the pack level (preview thumbnail of THIS
+# mesh, polycount of THIS mesh, slot binding of THIS mesh).
+#
+# Notably absent: field_world_sector, field_world_signature. Same
+# reason as the asset bundle — packs are catalog content, not
+# entities placed in the 3D world.
+#
+# Shipped by world_signature so a fresh `drush en world_signature`
+# brings the bundle.
+langcode: en
+status: true
+dependencies: {  }
+name: Pack
+type: pack
+description: 'The unit of asset acquisition. One license, one source URL, one downloaded file (often containing many meshes). Each asset references its parent pack.'
+help: ''
+new_revision: true
+preview_mode: 1
+display_submitted: false

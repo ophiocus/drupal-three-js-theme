@@ -1,0 +1,19 @@
+# version instance on the pack bundle.
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_pack_version
+    - node.type.pack
+id: node.pack.field_pack_version
+field_name: field_pack_version
+entity_type: node
+bundle: pack
+label: 'Pack version'
+description: 'Version string as declared by the source — "v1.2", "1.0.3", "2024-08". A new version creates a new pack node, not a mutation of an existing one.'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

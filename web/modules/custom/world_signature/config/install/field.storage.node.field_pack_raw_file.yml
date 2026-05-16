@@ -1,15 +1,15 @@
-# Raw asset: the file as downloaded from source. Can be .zip,
-# .blend, .fbx, .obj, .glb, .gltf — formats vary by pack. The
-# raw file is preserved verbatim for provenance; the curated_file
-# below is the world-ready normalized version.
+# The pack file as downloaded. Whatever shape received — .zip
+# (multi-mesh pack), .glb / .gltf (single model), .blend (Blender
+# source), .fbx / .obj. Preserved verbatim for provenance and so
+# the curator can revisit the source bytes.
 langcode: en
 status: true
 dependencies:
   module:
     - file
     - node
-id: node.field_asset_raw_file
-field_name: field_asset_raw_file
+id: node.field_pack_raw_file
+field_name: field_pack_raw_file
 entity_type: node
 type: file
 settings:
