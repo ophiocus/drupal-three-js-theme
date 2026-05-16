@@ -1,0 +1,19 @@
+# Event content type — atlas_coffee's temporal anchors: harvests,
+# cupping weeks, cup competitions, workshops. Same field armature
+# as article. Editorial flavor: a happening with a date and an
+# outcome (or anticipated outcome).
+#
+# Future signature work adds `temporal.eventDate` so the
+# atmosphere can modulate visual urgency around the date. For
+# now the date lives in the body text and the renderer treats
+# events as static totems.
+langcode: en
+status: true
+dependencies: {  }
+name: Event
+type: event
+description: 'A temporal happening — harvest, cup competition, workshop. Renders as a standing-stone clearing under the forest atmosphere.'
+help: ''
+new_revision: true
+preview_mode: 1
+display_submitted: true

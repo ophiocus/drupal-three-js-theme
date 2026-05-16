@@ -1,0 +1,29 @@
+# field_world_sector instance on the event bundle.
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_world_sector
+    - node.type.event
+    - taxonomy.vocabulary.topics
+id: node.event.field_world_sector
+field_name: field_world_sector
+entity_type: node
+bundle: event
+label: 'World Sector'
+description: 'Taxonomy terms placing this event in one or more world sectors. The cypher reads this to derive sector membership and place the totem in the 3D world.'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:taxonomy_term'
+  handler_settings:
+    target_bundles:
+      topics: topics
+    sort:
+      field: name
+      direction: asc
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

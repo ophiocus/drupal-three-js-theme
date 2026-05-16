@@ -1,0 +1,31 @@
+# field_world_sector instance on the profile bundle. Same role as
+# the article's instance: taxonomy reference into the `topics`
+# vocabulary; the cypher reads it for sector placement.
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_world_sector
+    - node.type.profile
+    - taxonomy.vocabulary.topics
+id: node.profile.field_world_sector
+field_name: field_world_sector
+entity_type: node
+bundle: profile
+label: 'World Sector'
+description: 'Taxonomy terms placing this profile in one or more world sectors. The cypher reads this to derive sector membership and place the persona in the 3D world.'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:taxonomy_term'
+  handler_settings:
+    target_bundles:
+      topics: topics
+    sort:
+      field: name
+      direction: asc
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

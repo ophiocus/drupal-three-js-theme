@@ -13,6 +13,8 @@ import type * as THREE from "three";
 import type { CorpusSnapshot } from "../../../types.js";
 import type { SmartObjectRegistry } from "../../smart-objects/Builder.js";
 import { ArticleAsTree } from "./ArticleAsTree.js";
+import { ProfileAsSpirit } from "./ProfileAsSpirit.js";
+import { EventAsTotem } from "./EventAsTotem.js";
 import { placeForestScenery } from "./scenery.js";
 import { PollenField } from "./pollen.js";
 
@@ -29,14 +31,17 @@ export type AtmosphereUpdater = (elapsed: number, dt: number) => void;
  * Register every Builder this atmosphere ships with. Add new
  * builders here as `mappings.yml` grows beyond bundle.article.
  *
- * Status (2026-05-14):
+ * Status (2026-05-15):
  *   - ArticleAsTree:        shipped (primitive geometry; oak-stylized.glb pending)
- *   - ProfileAsSpirit:      pending (sapling-figure.glb)
- *   - EventAsTotem:         pending (standing-stone.glb)
- *   - ChatvatarAsForestBeing: deferred to v0.3
+ *   - ProfileAsSpirit:      shipped (primitive bipedal stack; sapling-figure.glb pending)
+ *   - EventAsTotem:         shipped (primitive tapered pillar; standing-stone.glb pending;
+ *                                    temporal-urgency emissive deferred to v0.3.x)
+ *   - ChatvatarAsForestBeing: deferred to v0.4 (LLM dialogue layer)
  */
 export function registerForestAtmosphere(registry: SmartObjectRegistry): void {
   registry.register(new ArticleAsTree());
+  registry.register(new ProfileAsSpirit());
+  registry.register(new EventAsTotem());
 }
 
 /**

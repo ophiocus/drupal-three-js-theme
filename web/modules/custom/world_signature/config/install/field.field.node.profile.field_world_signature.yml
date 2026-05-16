@@ -1,0 +1,21 @@
+# field_world_signature instance on the profile bundle. Hidden
+# from the editor — written by the queue worker, read by the
+# snapshot publisher.
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_world_signature
+    - node.type.profile
+id: node.profile.field_world_signature
+field_name: field_world_signature
+entity_type: node
+bundle: profile
+label: 'World Signature'
+description: 'JSON-serialized cypher signature. Written by the queue worker; read by the snapshot publisher. Hidden from the editor.'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string_long

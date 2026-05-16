@@ -347,30 +347,47 @@ rendered world without code changes.
 Action: walkthrough; add to `docs/WALKTHROUGH.md` as a new
 section once verified.
 
-### A3 — ProfileAsSpirit + EventAsTotem builders (primitive-stage)
+### A3 — ProfileAsSpirit + EventAsTotem builders (primitive-stage) ✅ DONE (2026-05-15, v0.3.0)
 
-`mappings.yml` describes both. `assets-needed.yml` has their
-glb entries (`sapling-figure`, `standing-stone`). Neither has
-a builder in code yet.
+Both builders ship as primitives:
 
-The corpus currently has no `bundle=profile` or `bundle=event`
-entities — all 20 are `bundle=article` — so even if the
-builders existed they'd not fire. Either:
+- **`ProfileAsSpirit`** — bipedal humanoid stack: two cylinder
+  legs + cylinder torso + sphere head. Height driven by
+  `signature.relational.inDegree` (log10 clamp, domain [1, 50],
+  range [2.5, 5.5] units). Clothing color from
+  `FOREST_BARK_PALETTE` by region (matches the ArticleAsTree
+  bark map so a sector reads tonally consistent). Deterministic
+  silhouette variation via FNV-1a (torso yaw ±11°, head tilt
+  ±5°, torso-radius jitter ±10%).
+- **`EventAsTotem`** — tapered cylinder pillar (basalt column
+  proportion: top ~28% narrower than base) on a moss-ring
+  ground decal. Warm-amber emissive baseline reads as
+  "pre-event glow"; the time-modulated emissive deferred to
+  v0.3.x when `TemporalUrgencyComponent` lands. Domed capstone
+  with brighter emissive intensity reads as the totem's
+  focal point. Per-totem yaw randomized.
 
-- **(a) Build the builders now**, with primitive geometry,
-  ready for when content arrives
-- **(b) Seed a couple of profile/event entries** into the
-  atlas_coffee fixture so the builders have something to
-  render
+Selected option **(3)**: full A3a + A3b — built the builders
+*and* rebalanced the atlas_coffee fixture. The 20-entry corpus
+now splits 11 articles + 5 profiles + 4 events, each entity
+tagged with its bundle and body-voiced per bundle (profile =
+role-anchor opener; event = explicit-date opener with outcome).
 
-Recommendation: **(a)** first (builders are cheap; the
-abstraction's value is real even unrun), then **(b)** as a
-small fixture extension (3 profiles + 3 events would be enough
-to validate the visual).
+Two new content types (`profile`, `event`) ship as
+module-owned config under `world_signature/config/install/`,
+with their body / `field_world_sector` / `field_world_signature`
+instances. Two new Metaphor plugins (`node:profile`,
+`node:event`) dispatch the cypher per bundle.
 
-**Size:** medium (~150 LOC for both builders + their
-primitive geometries) + small (~50 LOC for the fixture
-seeder extension).
+**Commits:** v0.3.0 (TODO: fill in hash).
+
+**Followup (v0.3.x):** `TemporalUrgencyComponent` — per-frame
+pulse amplitude + emissive color modulation for events as their
+date approaches/passes. Sketched in `mappings.yml` under
+`bundle.event.size_signal` and `color_signal`; deferred because
+it's its own component design (the cypher already emits
+`eventDate` once `temporal.eventDate` is in the signature
+schema).
 
 ### A4 — Decorative scenery primitives ✅ DONE (2026-05-14)
 

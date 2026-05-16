@@ -1,0 +1,18 @@
+# Profile content type — atlas_coffee's people: producers,
+# cooperative leads, micro-mill operators, roasters. Same field
+# armature as article (title + body + field_world_sector +
+# field_world_signature). Editorial flavor: person-focused
+# narrative rather than reportage.
+#
+# Shipped by world_signature so a fresh `drush en world_signature`
+# brings the bundle without any seeder ceremony.
+langcode: en
+status: true
+dependencies: {  }
+name: Profile
+type: profile
+description: 'A person in the world — producer, cooperative lead, roaster, or other persona. Renders as a forest spirit under the forest atmosphere; as a UE5-meta cube under the default atmosphere.'
+help: ''
+new_revision: true
+preview_mode: 1
+display_submitted: true

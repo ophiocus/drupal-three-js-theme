@@ -7,6 +7,13 @@
 # §"Stage 2 — Mapping"); editorial review approved 2026-05-14
 # by Carlos (A1 closed).
 #
+# Build status (2026-05-15, v0.3.0):
+#   - article: ArticleAsTree (primitive; oak-stylized.glb pending)
+#   - profile: ProfileAsSpirit (primitive bipedal; sapling-figure.glb pending)
+#   - event:   EventAsTotem (primitive tapered pillar + moss circle;
+#              standing-stone.glb + TemporalUrgencyComponent pending)
+#   - chatvatar: deferred until v0.4 LLM dialogue layer lands
+#
 # YAML schema, per docs/ATMOSPHERES.md:
 #   bundle.<name>.visual           short noun for the element
 #   bundle.<name>.geometry_source  glb:<path>|primitive:<shape>
