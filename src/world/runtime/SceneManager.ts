@@ -138,11 +138,19 @@ export class SceneManager {
     );
 
     window.addEventListener("resize", () => this.resize());
-    // v0.2.x: pause-on-tab-inactive. Listening on document, not
-    // window — Page Visibility API ships visibilitychange on
-    // document. Suspends the animation loop while the tab is
-    // hidden; resumes on focus.
-    document.addEventListener("visibilitychange", this.onVisibilityChange);
+    // v0.2.2: pause-on-window-blur. Per Carlos's call: pause
+    // when the browser window loses focus (switching apps,
+    // minimising), NOT when switching tabs within the same
+    // window. Multi-window workflows (browser beside Slack /
+    // terminal / DevTools-as-window) reclaim CPU + battery
+    // whenever the user is genuinely looking elsewhere.
+    //
+    // Trade-off accepted: switching tabs within the same browser
+    // window keeps the loop running — those tabs share the
+    // window's focus state. Add visibilitychange back if you
+    // want tab-switching pauses too.
+    window.addEventListener("blur", this.onWindowFocusChange);
+    window.addEventListener("focus", this.onWindowFocusChange);
   }
 
   /**
@@ -282,41 +290,47 @@ export class SceneManager {
   /**
    * Idempotent loop-state evaluation: starts the animation loop
    * if-and-only-if the world is in `exploration` mode AND the
-   * browser tab is visible. Called by setMode(), the
-   * visibilitychange listener, and the mount path. Either source
-   * can independently pause; both must agree to run.
+   * browser window has focus. Called by setMode(), the
+   * window blur/focus listeners, and the mount path.
    *
-   * Logs the transition so an operator can verify the
-   * tab-pause works from the browser console — open another
-   * browser tab and you should see "loop paused"; come back
-   * and you should see "loop running".
+   * Logs each transition so an operator can verify the pause is
+   * firing from the browser console — alt-tab to another app
+   * and you should see "loop paused"; come back and you should
+   * see "loop running".
    */
   private refreshLoopState(): void {
-    const shouldRun = this.mode !== "reading" && !document.hidden;
+    const focused = typeof document.hasFocus === "function"
+      ? document.hasFocus()
+      : true;
+    const shouldRun = this.mode !== "reading" && focused;
     if (shouldRun === this.loopRunning) return;
     this.loopRunning = shouldRun;
     if (shouldRun) {
       this.startLoop();
       console.info(
-        `[world] loop running (mode=${this.mode}, tab visible)`,
+        `[world] loop running (mode=${this.mode}, windowFocused=true)`,
       );
     } else {
       this.renderer.setAnimationLoop(null);
       console.info(
-        `[world] loop paused (mode=${this.mode}, tabHidden=${document.hidden})`,
+        `[world] loop paused (mode=${this.mode}, windowFocused=${focused})`,
       );
     }
   }
 
   /**
-   * Tab visibility listener — v0.2.x cleanup. With the world's
-   * idle drift running indefinitely on every visit, an inactive
-   * tab kept burning CPU + battery. visibilitychange suspends
-   * the loop while hidden; setMode("exploration") on the
-   * (already-set) mode safely no-ops, so we just call
-   * refreshLoopState() directly.
+   * Window blur/focus listener — v0.2.2 cleanup. With the
+   * world's idle drift running indefinitely on every visit, a
+   * background window kept burning CPU + battery. Per Carlos's
+   * choice: pause on window-blur (not on tab-visibility), so
+   * multi-window workflows pause the world whenever the user
+   * is looking at another app entirely.
+   *
+   * One listener bound to both `blur` and `focus` events; the
+   * direction is resolved by document.hasFocus() inside
+   * refreshLoopState().
    */
-  private onVisibilityChange = (): void => {
+  private onWindowFocusChange = (): void => {
     this.refreshLoopState();
   };
 
