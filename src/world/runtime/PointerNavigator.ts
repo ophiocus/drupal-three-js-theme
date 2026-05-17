@@ -147,17 +147,30 @@ export class PointerNavigator {
         return;
       }
       if (tag.kind === "entity_body") {
-        // v0.4 information-lod Activity C: "one click to node."
-        // Clicking the entity body (tree / spirit / totem) opens
-        // the FullView modal directly, no camera fly, no Bloomed
-        // intermediate. The engine pauses while the modal is up;
-        // closing returns the user to wherever they were.
+        // v0.4 information-lod Activity C — context-aware:
+        //   - Click an entity NEAR you (in the camera's current
+        //     sector) → openFullView (the express "I want the
+        //     document" gesture).
+        //   - Click an entity in ANOTHER sector → navigateTo
+        //     (camera flies to that entity's detail vantage —
+        //     the "take me there" gesture).
         //
-        // The Bloomed ramp is still reachable: click the trigger
-        // pad next to the entity for the gradual bloom-then-full
-        // progression. Power users get the express; explorers get
-        // the preview.
-        this.options.cardController.openFullView(tag.entityId);
+        // Reason: clicking a distant tree at sector vantage should
+        // *translate* the camera, not silently pause the engine
+        // with a modal for an entity the user wasn't ready to read.
+        // First-pass implementation (1e65505) routed every body
+        // click to openFullView and lost cross-sector navigation;
+        // this restores it without re-introducing the bloom step.
+        //
+        // The Bloomed ramp is still reachable via the trigger pad
+        // for the gradual bloom-then-full progression.
+        if (this.isEntityInCurrentSector(tag.entityId)) {
+          this.options.cardController.openFullView(tag.entityId);
+        } else {
+          this.options.cameraController.navigateTo(
+            this.uriForEntity(tag.entityId),
+          );
+        }
         return;
       }
       if (tag.kind === "sector_pad") {
@@ -208,6 +221,39 @@ export class PointerNavigator {
     const dash = entityId.indexOf("-");
     if (dash < 0) return "/";
     return `/${entityId.slice(0, dash)}/${entityId.slice(dash + 1)}`;
+  }
+
+  /**
+   * Test whether an entity belongs to the camera's current
+   * "active" sector — the sector whose centroid is nearest to
+   * the camera's xz position. Used by entity-body click routing
+   * to decide between openFullView (near) and navigateTo (far).
+   *
+   * Pure xz distance — y is ignored so this works whether the
+   * camera is at overview, sector, or detail height. The 'current
+   * sector' at overview is whichever centroid is closest to where
+   * the camera is hovering; that's the natural one to translate
+   * toward if the user clicks a near entity.
+   */
+  private isEntityInCurrentSector(entityId: string): boolean {
+    const entity = this.options.snapshot.entities[entityId];
+    if (!entity) return false;
+    const primarySector = entity.taxonomyTerms[0];
+    if (!primarySector) return false;
+
+    const cam = this.options.camera.position;
+    let nearestTermId: string | null = null;
+    let bestSq = Infinity;
+    for (const s of Object.values(this.options.snapshot.sectors)) {
+      const dx = cam.x - s.centroid.x;
+      const dz = cam.z - s.centroid.z;
+      const sq = dx * dx + dz * dz;
+      if (sq < bestSq) {
+        bestSq = sq;
+        nearestTermId = s.termId;
+      }
+    }
+    return nearestTermId === primarySector;
   }
 
   // ─── Hover ───────────────────────────────────────────────────────────────
