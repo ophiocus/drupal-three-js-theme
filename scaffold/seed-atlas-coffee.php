@@ -1,16 +1,26 @@
 <?php
 
 /**
- * Atlas_coffee fixtures — v0.3 bundle rebalance.
+ * Atlas_coffee fixtures — v0.4 corpus enrichment.
  *
- * Idempotent: re-running cleans the previous fixture set first.
- * 20 entries across 5 region terms in the `topics` vocabulary
+ * Idempotent: re-running cleans the previous fixture set first
+ * (scoped to article/profile/event bundles — catalog content
+ * lives in the pack/asset bundles and is left untouched).
+ *
+ * 24 entries across 5 region terms in the `topics` vocabulary
  * (each region becomes a sector), distributed across three
- * bundles:
+ * bundles with deliberate per-sector asymmetry:
  *
  *   11 articles — reportage / explainers / technique deep-dives
- *    5 profiles — producers, cooperative leads, mill operators
- *    4 events   — harvests, cup competitions, cupping weeks
+ *    7 profiles — producers, cooperative leads, mill operators,
+ *                 agronomists, varietal breeders
+ *    6 events   — harvests, cup competitions, cupping weeks
+ *
+ * Per-sector counts vary by design — Sierra Madre is the densest
+ * (6: 3 articles + 2 profiles + 1 event); Boquete and Tarrazú are
+ * the lightest (4 each); Antigua and Cauca sit at 5 each with
+ * different bundle mixes. The world should NOT look like a
+ * five-fold rotation of the same content.
  *
  * Bundle declared per-entry via the `bundle` key. Body text is
  * tuned per bundle voice (article = third-person reportage;
@@ -83,6 +93,12 @@ $entries = [
     'region' => 'antigua',
     'body' => "Aida Batlle's El Salvador experiments with carbonic-style fermentation in coffee turned eight years old in 2026. The technique — sealed cherries under CO₂ for 72 to 120 hours before depulping — has crossed the Guatemalan border this season at Beneficio Bella Vista.\n\nThe Bella Vista team is cagey about exact parameters but open about the result: a cup that retains Antigua's structural acidity while gaining a fermented-fruit top note that recalls natural-process Ethiopia. They've committed three lots to the technique for the 2026 crop.",
   ],
+  [
+    'bundle' => 'profile',
+    'title' => 'Sandra Solís — Pacamara breeder at Finca El Almendro',
+    'region' => 'antigua',
+    'body' => "Second-generation Antigua producer, varietal specialist. Twenty-two hectares on the eastern Acatenango slope inherited from her father in 2018; the seven years since spent converting half the farm to experimental Pacamara plots.\n\nPacamara — the Pacas × Maragogipe cross developed in El Salvador in the 1950s — is rare in Antigua. Sandra propagated her starter plants from a CATIE-sourced batch and now maintains 18 selection lines, scoring each on cup quality, disease resistance, and yield. Her 2025 lot scored 89.2 at the Guatemalan Best of Origin and sold direct to a Tokyo importer.\n\n\"My father grew Bourbon because his father did,\" she says. \"I grow Pacamara because the next twenty years won't reward what worked in the last twenty.\"",
+  ],
 
   // ─── Cauca ────────────────────────────────────────────────────
   [
@@ -108,6 +124,12 @@ $entries = [
     'title' => 'Cauca Harvest 2026: early arrivals at the dry mill',
     'region' => 'cauca',
     'body' => "Harvest window: April – June 2026.\n\nThe main crop began arriving at the Popayán dry mill in mid-April. Preliminary cuppings put the regional average at 84.2 — slightly down from last year's 84.9 but with a longer tail of high scorers. Inzá and Páez are leading the region's micro-lot submissions for the season.\n\nOutcome (in progress): the Federación expects the crop to finish receiving by late June. International buyers are expected on the ground in May for the regional Cup of Excellence pre-selection rounds.",
+  ],
+  [
+    'bundle' => 'event',
+    'title' => 'Cauca Cup of Excellence 2026: semifinal cupping concludes',
+    'region' => 'cauca',
+    'body' => "Dates: April 28 – May 2, 2026. Host: Federación Nacional de Cafeteros, Popayán dry mill.\n\nThe regional semifinal round narrowed 184 submitted lots down to 42 finalists. Inzá producers took 16 of the 42 finalist slots; Páez and Tierradentro contributed 9 and 11 respectively. International jurors arrived from Korea, Norway, and Australia; eight more cupped remotely.\n\nOutcome (preliminary): the top semifinal score was 92.0, awarded to a washed Pink Bourbon from Vereda San Antonio at 2,050 meters. Pre-auction sample requests have already crossed 350. Final ranking publishes after the May cupping week; the online auction runs June 15.",
   ],
 
   // ─── Boquete ──────────────────────────────────────────────────
@@ -160,6 +182,18 @@ $entries = [
     'title' => 'Mexico City roasters and the Sierra Madre buying season',
     'region' => 'sierra-madre',
     'body' => "A decade ago, almost all of Sierra Madre's certified-quality coffee left the country green. The domestic specialty market was thin. That has changed sharply since 2020.\n\nMexico City is now home to upwards of 80 specialty roasters, almost all of whom buy at least one Chiapas lot per year. The buying season runs January through April, and the better-known roasters — Café Avellaneda, Boicot Café, Cardinal — send buyers directly to producer cuppings rather than going through brokers. The domestic premium has narrowed the export differential, which producers welcome and exporters watch nervously.",
+  ],
+  [
+    'bundle' => 'event',
+    'title' => 'Maya Vinic Annual Cupping — January 2026',
+    'region' => 'sierra-madre',
+    'body' => "Dates: January 13–17, 2026. Host: Maya Vinic cooperative, Acteal, Chenalhó.\n\nThe 660-family cooperative held its 22nd annual cupping last week. Submitted lots from across the Tzotzil highlands above 1,500 meters; producers attended in person from a dozen communities; buyers came from Helsinki, Brooklyn, and Mexico City.\n\nOutcome: the top-scoring lot was a washed Typica from Don Andrés Pérez Vázquez at 1,800 meters, scoring 87.5. The cooperative's average climbed to 84.1 from last year's 83.4 — a measurable lift attributed to the second-year transition plots returning to full production. 78% of submitted lots sold by week's end.",
+  ],
+  [
+    'bundle' => 'profile',
+    'title' => 'Iván Pérez Hernández — agronomist for the Sierra Madre cooperative network',
+    'region' => 'sierra-madre',
+    'body' => "Cooperative agronomist, 34 years old. Iván trained at the Universidad Autónoma Chapingo in coffee agroecology and now works as field consultant for three Sierra Madre cooperatives serving 1,200+ producers between them.\n\nHis specialty: shade-tree restoration. Sierra Madre's organic premium is real but precarious — when shade fails, rust pressure climbs and yields collapse within a season. Iván's protocol layers Inga vera (fast-growing, nitrogen-fixing) under a longer-rotation Cedrela odorata canopy. Three years to first usable canopy; eight years to mature shade.\n\n\"You have to plant for the next generation,\" he says. \"My shade plots won't pay back to me. They pay back to whoever picks coffee from those trees in 2040.\"",
   ],
 
   // ─── Tarrazú ──────────────────────────────────────────────────
