@@ -23,6 +23,7 @@ import * as THREE from "three";
 import type { CardController } from "./CardController.js";
 import type { CameraController } from "./CameraController.js";
 import type { CorpusSnapshot } from "../types.js";
+import { SilhouetteHover } from "./hud/SilhouetteHover.js";
 
 interface NavigatorOptions {
   canvas: HTMLCanvasElement;
@@ -38,8 +39,6 @@ const CLICK_MAX_DISTANCE = 3;
 const CLICK_MAX_DURATION_MS = 200;
 /** Hover throttle — every Nth pointermove event runs a raycast. */
 const HOVER_RAYCAST_THROTTLE = 3;
-/** Emissive multiplier on hover. */
-const HOVER_EMISSIVE_GAIN = 2.8;
 
 export class PointerNavigator {
   private readonly raycaster = new THREE.Raycaster();
@@ -48,6 +47,10 @@ export class PointerNavigator {
   private dragging = false;
   private hovered: THREE.Mesh | null = null;
   private hoverThrottleCounter = 0;
+  // v0.4: silhouette outline replaces emissive-multiply hover.
+  // Per docs/v0.4/research/SILHOUETTE_HOVER.md — back-face hull
+  // technique. ~30 LOC manager, no postprocessing pipeline.
+  private readonly silhouette = new SilhouetteHover();
 
   constructor(private readonly options: NavigatorOptions) {
     const c = options.canvas;
@@ -64,6 +67,7 @@ export class PointerNavigator {
     c.removeEventListener("pointerup", this.onPointerUp);
     c.removeEventListener("pointerleave", this.onPointerLeave);
     this.clearHover();
+    this.silhouette.dispose();
   }
 
   // ─── Pointer events ──────────────────────────────────────────────────────
@@ -287,36 +291,17 @@ export class PointerNavigator {
   }
 
   private applyHover(mesh: THREE.Mesh): void {
-    const mat = mesh.material as THREE.MeshStandardMaterial | undefined;
-    if (!mat || !("emissive" in mat)) return;
-    // Stash the baseline emissive once so we can restore exactly.
-    if (!mesh.userData._baseEmissive) {
-      mesh.userData._baseEmissive = mat.emissive.clone();
-    }
-    const base = mesh.userData._baseEmissive as THREE.Color;
-    // Multiply, but clamp to a sensible band so we don't blow out
-    // bright base colors.
-    mat.emissive.copy(base).multiplyScalar(HOVER_EMISSIVE_GAIN);
-    // If the baseline emissive was zero, give it a faint tint
-    // anyway — pads with zero emissive (e.g. compass posts) wouldn't
-    // light up otherwise.
-    if (base.r + base.g + base.b < 0.01) {
-      mat.emissive.setRGB(0.15, 0.15, 0.15);
-    }
+    // v0.4: silhouette outline instead of emissive-multiply.
+    // The mesh's own material is untouched — only an auxiliary
+    // outline mesh gets sibling-attached. Restore on clear is
+    // therefore trivial (just remove the outline mesh).
+    this.silhouette.set(mesh);
     this.hovered = mesh;
     document.body.style.cursor = "pointer";
   }
 
   private clearHover(): void {
-    if (!this.hovered) {
-      document.body.style.cursor = "";
-      return;
-    }
-    const mat = this.hovered.material as THREE.MeshStandardMaterial | undefined;
-    const base = this.hovered.userData._baseEmissive as THREE.Color | undefined;
-    if (mat && "emissive" in mat && base) {
-      mat.emissive.copy(base);
-    }
+    this.silhouette.clear();
     this.hovered = null;
     document.body.style.cursor = "";
   }
