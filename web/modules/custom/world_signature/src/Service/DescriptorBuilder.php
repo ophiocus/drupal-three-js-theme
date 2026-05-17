@@ -24,6 +24,7 @@ final class DescriptorBuilder {
   /**
    * @return array{
    *   _id: string,
+   *   title: string,
    *   type: string,
    *   embeddingText: string,
    *   signature: array,
@@ -47,6 +48,11 @@ final class DescriptorBuilder {
 
     return [
       '_id' => $this->descriptorId($facts->entityType, $entity->id()),
+      // v0.4 information-lod: renderer needs the title for HUD
+      // labels (Activity B). Was buried inside embeddingText
+      // before; exposing it as its own field is cheap and removes
+      // the renderer's need to parse the concatenated text.
+      'title' => (string) ($entity->label() ?? ''),
       'type' => sprintf('%s:%s', $facts->entityType, $facts->bundle),
       'embeddingText' => $this->embeddingText($entity, $facts),
       'signature' => $signature->toArray(),

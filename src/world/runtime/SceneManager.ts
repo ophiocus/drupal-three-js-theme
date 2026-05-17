@@ -116,9 +116,10 @@ export class SceneManager {
   private cameraController: CameraController | null = null;
   private pointerNavigator: PointerNavigator | null = null;
   private ambientLight: THREE.AmbientLight | null = null;
-  /** Persistent screen-space HUD; populated with sector labels at mount. */
+  /** Persistent screen-space HUD; populated with sector + entity labels at mount. */
   private worldHud: WorldHud | null = null;
   private sectorLabels: HudLabel[] = [];
+  private entityLabels: HudLabel[] = [];
 
   constructor(private readonly canvas: HTMLCanvasElement) {
     this.renderer = new THREE.WebGLRenderer({
@@ -515,6 +516,73 @@ export class SceneManager {
         },
       });
       this.sectorLabels.push(label);
+    }
+
+    // v0.4 information-lod Activity B: per-entity title labels.
+    // Each entity gets a WorldHud label at its world position.
+    // visibleIf takes care of scope: visible only when the camera
+    // is below the overview threshold (region labels go away) AND
+    // above the detail threshold (a single entity card takes over)
+    // AND the camera's nearest sector matches this entity's
+    // primary sector. The "title spray" the user asked for.
+    //
+    // onClick fires CardController straight into FullView for
+    // "one click to node" (Activity C — same gesture from the
+    // label as from the entity body).
+    for (const l of this.entityLabels) l.remove();
+    this.entityLabels = [];
+    // Detail vantage height — anything below this means the user
+    // is at one entity, where individual titles are noise.
+    const detailHeightThreshold = this.snapshot.world.closeUpHeight + 4;
+    const sectorList = Object.values(this.snapshot.sectors);
+
+    /** Find the sector whose centroid is closest to the camera. */
+    const nearestSector = (camera: THREE.Camera): string | null => {
+      let best: string | null = null;
+      let bestSq = Infinity;
+      for (const s of sectorList) {
+        const dx = camera.position.x - s.centroid.x;
+        const dz = camera.position.z - s.centroid.z;
+        const sq = dx * dx + dz * dz;
+        if (sq < bestSq) {
+          bestSq = sq;
+          best = s.termId;
+        }
+      }
+      return best;
+    };
+
+    for (const entity of Object.values(snap.entities)) {
+      const title = entity.title;
+      if (!title) continue;
+      const primarySector = entity.taxonomyTerms[0];
+      if (!primarySector) continue;
+      const wp = entityPosition(entity, snap);
+      const label = this.worldHud.addLabel({
+        worldPos: new THREE.Vector3(
+          wp.x,
+          // Lift above the entity so the anchor projects to a
+          // point in the air above the tree/spirit/totem rather
+          // than overlapping its geometry. Article trees range
+          // 8-35 units; profiles 2.5-5.5; events ~6. Pick a
+          // generous mid-value; per-bundle tuning is a v0.4.x
+          // refinement.
+          12,
+          wp.z,
+        ),
+        text: title,
+        className: "world-hud__entity-label",
+        visibleIf: (camera) => {
+          const y = camera.position.y;
+          if (y > overviewHeightThreshold) return false;
+          if (y < detailHeightThreshold) return false;
+          return nearestSector(camera) === primarySector;
+        },
+        onClick: () => {
+          this.cardController?.openFullView(entity.id);
+        },
+      });
+      this.entityLabels.push(label);
     }
 
     console.info(

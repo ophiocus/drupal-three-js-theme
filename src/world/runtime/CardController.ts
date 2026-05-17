@@ -187,6 +187,32 @@ export class CardController {
     }
   }
 
+  /**
+   * Open an entity directly in FullView, skipping the Bloomed
+   * intermediate. The v0.4 information-lod "one click to node"
+   * gesture: clicking an entity body or a WorldHud title label
+   * jumps straight to the full DOM-overlay content surface,
+   * pausing the engine. Any previously-bloomed/FullView card
+   * collapses first (single-bloom invariant preserved).
+   *
+   * The Bloomed state remains reachable via the trigger-pad ramp
+   * (pad click → Bloomed → pad click → FullView) and via URL hash
+   * (#card=<id> without &v=full). This method is the express path
+   * for users who want the document, not the preview.
+   */
+  openFullView(entityId: string): void {
+    if (this.fullViewRecord?.entityId === entityId) return; // Already there.
+    const record = this.cards.find((c) => c.entityId === entityId);
+    if (!record) return;
+    // Collapse any other card holding state before opening.
+    if (this.fullViewRecord && this.fullViewRecord !== record) {
+      this.transitionTo(this.fullViewRecord, "hidden");
+    } else if (this.bloomedRecord && this.bloomedRecord !== record) {
+      this.transitionTo(this.bloomedRecord, "hidden");
+    }
+    this.transitionTo(record, "fullView");
+  }
+
   // ─── State machine ───────────────────────────────────────────────────────
 
   private transitionTo(record: CardRecord, to: CardState): void {

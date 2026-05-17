@@ -147,9 +147,17 @@ export class PointerNavigator {
         return;
       }
       if (tag.kind === "entity_body") {
-        this.options.cameraController.navigateTo(
-          this.uriForEntity(tag.entityId),
-        );
+        // v0.4 information-lod Activity C: "one click to node."
+        // Clicking the entity body (tree / spirit / totem) opens
+        // the FullView modal directly, no camera fly, no Bloomed
+        // intermediate. The engine pauses while the modal is up;
+        // closing returns the user to wherever they were.
+        //
+        // The Bloomed ramp is still reachable: click the trigger
+        // pad next to the entity for the gradual bloom-then-full
+        // progression. Power users get the express; explorers get
+        // the preview.
+        this.options.cardController.openFullView(tag.entityId);
         return;
       }
       if (tag.kind === "sector_pad") {

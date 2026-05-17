@@ -55,6 +55,10 @@ export interface Entity {
   // Top-level taxonomy term ids; first is the "primary" sector.
   taxonomyTerms: string[];
   signature: Signature;
+  // Display title. Added v0.4 for HUD labels (information LOD
+  // Activity B). Empty for legacy snapshots before the
+  // DescriptorBuilder exposed it as a top-level field.
+  title?: string;
 }
 
 export interface WorldConstants {
