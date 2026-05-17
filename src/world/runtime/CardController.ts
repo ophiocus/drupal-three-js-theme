@@ -79,7 +79,14 @@ interface ControllerOptions {
   fullViewViewMode?: string;
 }
 
-const FULL_VIEW_MODE_DEFAULT = "full";
+// View-mode the FullView modal fetches. Was "full"; switched to
+// "default" because Drupal's node.html.twig suppresses the <h2
+// class="node__title"> in "view-mode-full" (it assumes the
+// canonical /node/<id> page template renders the title in its own
+// <h1>). "default" includes the title in-content, which is what
+// the FullView modal needs. Comments + login prompts that come
+// with /default are hidden via CSS in CardOverlay.
+const FULL_VIEW_MODE_DEFAULT = "default";
 
 export class CardController {
   private readonly cards: CardRecord[] = [];
@@ -440,6 +447,42 @@ class CardOverlay {
       "line-height:1.55",
       "position:relative",
     ].join(";");
+
+    // Hide Drupal chrome the FullView modal doesn't need. The
+    // /default view-mode renders the article body + title cleanly,
+    // but also includes:
+    //   - <div id="comments">…</div>             — Comments section
+    //   - <ul class="links inline">…</ul>        — "Log in to post
+    //                                              comments" prompt
+    //   - <div class="node__meta">…</div>        — author byline
+    //                                              ("By admin, 16 May")
+    // We could hide these via per-bundle view-display config, but
+    // article's view-display is Standard-shipped (overriding it
+    // means restating every field). A scoped style block is the
+    // cheap unobtrusive fix; the renderer decides what to surface
+    // independent of Drupal's render decisions.
+    const chromeStyle = document.createElement("style");
+    chromeStyle.textContent = `
+      .world-card-overlay__content #comments,
+      .world-card-overlay__content .comments,
+      .world-card-overlay__content ul.links.inline,
+      .world-card-overlay__content .node__meta {
+        display: none;
+      }
+      /* Lift the title — without Drupal's page chrome around it,
+         the inline link styling reads as junk; strip the underline
+         and bump the size. */
+      .world-card-overlay__content .node__title {
+        font-size: 28px;
+        line-height: 1.2;
+        margin: 0 0 24px;
+      }
+      .world-card-overlay__content .node__title a {
+        color: inherit;
+        text-decoration: none;
+      }
+    `;
+    this.article.appendChild(chromeStyle);
 
     const closeBtn = document.createElement("button");
     closeBtn.type = "button";
