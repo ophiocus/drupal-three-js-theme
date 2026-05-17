@@ -79,14 +79,22 @@ interface ControllerOptions {
   fullViewViewMode?: string;
 }
 
-// View-mode the FullView modal fetches. Was "full"; switched to
-// "default" because Drupal's node.html.twig suppresses the <h2
-// class="node__title"> in "view-mode-full" (it assumes the
-// canonical /node/<id> page template renders the title in its own
-// <h1>). "default" includes the title in-content, which is what
-// the FullView modal needs. Comments + login prompts that come
-// with /default are hidden via CSS in CardOverlay.
-const FULL_VIEW_MODE_DEFAULT = "default";
+// View-mode the FullView modal fetches.
+//
+// Lineage:
+//   "full"    → suppressed <h2 class='node__title'> (Drupal expects
+//               the canonical page template to render the title).
+//               Modal showed no title.
+//   "default" → restored the title, but Standard's article default
+//               view-display includes comments + login prompts the
+//               modal doesn't need; required CSS chrome-hiding.
+//   "card"    → dedicated view-mode shipped by world_signature,
+//               with per-bundle view-displays scoped to the
+//               modal's needs (body + title + image where present,
+//               no comments). Architecturally cleaner: Drupal
+//               renders only what the modal surfaces; no client-
+//               side chrome-hiding needed.
+const FULL_VIEW_MODE_DEFAULT = "card";
 
 export class CardController {
   private readonly cards: CardRecord[] = [];
@@ -448,30 +456,27 @@ class CardOverlay {
       "position:relative",
     ].join(";");
 
-    // Hide Drupal chrome the FullView modal doesn't need. The
-    // /default view-mode renders the article body + title cleanly,
-    // but also includes:
-    //   - <div id="comments">…</div>             — Comments section
-    //   - <ul class="links inline">…</ul>        — "Log in to post
-    //                                              comments" prompt
-    //   - <div class="node__meta">…</div>        — author byline
-    //                                              ("By admin, 16 May")
-    // We could hide these via per-bundle view-display config, but
-    // article's view-display is Standard-shipped (overriding it
-    // means restating every field). A scoped style block is the
-    // cheap unobtrusive fix; the renderer decides what to surface
-    // independent of Drupal's render decisions.
-    const chromeStyle = document.createElement("style");
-    chromeStyle.textContent = `
-      .world-card-overlay__content #comments,
-      .world-card-overlay__content .comments,
-      .world-card-overlay__content ul.links.inline,
+    // The `card` view-mode (shipped by world_signature in
+    // config/install/core.entity_view_mode.node.card.yml + matching
+    // per-bundle view-displays) renders only the fields the modal
+    // surfaces — no comments, no login prompts. View-display layer
+    // is the proper home for those decisions; client-side CSS
+    // chrome-hiding was a v0.4-fix-of-a-fix that's now obsolete.
+    //
+    // Two CSS bits remain in this style block: the title
+    // (.node__title) needs lift/scale because Drupal's standard
+    // node template renders it as an <h2> with the link decoration
+    // of a page-context link — without a page wrapper around it,
+    // the underline + medium font reads as a fragment. The byline
+    // (.node__meta) gets hidden because content-type
+    // display_submitted is template-level, not view-display-level;
+    // article in Standard install has display_submitted=true, so
+    // its byline is in every render unless we hide it here.
+    const overlayStyle = document.createElement("style");
+    overlayStyle.textContent = `
       .world-card-overlay__content .node__meta {
         display: none;
       }
-      /* Lift the title — without Drupal's page chrome around it,
-         the inline link styling reads as junk; strip the underline
-         and bump the size. */
       .world-card-overlay__content .node__title {
         font-size: 28px;
         line-height: 1.2;
@@ -482,7 +487,7 @@ class CardOverlay {
         text-decoration: none;
       }
     `;
-    this.article.appendChild(chromeStyle);
+    this.article.appendChild(overlayStyle);
 
     const closeBtn = document.createElement("button");
     closeBtn.type = "button";

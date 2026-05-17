@@ -1,0 +1,22 @@
+# Card view-mode for nodes.
+#
+# A dedicated view-mode the FullView modal fetches. Functionally
+# a clone of `default` minus the bits the modal doesn't need
+# (comments, login prompts). Per-bundle view-displays for this
+# mode live alongside this file.
+#
+# Why a custom view-mode rather than overriding default: Drupal's
+# `default` view-mode is used in many places (admin previews, RSS
+# feeds, embedded references). Stripping comments there would leak
+# the FullView modal's decisions into unrelated contexts. The
+# `card` view-mode is scoped to the renderer: clone what default
+# does, remove what the modal doesn't surface.
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+id: node.card
+label: 'Card'
+targetEntityType: node
+cache: true
