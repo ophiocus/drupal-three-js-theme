@@ -125,16 +125,6 @@ export class CardController {
     const pad = smartObject.findComponent(TriggerPadComponent)?.pad ?? null;
     const surface = smartObject.findComponent(HtmlSurfaceComponent)?.surface ?? null;
 
-    // Diagnostic: log what attached components actually look like.
-    // If pad/surface are null but components.length > 0, instanceof
-    // is failing across module boundaries (Three / chunk dedup).
-    const componentSummary = smartObject.components
-      .map((c) => c.constructor.name)
-      .join(", ");
-    console.info(
-      `[card] register(${smartObject.entityId}): components=[${componentSummary}], pad=${!!pad}, surface=${!!surface}`,
-    );
-
     if (!pad && !surface) {
       console.warn(
         `[card] register(${smartObject.entityId}): no pad AND no surface; entity will not respond to clicks`,
@@ -226,20 +216,12 @@ export class CardController {
    * for users who want the document, not the preview.
    */
   openFullView(entityId: string): void {
-    console.info(
-      `[card] openFullView(${entityId}); registered cards: ${this.cards.length}; ` +
-      `ids: ${this.cards.map((c) => c.entityId).join(", ")}`,
-    );
-    if (this.fullViewRecord?.entityId === entityId) {
-      console.info(`[card] openFullView: already in FullView for ${entityId}`);
-      return;
-    }
+    if (this.fullViewRecord?.entityId === entityId) return; // Already there.
     const record = this.cards.find((c) => c.entityId === entityId);
     if (!record) {
       console.warn(`[card] openFullView: no record for ${entityId}`);
       return;
     }
-    console.info(`[card] openFullView: found record, current state=${record.state}`);
     if (this.fullViewRecord && this.fullViewRecord !== record) {
       this.transitionTo(this.fullViewRecord, "hidden");
     } else if (this.bloomedRecord && this.bloomedRecord !== record) {

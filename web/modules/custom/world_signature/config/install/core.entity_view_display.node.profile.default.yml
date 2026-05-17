@@ -1,0 +1,43 @@
+# Default view-display for the profile bundle.
+#
+# Without this, profile nodes render as bare wrappers (the body field
+# never makes it to the rendered output). Symptom: card endpoint
+# returns ~480 bytes — an empty <article> with metadata but no
+# content — and the FullView modal opens blank.
+#
+# Standard install profile only ships displays for article + page;
+# the bundles world_signature owns (profile, event) need their own.
+# Renders body. Hides world signature (catalog metadata, not for users).
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.node.profile.body
+    - field.field.node.profile.field_world_sector
+    - field.field.node.profile.field_world_signature
+    - node.type.profile
+  module:
+    - text
+    - user
+id: node.profile.default
+targetEntityType: node
+bundle: profile
+mode: default
+content:
+  body:
+    type: text_default
+    label: hidden
+    settings: {  }
+    third_party_settings: {  }
+    weight: 0
+    region: content
+  links:
+    settings: {  }
+    third_party_settings: {  }
+    weight: 100
+    region: content
+hidden:
+  field_world_sector: true
+  field_world_signature: true
+  langcode: true
+  search_api_excerpt: true
