@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Drupal\world_signature\Service;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 
 /**
  * Assembles a corpus snapshot the renderer consumes.
@@ -51,6 +52,7 @@ final class SnapshotPublisher {
   public function __construct(
     private readonly WorldSearchClient $client,
     private readonly ConfigFactoryInterface $configFactory,
+    private readonly EntityTypeManagerInterface $entityTypeManager,
   ) {}
 
   /**
@@ -234,9 +236,21 @@ final class SnapshotPublisher {
   }
 
   private function humaniseTermId(string $id): string {
-    // Numeric IDs (Drupal term tids) get a fallback label; future
-    // snapshots can join the term entity to fetch real names.
+    // Numeric IDs (Drupal term tids): load the term and use its
+    // real name ("Antigua, Guatemala", "Cauca, Colombia", etc.).
+    // Resurrected from the v0.1.x placeholder "Sector $id" fallback
+    // — surfaced as visible-but-wrong labels by the v0.4 research
+    // WorldHud prototype on master's research/information-lod
+    // branch.
     if (ctype_digit($id)) {
+      $term = $this->entityTypeManager
+        ->getStorage('taxonomy_term')
+        ->load((int) $id);
+      if ($term) {
+        return (string) $term->label();
+      }
+      // Term gone (deleted between publish + snapshot fetch) —
+      // fall through to the legacy placeholder rather than crash.
       return 'Sector ' . $id;
     }
     return ucwords(str_replace(['-', '_'], ' ', $id));

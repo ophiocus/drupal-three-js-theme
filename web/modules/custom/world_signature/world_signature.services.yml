@@ -53,6 +53,7 @@ services:
     arguments:
       - '@world_signature.world_search_client'
       - '@config.factory'
+      - '@entity_type.manager'
 
   # World manifesto — read-only API over the registry of item
   # types and component types. See docs/MANIFESTO.md.

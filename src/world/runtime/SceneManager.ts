@@ -25,6 +25,7 @@ import { LoaderOverlay } from "./LoaderOverlay.js";
 import { FLOOR_LAYERS } from "./floor-layers.js";
 import { sectorPadDecal } from "./sector-pad-texture.js";
 import { vantage } from "../vantage.js";
+import { WorldHud, type HudLabel } from "./hud/WorldHud.js";
 
 interface BootOptions {
   snapshotUrl: string;
@@ -115,6 +116,9 @@ export class SceneManager {
   private cameraController: CameraController | null = null;
   private pointerNavigator: PointerNavigator | null = null;
   private ambientLight: THREE.AmbientLight | null = null;
+  /** Persistent screen-space HUD; populated with sector labels at mount. */
+  private worldHud: WorldHud | null = null;
+  private sectorLabels: HudLabel[] = [];
 
   constructor(private readonly canvas: HTMLCanvasElement) {
     this.renderer = new THREE.WebGLRenderer({
@@ -474,6 +478,45 @@ export class SceneManager {
       this.scene.add(pad);
     }
 
+    // v0.4 research/information-lod: WorldHud + region labels.
+    // Five DOM labels at sector centroids, visible only when the
+    // camera is high enough to read as "overview" (Activity A from
+    // docs/v0.4/research/INFORMATION_LOD.md). Clicking a label
+    // flies to the sector vantage — gives visitors a way to choose
+    // a region without guessing which pad is which.
+    if (!this.worldHud) {
+      this.worldHud = new WorldHud({ canvas: this.canvas });
+    }
+    // Clear any prior labels (in case of re-mount).
+    for (const l of this.sectorLabels) l.remove();
+    this.sectorLabels = [];
+    const overviewHeightThreshold = this.snapshot.world.overviewHeight * 0.45;
+    for (const sector of Object.values(this.snapshot.sectors)) {
+      const label = this.worldHud.addLabel({
+        worldPos: new THREE.Vector3(
+          sector.centroid.x,
+          // Lift the label slightly above the sector pad so the
+          // anchor projects to a point readable above the ground,
+          // not buried in the pad geometry.
+          FLOOR_LAYERS.sector_pad + 4,
+          sector.centroid.z,
+        ),
+        text: sector.displayName,
+        className: "world-hud__sector-label",
+        // Visible only at overview-ish altitude. Below the threshold
+        // the labels would clutter the closer view; the sector
+        // titles list (Activity B, not yet implemented) takes over
+        // at that scope.
+        visibleIf: (camera) => camera.position.y > overviewHeightThreshold,
+        onClick: () => {
+          this.cameraController?.setTarget(
+            vantage(`/sector/${sector.termId}`, this.snapshot!),
+          );
+        },
+      });
+      this.sectorLabels.push(label);
+    }
+
     console.info(
       `[world] canvas: ${this.canvas.clientWidth}x${this.canvas.clientHeight}, ` +
         `camera at (${this.camera.position.x.toFixed(0)},${this.camera.position.y.toFixed(0)},${this.camera.position.z.toFixed(0)}), ` +
@@ -562,6 +605,10 @@ export class SceneManager {
         const elapsed = time / 1000;
         for (const fn of this.atmosphereUpdaters) fn(elapsed, dt);
       }
+      // v0.4 research/information-lod: WorldHud label projection.
+      // Cheap (O(labels) per frame). Runs AFTER camera update so
+      // the projected positions reflect the camera's current pose.
+      this.worldHud?.update(this.camera);
       this.renderer.render(this.scene, this.camera);
     });
   }
