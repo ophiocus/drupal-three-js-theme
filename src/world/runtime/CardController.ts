@@ -125,16 +125,16 @@ export class CardController {
     const pad = smartObject.findComponent(TriggerPadComponent)?.pad ?? null;
     const surface = smartObject.findComponent(HtmlSurfaceComponent)?.surface ?? null;
 
-    // v0.4: surface is now optional. The original v0.1.2 logic
-    // required both pad AND surface; if HtmlSurfaceComponent failed
-    // to attach (e.g. the in-world card-as-texture rasterisation
-    // threw), the entity was silently skipped from CardController.
-    // Side effect: openFullView() found no record and clicks did
-    // nothing. Now we register regardless of surface presence —
-    // FullView fetches its own HTML via fetchCardHtml(), it doesn't
-    // need the in-world surface to work. Bloomed state degrades
-    // gracefully (the in-world preview just doesn't appear), but
-    // the express path through openFullView is preserved.
+    // Diagnostic: log what attached components actually look like.
+    // If pad/surface are null but components.length > 0, instanceof
+    // is failing across module boundaries (Three / chunk dedup).
+    const componentSummary = smartObject.components
+      .map((c) => c.constructor.name)
+      .join(", ");
+    console.info(
+      `[card] register(${smartObject.entityId}): components=[${componentSummary}], pad=${!!pad}, surface=${!!surface}`,
+    );
+
     if (!pad && !surface) {
       console.warn(
         `[card] register(${smartObject.entityId}): no pad AND no surface; entity will not respond to clicks`,
