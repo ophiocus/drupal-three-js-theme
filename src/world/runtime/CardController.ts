@@ -46,13 +46,17 @@ interface CardRecord {
   /** Numeric/string id used to build the FullView card endpoint URL. */
   numericId: string;
   entityType: string;
-  /** Small disc on the ground; the click target. */
-  pad: THREE.Mesh;
-  /** Default-view-mode surface (the "Bloomed" preview). */
-  surface: HtmlSurface;
-  /** Resting position; bloom adds a delta from here. */
-  homePosition: THREE.Vector3;
-  homeScale: THREE.Vector3;
+  /** Small disc on the ground; the click target. Optional — entity-body
+   *  clicks still register through openFullView even if no pad. */
+  pad: THREE.Mesh | null;
+  /** Default-view-mode surface (the "Bloomed" preview). Optional —
+   *  Bloomed state skips visually when absent; FullView still works
+   *  because it fetches its own card HTML via fetchCardHtml. */
+  surface: HtmlSurface | null;
+  /** Resting position; bloom adds a delta from here. Only meaningful
+   *  when surface is present. */
+  homePosition: THREE.Vector3 | null;
+  homeScale: THREE.Vector3 | null;
   state: CardState;
 }
 
@@ -118,9 +122,30 @@ export class CardController {
    * card lifecycle).
    */
   register(smartObject: SmartObject): void {
-    const pad = smartObject.findComponent(TriggerPadComponent)?.pad;
-    const surface = smartObject.findComponent(HtmlSurfaceComponent)?.surface;
-    if (!pad || !surface) return;
+    const pad = smartObject.findComponent(TriggerPadComponent)?.pad ?? null;
+    const surface = smartObject.findComponent(HtmlSurfaceComponent)?.surface ?? null;
+
+    // v0.4: surface is now optional. The original v0.1.2 logic
+    // required both pad AND surface; if HtmlSurfaceComponent failed
+    // to attach (e.g. the in-world card-as-texture rasterisation
+    // threw), the entity was silently skipped from CardController.
+    // Side effect: openFullView() found no record and clicks did
+    // nothing. Now we register regardless of surface presence —
+    // FullView fetches its own HTML via fetchCardHtml(), it doesn't
+    // need the in-world surface to work. Bloomed state degrades
+    // gracefully (the in-world preview just doesn't appear), but
+    // the express path through openFullView is preserved.
+    if (!pad && !surface) {
+      console.warn(
+        `[card] register(${smartObject.entityId}): no pad AND no surface; entity will not respond to clicks`,
+      );
+      return;
+    }
+    if (!surface) {
+      console.warn(
+        `[card] register(${smartObject.entityId}): surface missing; FullView works, Bloomed is unavailable`,
+      );
+    }
 
     // Parse "node-12" → ("node", "12") for the FullView URL.
     const dashIdx = smartObject.entityId.indexOf("-");
@@ -134,8 +159,8 @@ export class CardController {
       numericId,
       pad,
       surface,
-      homePosition: surface.mesh.position.clone(),
-      homeScale: surface.mesh.scale.clone(),
+      homePosition: surface?.mesh.position.clone() ?? null,
+      homeScale: surface?.mesh.scale.clone() ?? null,
       state: "hidden",
     };
     this.cards.push(record);
@@ -246,6 +271,11 @@ export class CardController {
   }
 
   private applyBloom(record: CardRecord): void {
+    // Surface-less records can't bloom visually; bookkeeping only.
+    if (!record.surface || !record.homePosition || !record.homeScale) {
+      this.bloomedRecord = record;
+      return;
+    }
     const camDir = new THREE.Vector3();
     this.options.camera.getWorldDirection(camDir);
     const offset = camDir.clone().multiplyScalar(-15);
@@ -259,9 +289,11 @@ export class CardController {
   }
 
   private applyHidden(record: CardRecord): void {
-    record.surface.mesh.position.copy(record.homePosition);
-    record.surface.mesh.scale.copy(record.homeScale);
-    record.surface.mesh.lookAt(0, record.homePosition.y, 0);
+    if (record.surface && record.homePosition && record.homeScale) {
+      record.surface.mesh.position.copy(record.homePosition);
+      record.surface.mesh.scale.copy(record.homeScale);
+      record.surface.mesh.lookAt(0, record.homePosition.y, 0);
+    }
     if (this.bloomedRecord === record) {
       this.bloomedRecord = null;
       this.options.onBloomedMesh?.(null);
