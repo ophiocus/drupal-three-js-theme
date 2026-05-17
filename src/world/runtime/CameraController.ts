@@ -212,6 +212,28 @@ export class CameraController {
   }
 
   /**
+   * Mark "the user is alive" without claiming an interaction.
+   * Resets the idle-drift timer so any in-flight sinusoidal
+   * perturbation winds down and a fresh countdown starts toward
+   * IDLE_THRESHOLD_SECONDS.
+   *
+   * Called from PointerNavigator on every pointermove event.
+   * Unlike setUserInteracting(true), this DOESN'T suppress
+   * settle-detection — the URL still gets written when the
+   * camera stops. The user moving the mouse over the canvas
+   * isn't a navigation gesture, just a "still here" signal.
+   *
+   * Stopping in-flight drift: idleTimer = 0 falls below the
+   * IDLE_THRESHOLD gate at line ~124; the perturbation is no
+   * longer applied; this.targetPos returns to baseTargetPos;
+   * existing damping converges the camera back smoothly. No
+   * teleport, no jolt.
+   */
+  resetIdle(): void {
+    this.idleTimer = 0;
+  }
+
+  /**
    * Apply a pointer drag delta to the camera. Polar-constrained
    * orbit around the current vantage's lookAt point (Q2=b).
    *

@@ -74,6 +74,15 @@ export class PointerNavigator {
   };
 
   private onPointerMove = (event: PointerEvent): void => {
+    // Any mouse movement counts as "user is alive" — reset the
+    // idle-drift timer so the camera's sinusoidal idle motion
+    // doesn't kick in (or, if it has, winds back down). This is
+    // distinct from setUserInteracting(true) — that one is for
+    // active drag-orbit which also suppresses settle detection.
+    // Plain hover-over-the-canvas shouldn't change navigation
+    // semantics, just reset the "is the user idle?" countdown.
+    this.options.cameraController.resetIdle();
+
     // If a pointerdown is in progress, watch for the drag threshold.
     if (this.downAt && !this.dragging) {
       const dx = event.clientX - this.downAt.x;
