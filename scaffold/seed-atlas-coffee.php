@@ -193,13 +193,24 @@ $entries = [
 
 echo "[seed-atlas-coffee] phase 1: clean previous fixtures\n";
 
-// Delete every existing node (the trout, plus any prior atlas_coffee
-// runs). The fixture is meant to be the only content in the world.
-$existingNids = \Drupal::entityQuery('node')->accessCheck(FALSE)->execute();
+// Delete prior atlas_coffee fixture content — but ONLY the bundles
+// this seeder owns (article, profile, event). Catalog content
+// (pack, asset) is NOT world content and stays put.
+//
+// Scoping this matters: in v0.3.x the asset catalog seeder ships
+// pack + asset nodes that live alongside the world content. An
+// unscoped delete here would silently nuke them on every atlas
+// re-seed, which is how we noticed this bug (the world rendered
+// empty after a fresh install + both seeders + atlas re-run).
+$ownedBundles = ['article', 'profile', 'event'];
+$existingNids = \Drupal::entityQuery('node')
+  ->accessCheck(FALSE)
+  ->condition('type', $ownedBundles, 'IN')
+  ->execute();
 if ($existingNids) {
   $existingNodes = Node::loadMultiple($existingNids);
   foreach ($existingNodes as $n) {
-    echo sprintf("  - deleting node %d: %s\n", $n->id(), $n->label());
+    echo sprintf("  - deleting %s/%d: %s\n", $n->bundle(), $n->id(), $n->label());
     $n->delete();
   }
 }

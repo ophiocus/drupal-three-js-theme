@@ -72,8 +72,8 @@ final class WorldCommands extends DrushCommands {
    */
   #[Command(name: 'world:publish', aliases: ['wp', 'wpub'])]
   public function publish(): int {
-    $entityTypes = $this->collectParticipatingEntityTypes();
-    if ($entityTypes === []) {
+    $participating = $this->collectParticipatingBundles();
+    if ($participating === []) {
       $this->logger()->warning(
         'No metaphor plugins registered. Nothing to publish.',
       );
@@ -83,15 +83,27 @@ final class WorldCommands extends DrushCommands {
     $totalProcessed = 0;
     $totalErrors = 0;
 
-    foreach ($entityTypes as $entityType) {
+    foreach ($participating as $entityType => $bundles) {
       $storage = $this->entityTypeManager->getStorage($entityType);
-      $ids = $storage->getQuery()
-        ->accessCheck(FALSE)
-        ->execute();
+      $query = $storage->getQuery()->accessCheck(FALSE);
+
+      // Scope to bundles that have a Metaphor plugin. Without this,
+      // publish() walked every node (including pack/asset catalog
+      // content from v0.3.x) and reported "No metaphor for node:asset"
+      // as an error 32 times per run. Catalog content is intentionally
+      // not part of the world; the bundle filter encodes that.
+      $bundleKey = $this->entityTypeManager
+        ->getDefinition($entityType)
+        ->getKey('bundle');
+      if ($bundleKey) {
+        $query->condition($bundleKey, $bundles, 'IN');
+      }
+      $ids = $query->execute();
 
       $this->logger()->notice(sprintf(
-        'Publishing %s: %d entities.',
+        'Publishing %s (%s): %d entities.',
         $entityType,
+        implode(',', $bundles),
         count($ids),
       ));
 
@@ -260,13 +272,26 @@ final class WorldCommands extends DrushCommands {
    * @return array<int, string>
    */
   private function collectParticipatingEntityTypes(): array {
-    $types = [];
+    return array_keys($this->collectParticipatingBundles());
+  }
+
+  /**
+   * Map of entity_type → list of bundles that have a Metaphor plugin
+   * registered. Drives the publish() query so we only iterate
+   * entities the cypher actually recognises.
+   *
+   * @return array<string, string[]>
+   */
+  private function collectParticipatingBundles(): array {
+    $map = [];
     foreach ($this->metaphorManager->getDefinitions() as $def) {
-      if (!empty($def['entity_type'])) {
-        $types[$def['entity_type']] = TRUE;
+      $type = $def['entity_type'] ?? NULL;
+      $bundle = $def['bundle'] ?? NULL;
+      if ($type && $bundle) {
+        $map[$type][$bundle] = TRUE;
       }
     }
-    return array_keys($types);
+    return array_map(static fn(array $bundles) => array_keys($bundles), $map);
   }
 
   private function line(string $line): void {
