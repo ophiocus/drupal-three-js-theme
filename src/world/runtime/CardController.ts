@@ -201,10 +201,20 @@ export class CardController {
    * for users who want the document, not the preview.
    */
   openFullView(entityId: string): void {
-    if (this.fullViewRecord?.entityId === entityId) return; // Already there.
+    console.info(
+      `[card] openFullView(${entityId}); registered cards: ${this.cards.length}; ` +
+      `ids: ${this.cards.map((c) => c.entityId).join(", ")}`,
+    );
+    if (this.fullViewRecord?.entityId === entityId) {
+      console.info(`[card] openFullView: already in FullView for ${entityId}`);
+      return;
+    }
     const record = this.cards.find((c) => c.entityId === entityId);
-    if (!record) return;
-    // Collapse any other card holding state before opening.
+    if (!record) {
+      console.warn(`[card] openFullView: no record for ${entityId}`);
+      return;
+    }
+    console.info(`[card] openFullView: found record, current state=${record.state}`);
     if (this.fullViewRecord && this.fullViewRecord !== record) {
       this.transitionTo(this.fullViewRecord, "hidden");
     } else if (this.bloomedRecord && this.bloomedRecord !== record) {

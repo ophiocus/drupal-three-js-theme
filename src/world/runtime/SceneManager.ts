@@ -235,6 +235,20 @@ export class SceneManager {
         if (window.location.pathname !== v.uri) {
           history.replaceState(null, "", v.uri);
         }
+        // v0.4 information-lod: detail vantages auto-open FullView.
+        // When the camera settles at /node/<id>, the user is at a
+        // node URL and expects to see the article. Previously they
+        // only saw the entity from a detail vantage with no text;
+        // the FullView modal had to be triggered separately. This
+        // closes that gap.
+        if (v.kind === "detail" && v.uri.startsWith("/")) {
+          // /node/123 → "node-123" — the descriptorId shape.
+          const parts = v.uri.split("/").filter(Boolean);
+          if (parts.length === 2) {
+            const entityId = `${parts[0]}-${parts[1]}`;
+            this.cardController?.openFullView(entityId);
+          }
+        }
       },
     });
     this.cardController = new CardController({
