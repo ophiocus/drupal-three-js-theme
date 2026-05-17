@@ -36,6 +36,7 @@ interface BootOptions {
 interface DescriptorShape {
   _id: string;
   type: string;
+  title?: string;
   sector?: string;
   sectorTermIds?: string[];
   signature?: unknown;
@@ -704,6 +705,12 @@ export class SceneManager {
         bundle: (d.type ?? "node:unknown").split(":")[1] ?? "unknown",
         taxonomyTerms: d.sectorTermIds ?? (d.sector ? [d.sector] : []),
         signature: this.fallbackSignature(),
+        // v0.4 information-lod: WorldHud entity labels need the
+        // title. DescriptorBuilder now writes it as a top-level
+        // field; adapt it here. Missing on legacy descriptors
+        // (pre-v0.4 publish runs) — falls through cleanly because
+        // the label loop short-circuits on empty.
+        title: d.title ?? "",
       };
     }
     return {
