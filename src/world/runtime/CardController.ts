@@ -430,34 +430,55 @@ class CardOverlay {
     this.root.style.cssText = [
       "position:fixed",
       "inset:0",
-      "background:rgba(20,30,40,0.78)",
-      "backdrop-filter:blur(8px)",
-      "-webkit-backdrop-filter:blur(8px)",
+      // v0.4: dial back the backdrop so the right-half world view
+      // (where the entity has been recentered via the camera's
+      // setViewOffset) reads through. Was rgba(20,30,40,0.78) with
+      // blur 8px — fully obscured the world. Now: only the
+      // left-half-ish region carries the heavy backdrop via the
+      // article container's own background.
+      "background:transparent",
       "display:none",
       "align-items:flex-start",
-      "justify-content:center",
+      // v0.4: modal anchored to the left of the canvas; entity
+      // visible in the right half through the SceneManager's
+      // view-offset shift.
+      "justify-content:flex-start",
       "z-index:1000",
       "overflow:auto",
       "padding:48px 24px",
+      // Pointer events only on the modal article itself; allow
+      // mouse-through to the canvas (right half) so users can drag
+      // the camera while reading.
+      "pointer-events:none",
     ].join(";");
 
     this.article = document.createElement("div");
     this.article.className = "world-card-overlay__article";
     this.article.style.cssText = [
-      "background:#fff",
+      // Slightly translucent so the world behind the article shows
+      // a hint through — feels less like a hard takeover.
+      "background:rgba(252,250,246,0.97)",
+      "backdrop-filter:blur(12px)",
+      "-webkit-backdrop-filter:blur(12px)",
       "color:#222",
-      "max-width:760px",
+      // v0.4 layout: cap at the smaller of 760px or 48vw so the
+      // article sits in the left half and the right half stays
+      // a navigable world view.
+      "max-width:min(760px,48vw)",
       "width:100%",
       "padding:48px 56px",
       "border-radius:8px",
       "box-shadow:0 24px 48px rgba(0,0,0,0.32)",
-      // v0.4 typography pass — Georgia for body, Iowan Old Style /
-      // Hoefler Text / Georgia fallback ladder. The modal reads as
-      // an article, not a UI panel.
+      // v0.4 typography pass — Iowan Old Style / Hoefler Text /
+      // Georgia serif ladder. The modal reads as an article, not
+      // a UI panel.
       "font-family:'Iowan Old Style','Hoefler Text','Georgia',serif",
       "font-size:17px",
       "line-height:1.65",
       "position:relative",
+      // Re-enable pointer events ON the article (the root container
+      // is pointer-events:none for canvas mouse-through).
+      "pointer-events:auto",
     ].join(";");
 
     // The `card` view-mode (shipped by world_signature in

@@ -303,7 +303,49 @@ export class SceneManager {
   setMode(mode: Mode): void {
     if (mode === this.mode) return;
     this.mode = mode;
+    // v0.4: when entering reading mode, shift the camera's
+    // effective projection right so the entity stays visible in
+    // the right half of the canvas while the modal occupies the
+    // left half. setViewOffset (Three's tiled-rendering mechanism)
+    // is the right shape — it shifts the projection without
+    // moving the camera or changing the established vantage.
+    // Cleared on exit so the world recenters when the user closes
+    // the modal and the loop resumes.
+    if (mode === "reading") {
+      this.applyReadingViewOffset();
+    } else {
+      this.camera.clearViewOffset();
+    }
     this.refreshLoopState();
+    // Reading mode pauses the loop, but we want the LAST frame
+    // rendered to include the new view-offset (otherwise the
+    // canvas stays at the pre-modal framing until exit). Force one
+    // render after mode change.
+    if (mode === "reading") {
+      this.renderer.render(this.scene, this.camera);
+    }
+  }
+
+  /**
+   * Configure the camera's view offset so that the visible right
+   * half of the canvas frames the world the way a centered camera
+   * normally would. Used when entering reading mode — the modal
+   * occupies the left half of the canvas, so the entity should
+   * appear in the right half.
+   *
+   * Math: setViewOffset(fullWidth, fullHeight, x, y, width, height)
+   * tells the camera "the full image is fullWidth × fullHeight;
+   * render the rect (x, y, width, height) of it." If full=2W and
+   * we render (0, 0, W, H), we're getting the LEFT half of a
+   * doubled-horizontal-FOV view. Objects that were at center
+   * (column W of the doubled view) end up at the RIGHT edge of
+   * the rendered output — exactly what we want when the modal
+   * covers the left half.
+   */
+  private applyReadingViewOffset(): void {
+    const w = this.canvas.clientWidth || this.renderer.domElement.width;
+    const h = this.canvas.clientHeight || this.renderer.domElement.height;
+    this.camera.setViewOffset(w * 2, h, 0, 0, w, h);
   }
 
   /** Whether the animation loop is currently running. Mirrors the
@@ -741,6 +783,13 @@ export class SceneManager {
     if (this.camera) {
       this.camera.aspect = w / h;
       this.camera.updateProjectionMatrix();
+      // Re-apply the reading-mode view offset against the new
+      // dimensions, so the modal-side framing stays valid through
+      // a resize while paused.
+      if (this.mode === "reading") {
+        this.applyReadingViewOffset();
+        this.renderer.render(this.scene, this.camera);
+      }
     }
   }
 
