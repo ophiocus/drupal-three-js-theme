@@ -285,17 +285,63 @@ export class PointerNavigator {
         break;
       }
     }
+    // Universal hover rule: only allow a hover on an entity if its
+    // title label is currently visible (i.e. the user can read what
+    // they're about to interact with). Sector pads bypass this —
+    // they're tied to region labels, which use a different
+    // visibility regime.
+    if (candidate && !this.isHoverEligible(candidate)) {
+      candidate = null;
+    }
     if (candidate === this.hovered) return;
     this.clearHover();
     if (candidate) this.applyHover(candidate);
   }
 
+  /**
+   * Universal hover gate. Mirrors the WorldHud entity-label
+   * visibleIf predicate: an entity is hoverable iff its title
+   * label is currently rendering on screen.
+   *
+   *   - Camera altitude must be in the sector-vantage band
+   *     (between closeUpHeight+4 and overviewHeight*0.45).
+   *   - Camera's nearest sector must match the entity's primary
+   *     sector (entities in other sectors aren't readable, so
+   *     not interactable either).
+   *
+   * Sector pads and other non-entity hits always pass — their
+   * affordance is governed by region labels (or always-on, for
+   * decorative scenery).
+   */
+  private isHoverEligible(mesh: THREE.Mesh): boolean {
+    const ud = mesh.userData;
+    const entityId = ud.entityId;
+    if (!entityId || (!ud.isEntityBody && !ud.isTriggerPad)) {
+      // Non-entity (sector pad, decorative) — bypass the title gate.
+      return true;
+    }
+    const snap = this.options.snapshot;
+    if (!snap) return false;
+    const y = this.options.camera.position.y;
+    if (y > snap.world.overviewHeight * 0.45) return false;
+    if (y < snap.world.closeUpHeight + 4) return false;
+    return this.isEntityInCurrentSector(String(entityId));
+  }
+
   private applyHover(mesh: THREE.Mesh): void {
-    // v0.4: silhouette outline instead of emissive-multiply.
-    // The mesh's own material is untouched — only an auxiliary
-    // outline mesh gets sibling-attached. Restore on clear is
-    // therefore trivial (just remove the outline mesh).
-    this.silhouette.set(mesh);
+    // v0.4: per-OBJECT hover. Walk up from the leaf mesh (the
+    // specific trunk / canopy / torso the raycaster happened to
+    // hit) to the SmartObject ancestor that represents the whole
+    // entity. The SilhouetteHover then computes a bounding sphere
+    // covering the entire entity's geometry tree.
+    //
+    // SmartObject sets its own .name to "SmartObject:<entityId>" in
+    // its constructor — distinctive enough to find by walking parents.
+    // Sector pads and other non-SmartObject hit targets fall through
+    // to the leaf mesh as before (SilhouetteHover skips flat / empty
+    // geometries internally).
+    const hoverTarget = findSmartObjectAncestor(mesh) ?? mesh;
+    this.silhouette.set(hoverTarget);
     this.hovered = mesh;
     document.body.style.cursor = "pointer";
   }
@@ -341,3 +387,21 @@ type MeshTag =
   | { kind: "entity_body"; entityId: string }
   | { kind: "sector_pad"; termId: string }
   | { kind: "decorative" };
+
+/**
+ * Walk up the scene graph from `obj` to find the SmartObject
+ * ancestor that wraps it. SmartObject sets its name to
+ * `SmartObject:<entityId>` in its constructor — a distinctive
+ * marker that survives any reparenting.
+ *
+ * Returns the SmartObject root, or null if `obj` isn't inside a
+ * SmartObject (decorative scenery, sector pads, ground plane).
+ */
+function findSmartObjectAncestor(obj: THREE.Object3D): THREE.Object3D | null {
+  let cur: THREE.Object3D | null = obj;
+  while (cur) {
+    if (cur.name && cur.name.startsWith("SmartObject:")) return cur;
+    cur = cur.parent;
+  }
+  return null;
+}

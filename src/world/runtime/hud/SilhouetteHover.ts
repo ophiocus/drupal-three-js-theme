@@ -1,114 +1,196 @@
-// SilhouetteHover — back-face hull outline for hover affordance.
+// SilhouetteHover — Fresnel-glow hover affordance, in-shader.
 //
-// Replaces the v0.1.x emissive-multiply hover (HOVER_EMISSIVE_GAIN
-// = 2.8 lifting the entire mesh's emissive channel — "the whole
-// region lit up" effect at overview altitude). Instead, render
-// the hovered mesh AGAIN with:
-//   - the same geometry
-//   - BackSide material (renders polygons whose front-normal faces
-//     away from the camera — the far hemisphere of the mesh)
-//   - scaled up uniformly by OUTLINE_SCALE (1.05)
-//   - flat unlit MeshBasicMaterial in a warm-white color
-//   - depthWrite off (let the original mesh control depth)
-//   - renderOrder one below the original (drawn first; original
-//     overpaints inside its silhouette; outline only peeks out
-//     where the scaled-up mesh extends past the original)
+// Modifies the hovered entity's actual mesh materials via Three.js's
+// `onBeforeCompile` hook. No new mesh is added to the scene; the
+// existing materials gain a Fresnel rim glow whose intensity is
+// driven by a uniform we toggle 0 → 1 on hover, 1 → 0 on clear.
 //
-// Result: a clean 2-3px ring around the hovered entity's
-// silhouette. The mesh interior stays at atmospheric brightness;
-// only the boundary lights up. Fog-respecting (the outline fogs
-// alongside the front mesh). No postprocessing pipeline.
+// Why in-shader rather than a sibling glow mesh:
+//   - The hover effect lives ON the entity's surface, not as a
+//     floating halo above/around it. Visually unified.
+//   - No scene-graph manipulation per hover — zero allocation, just
+//     a uniform value change after the first install.
+//   - The Fresnel rim follows the actual geometry exactly (trunk,
+//     canopy, head, leaves), with no shape mismatch from a
+//     bounding-primitive substitute.
 //
-// Per docs/v0.4/research/SILHOUETTE_HOVER.md — back-face hull
-// chosen over OutlinePass (no EffectComposer dependency), Fresnel
-// rim (incompatible with forest fog), EdgesGeometry (hairline
-// line-width limit), and stencil two-pass (more setup).
+// Per-hover lifecycle:
+//   - First hover on a given material: install glow via
+//     onBeforeCompile, force a one-time shader recompile, cache
+//     the uniform handle on `material.userData.glow`.
+//   - Subsequent hovers: just set the uniform's value. No
+//     recompilation. Near-zero cost.
+//   - Clear: set uniform back to 0 for all currently-glowing
+//     materials. Materials stay installed for next hover.
+//
+// Per-object hitbox: PointerNavigator walks up to the SmartObject
+// ancestor before passing to set(). This class then traverses the
+// SmartObject's children and applies the glow to every Mesh's
+// material — so the entire entity glows together, not just the
+// individual sub-mesh under the pointer.
 
 import * as THREE from "three";
 
-/** Uniform scale applied to the outline mesh. 1.05 = 5% larger;
- *  readable at every camera distance we use without becoming
- *  cartoon-thick at close vantages. */
-const OUTLINE_SCALE = 1.05;
+/** Warm white — reads cleanly over the forest dusk palette. */
+const GLOW_COLOR = new THREE.Color(0xfff0c8);
 
-/** Outline color. Warm white reads well over the forest dusk
- *  palette without competing with the warm-amber event totems. */
-const OUTLINE_COLOR = 0xfff0c8;
+/** Fresnel sharpness. Higher = tighter rim band. */
+const GLOW_POWER = 2.5;
 
-/** SilhouetteHover manages a single active outline at a time.
- *  Mirrors the single-hover invariant the PointerNavigator already
- *  enforces — only one mesh hovered, one outline visible. */
+/** Multiplier on the Fresnel contribution. Tuned so the glow reads
+ *  on dark backgrounds without blowing out close vantages. */
+const GLOW_INTENSITY = 1.4;
+
+/** Per-material handle to the installed glow uniforms. Stashed in
+ *  `material.userData.glow` so subsequent hovers on the same
+ *  material skip re-installation. */
+interface GlowHandle {
+  uGlowAmount: { value: number };
+}
+
+/**
+ * Install Fresnel-glow injection on a material via onBeforeCompile.
+ * Idempotent — returns the existing handle if the material was
+ * previously installed. Returns null for material types we don't
+ * support (e.g., ShaderMaterial without the expected chunks).
+ */
+function installGlow(material: THREE.Material): GlowHandle | null {
+  // Already installed — return cached handle.
+  const existing = material.userData.glow as GlowHandle | undefined;
+  if (existing) return existing;
+
+  // Whitelist supported material types. MeshBasicMaterial,
+  // MeshStandardMaterial, and MeshPhongMaterial all expose
+  // onBeforeCompile and use the standard chunk include points we
+  // patch into. ShaderMaterial / RawShaderMaterial don't, so skip.
+  const supported =
+    material instanceof THREE.MeshStandardMaterial ||
+    material instanceof THREE.MeshPhongMaterial ||
+    material instanceof THREE.MeshLambertMaterial ||
+    material instanceof THREE.MeshBasicMaterial;
+  if (!supported) return null;
+
+  const uGlowAmount = { value: 0 };
+  const uGlowColor = { value: GLOW_COLOR };
+  const uGlowPower = { value: GLOW_POWER };
+  const uGlowIntensity = { value: GLOW_INTENSITY };
+
+  // Chain any pre-existing onBeforeCompile (defensive — we don't
+  // own this hook exclusively).
+  const prev = material.onBeforeCompile;
+  material.onBeforeCompile = (shader, renderer) => {
+    if (prev) prev.call(material, shader, renderer);
+
+    shader.uniforms.uGlowAmount = uGlowAmount;
+    shader.uniforms.uGlowColor = uGlowColor;
+    shader.uniforms.uGlowPower = uGlowPower;
+    shader.uniforms.uGlowIntensity = uGlowIntensity;
+
+    // Vertex shader — add view-space varyings for the fragment.
+    shader.vertexShader = shader.vertexShader.replace(
+      "#include <common>",
+      `#include <common>
+varying vec3 vGlowViewPos;
+varying vec3 vGlowNormal;`,
+    );
+    // After project_vertex, `mvPosition` is in scope and `normal`
+    // is the original geometry normal. Compute the view-space
+    // position and the camera-space normal.
+    shader.vertexShader = shader.vertexShader.replace(
+      "#include <project_vertex>",
+      `#include <project_vertex>
+vGlowViewPos = -mvPosition.xyz;
+vGlowNormal = normalize(normalMatrix * normal);`,
+    );
+
+    // Fragment shader — declare varyings + uniforms, then add the
+    // Fresnel contribution to the final fragment color just before
+    // the dithering pass.
+    shader.fragmentShader = shader.fragmentShader.replace(
+      "#include <common>",
+      `#include <common>
+varying vec3 vGlowViewPos;
+varying vec3 vGlowNormal;
+uniform float uGlowAmount;
+uniform vec3 uGlowColor;
+uniform float uGlowPower;
+uniform float uGlowIntensity;`,
+    );
+    shader.fragmentShader = shader.fragmentShader.replace(
+      "#include <dithering_fragment>",
+      `#include <dithering_fragment>
+if (uGlowAmount > 0.0) {
+  vec3 viewDir = normalize(vGlowViewPos);
+  vec3 n = normalize(vGlowNormal);
+  float fresnel = pow(1.0 - max(dot(n, viewDir), 0.0), uGlowPower);
+  gl_FragColor.rgb += uGlowColor * fresnel * uGlowIntensity * uGlowAmount;
+}`,
+    );
+  };
+
+  // customProgramCacheKey ensures Three.js doesn't share a cached
+  // program across materials whose onBeforeCompile differs from
+  // ours — defensive against shader-cache collisions.
+  const prevCacheKey = material.customProgramCacheKey;
+  material.customProgramCacheKey = function (): string {
+    return (prevCacheKey ? prevCacheKey.call(material) + "|" : "") + "glow";
+  };
+
+  // Force a one-time recompile so the new shader takes effect.
+  material.needsUpdate = true;
+
+  const handle: GlowHandle = { uGlowAmount };
+  material.userData.glow = handle;
+  return handle;
+}
+
 export class SilhouetteHover {
-  private currentTarget: THREE.Mesh | null = null;
-  private outlineMesh: THREE.Mesh | null = null;
-  private outlineMat: THREE.MeshBasicMaterial | null = null;
+  private currentTarget: THREE.Object3D | null = null;
+  /** Glow handles whose uGlowAmount is currently nonzero. */
+  private active: GlowHandle[] = [];
 
   /**
-   * Show the outline on `target`, or clear if null.
-   * Idempotent — calling set(target) when already showing
-   * target is a no-op.
+   * Show the glow on `target` (and all its descendant meshes), or
+   * clear if null. Idempotent — calling with the same target while
+   * already showing is a no-op.
    */
-  set(target: THREE.Mesh | null): void {
+  set(target: THREE.Object3D | null): void {
     if (target === this.currentTarget) return;
     this.clear();
     if (!target) return;
-    if (!target.parent) return;  // detached mesh — can't sibling-attach
-    if (!target.geometry) return;
 
-    const mat = new THREE.MeshBasicMaterial({
-      color: OUTLINE_COLOR,
-      side: THREE.BackSide,
-      depthWrite: false,
-      // No transparency — the back-face hull doesn't blend; it just
-      // peeks out at the silhouette. Transparent would invite
-      // sorting issues with the surrounding scene geometry.
-      transparent: false,
-      // Fog-respecting; matches the front mesh's fog falloff.
-      fog: true,
+    target.traverse((obj) => {
+      if (!(obj instanceof THREE.Mesh)) return;
+      const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+      for (const m of mats) {
+        if (!m) continue;
+        const handle = installGlow(m);
+        if (!handle) continue;
+        handle.uGlowAmount.value = 1.0;
+        this.active.push(handle);
+      }
     });
-
-    // Share the target's geometry — no per-hover allocation, no GPU
-    // upload. Three.js handles re-use across meshes safely.
-    const outline = new THREE.Mesh(target.geometry, mat);
-    outline.scale.copy(target.scale).multiplyScalar(OUTLINE_SCALE);
-    outline.position.copy(target.position);
-    outline.quaternion.copy(target.quaternion);
-    // Render the outline BEFORE the target. The target overpaints
-    // inside its silhouette; the outline ring is the residue
-    // outside.
-    outline.renderOrder = (target.renderOrder || 0) - 1;
-
-    // Make the outline invisible to raycasts — clicks and hovers
-    // should resolve to the original mesh, never to this auxiliary
-    // geometry. Overriding raycast to no-op is the canonical
-    // three.js way to opt a mesh out of intersection.
-    outline.raycast = () => undefined;
-
-    target.parent.add(outline);
-    this.outlineMesh = outline;
-    this.outlineMat = mat;
     this.currentTarget = target;
   }
 
-  /** Tear down the outline. Safe to call repeatedly. */
+  /** Turn the glow off on every currently-glowing material. The
+   *  shader modifications stay installed for next hover. */
   clear(): void {
-    if (this.outlineMesh) {
-      this.outlineMesh.parent?.remove(this.outlineMesh);
-      this.outlineMat?.dispose();
-      this.outlineMesh = null;
-      this.outlineMat = null;
+    for (const handle of this.active) {
+      handle.uGlowAmount.value = 0;
     }
+    this.active = [];
     this.currentTarget = null;
   }
 
-  /** Free resources. Same effect as clear() — exposed under the
-   *  name disposal-aware code expects. */
+  /** Idempotent with clear — nothing else owns persistent state.
+   *  Materials' installed shaders remain for the rest of the session. */
   dispose(): void {
     this.clear();
   }
 
-  /** The currently-hovered mesh, or null. Useful for tests / diagnostics. */
-  get target(): THREE.Mesh | null {
+  /** Currently-hovered object, or null. */
+  get target(): THREE.Object3D | null {
     return this.currentTarget;
   }
 }
