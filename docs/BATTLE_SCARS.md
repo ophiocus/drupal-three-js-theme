@@ -431,6 +431,37 @@ detail vantages: when `v.kind === "detail"`, also call
 at `/node/<id>` (URL bar, click on far entity, page reload) opens
 FullView on settle. Commit: `829f5a2`.
 
+### C5. Universal hover gate: same predicate as title visibility
+
+**Pattern.** A hover affordance (silhouette glow, cursor change,
+subtitle reveal) should only trigger when the entity's title
+label is currently visible to the user. Reading the name is the
+precondition for interacting with the thing.
+
+**Implementation.** `PointerNavigator.isHoverEligible(mesh)`
+mirrors `WorldHud`'s entity-label `visibleIf` predicate exactly —
+same `overviewHeight * 0.45` / `closeUpHeight + 4` thresholds, same
+`nearestSector(camera) === primarySector` check. Both gates read
+the same constants from the snapshot's `world` block.
+
+If the predicate ever needs to change, **change it in one place
+and have both call sites read from it** — letting them drift is
+an invisible-bug factory. Commit: `c7cb08e`.
+
+### C6. Hover-driven subtitle reveal: one event source, multiple subscribers
+
+**Pattern.** Hover changes are a single observable in the UI —
+many subsystems might want to react (silhouette glow, subtitle
+reveal, cursor change, audio cue, telemetry).
+`PointerNavigator.NavigatorOptions.onHoverChange?: (entityId | null)`
+is the canonical event source. `applyHover` emits the entity id;
+`clearHover` emits null.
+
+Subscribers wire themselves at construction time. `SceneManager`
+currently has one — `WorldHud.setHoveredEntity` for subtitle
+reveal — but the pattern accepts arbitrary callbacks for future
+hooks (sound design, gaze tracking, breadcrumbs). Commit: `8674546`.
+
 ### C4. WorldHud / CardOverlay z-index coordination
 
 **Pattern (not a bug, but adjacent).** The DOM-overlay stack:
@@ -492,6 +523,46 @@ If no existing slot fits, *add a new named slot* with a comment
 explaining its place in the order. Never compute. Commit:
 `70de5b6`.
 
+### G3. `setViewOffset` is for tiled rendering, not viewport pan
+
+**Symptom.** When the modal opens, the world view distorts —
+everything stretches horizontally. The user described it as
+"adding numbers to visual values that end up distorting the
+proportions of FOV."
+
+**Diagnosis.** `camera.setViewOffset(W*2, H, 0, 0, W, H)` was
+called to "shift the world right so the entity stays visible in
+the right half when the modal covers the left." That call DOES
+shift the framing — but does so by narrowing the horizontal view
+frustum (multiplying view width by `view.width / fullWidth = 1/2`)
+without narrowing the canvas. Result: half the horizontal angular
+content renders to the full canvas width → 2× horizontal stretch.
+
+`setViewOffset` is intentionally for *tiled rendering* — splitting
+one large image across multiple render passes, each pass rendering
+a sub-frustum, then stitched together at full resolution. It is
+NOT a "pan the visible portion of a single render" operation. The
+function name's similarity to other projection-shift mechanics is
+misleading.
+
+**Fix.** Lateral camera shift (parallax). Compute the camera's
+local right vector (`forward × up`), move the camera position
+leftward by some fraction of the close-up distance, render. Same
+FOV, same pixel scale, no distortion — the world apparently
+shifts right by the lateral offset divided by the camera-to-target
+distance.
+
+```ts
+const forward = new THREE.Vector3();
+camera.getWorldDirection(forward);
+const right = new THREE.Vector3()
+  .crossVectors(forward, camera.up).normalize();
+camera.position.addScaledVector(right, -shiftMagnitude);
+```
+
+Stash the original position; restore on modal close. Commits:
+`ccf9a73` (introduced distortion) → `64c9fd8` (lateral-shift fix).
+
 ---
 
 ## Architecture defense-in-depth
@@ -552,6 +623,38 @@ and should stay. But it does NOT prevent module-level side
 effects from running twice if the module file is evaluated twice
 (B1 / B2). The guard is downstream of the bug; the bug needs an
 upstream fix (single-bundle, single URL identity).
+
+### A5. Engine-pause requires an explicit final render to commit state
+
+**Pattern.** `SceneManager.setMode("reading")` stops the animation
+loop. If you mutate camera state (position, view offset, lookAt)
+*just before* the pause, that mutation never reaches the screen —
+the last-rendered frame remains, frozen, on the canvas. The new
+camera state is in memory but invisible.
+
+**Fix.** Call `this.renderer.render(this.scene, this.camera)`
+explicitly after the state change AND the pause toggle, to flush
+one final frame with the new state. Three's render call is
+synchronous; one extra invocation is cheap and guarantees the
+visible canvas matches the model.
+
+Symmetric on exit: when resuming the loop, the next animation tick
+renders normally — no explicit render call needed.
+
+```ts
+setMode(mode) {
+  // ... mutate camera state ...
+  this.refreshLoopState();  // pauses if mode === "reading"
+  if (mode === "reading") {
+    this.renderer.render(this.scene, this.camera);  // commit the final frame
+  }
+}
+```
+
+Applies to: resize-during-paused-state (re-render to update
+aspect), camera shifts (the v0.4 lateral-shift modal recentre).
+Commits: `ccf9a73` (introduced the pattern), `64c9fd8` (carried
+forward into the lateral-shift replacement).
 
 ---
 

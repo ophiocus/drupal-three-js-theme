@@ -209,12 +209,74 @@ A subtask. The recommended sequence runs A.1–A.4 first so the
 v0.4 release demos with real trees, then B drops the landmarks
 on top.
 
-## Definition of done
+---
 
-- Fresh install + atlas seeder + asset catalog seeder + asset
-  acquisition pass = a world that renders Quaternius trees +
-  KayKit scenery + Mission stela + Vision tree + Contact hearth,
-  with primitive fallbacks for any unfilled slot.
+## Status mid-v0.4 (updated 2026-05-17)
+
+The roadmap above is the original build plan. Substantial polish
+and exploration work landed in parallel as the user surfaced
+issues. Current state:
+
+### Track A — Real .glb pipeline
+
+| Subtask | Status | Notes |
+| --- | --- | --- |
+| A.1 Asset acquisition pass | **partial** | Ingestion infra (`scaffold/attach-pack-file.php`, `print-pack-checklist.php`) + catalog seeded (15 packs / 17 assets, all `shortlisted`). Raw downloads remain a manual click-through; automated WebFetch was confirmed infeasible. |
+| A.2 `/world/snapshot/assets` endpoint | **not started** | Snapshot publisher needs an `assets` block emitting `{slot, atmospheres, curatedFileUrl, polycount, ...}` for `status=live` assets. |
+| A.3 GltfComponent + AssetCache (client) | **not started** | `src/world/runtime/AssetCache.ts` + `src/world/runtime/smart-objects/components/GltfComponent.ts` + `ctx.tryLoadProp(slot)` helper. |
+| A.4 Builder hook-ups | **not started** | ArticleAsTree / ProfileAsSpirit / EventAsTotem / scenery.ts each consult `tryLoadProp`. |
+| A.5 Asset Editor UI affordances | **not started** | `/admin/world/assets` view + "Mark live" action. |
+
+### Track B — Framework pages as monuments
+
+| Subtask | Status | Notes |
+| --- | --- | --- |
+| B.1 `monument` content type | **not started** | |
+| B.2 Three Builders | **not started** | MissionAsStela / VisionAsGreatTree / ContactAsHearth. |
+| B.3 Position derivation | **not started** | World-axis positions; not sector-derived. |
+| B.4 Camera + navigation | **not started** | Drupal menu wiring. |
+
+### Information LOD work (out-of-scope on the original roadmap, landed anyway)
+
+The user's "title visibility / hover gating / modal layout" thread
+turned into a substantial UX layer. Reference doc:
+`docs/v0.4/research/INFORMATION_LOD.md` + `SILHOUETTE_HOVER.md`.
+
+| Item | Status | Commits |
+| --- | --- | --- |
+| Activity A: region labels at overview | **shipped** | `ab7ce48` + `d80a9b4` |
+| Activity B: per-entity title spray at sector vantage | **shipped** | `1e65505` |
+| Activity C: one-click to FullView, context-aware near/far | **shipped** | `1e65505` + `e7abf0b` + `9826915` |
+| Hover redesign — in-shader Fresnel glow | **shipped** | `c7cb08e` |
+| Hover summary subtitle on hovered entity label | **shipped** | `8674546` |
+| Universal hover gate (same predicate as title visibility) | **shipped** | `c7cb08e` |
+| FullView typography pass (serif ladder, 36px heading) | **shipped** | `b30a76a` |
+| Event/profile body first-line callout | **shipped** | `b30a76a` |
+| `card` view-mode (dedicated FullView-rendering view-mode) | **shipped** | `448ee44` |
+| Modal left-align + lateral-camera-shift recentre | **shipped** | `ccf9a73` → `64c9fd8` |
+| Compass-axis letters (N/S/E/W labels) | **shipped** | `5080c57` |
+| Idle-reset on mouse-move | **shipped** | `e5a260f` |
+| BATTLE_SCARS.md doc (indexed bug reference) | **shipped** | `c7caace` |
+
+### What v0.4 still needs to call itself done
+
+Track A.2–A.5 is the load-bearing remainder — without it, the
+prop catalog content sits in Drupal but never reaches the
+renderer. The monument track (B) is independent and can land
+either before or after A's completion.
+
+The polish layer has become its own implicit deliverable. If we
+keep going on UX polish without progressing Track A, the v0.4
+release is "the world reads beautifully but still uses primitives."
+Recommended discipline going forward: A.2 next, then the rest of
+A in order, with polish parking-lotted to v0.4.x patch releases.
+
+## Definition of done (refined)
+
+- Fresh install + atlas seeder + asset catalog seeder + acquisition
+  pass = a world that renders Quaternius trees + KayKit scenery +
+  Mission stela + Vision tree + Contact hearth, with primitive
+  fallbacks for any unfilled slot.
 - `drush world:publish` continues to run cleanly with the new
   monument bundle in the corpus.
 - `drush scr scaffold/verify-catalog.php` reports the live asset
