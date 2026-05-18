@@ -427,17 +427,41 @@ export class SceneManager {
     ground.position.y = 0;
     this.scene.add(ground);
 
-    // Cardinal compass posts — ALPHA placeholder; removed once
-    // the corpus reaches ~5 entities and feels populated.
+    // Cardinal compass posts + their letter labels. The posts are
+    // ALPHA-era placeholders; the labels were added in v0.4 when
+    // the user noticed the unlabeled axii while testing the world.
+    //
+    // Convention: Three.js's default-camera "forward" is along -Z.
+    // So -Z = North; +Z = South; +X = East; -X = West. Posts at
+    // distance 60 from origin (well inside the world radius of 200).
     const compassGeo = new THREE.BoxGeometry(2, 6, 2);
     const compassMat = new THREE.MeshStandardMaterial({
       color: new THREE.Color(p.compassPost.color),
       roughness: 0.9,
     });
-    for (const [dx, dz] of [[60, 0], [-60, 0], [0, 60], [0, -60]]) {
+    const compassPoints: Array<{ letter: string; x: number; z: number }> = [
+      { letter: "E", x: 60, z: 0 },
+      { letter: "W", x: -60, z: 0 },
+      { letter: "S", x: 0, z: 60 },
+      { letter: "N", x: 0, z: -60 },
+    ];
+    for (const { x, z } of compassPoints) {
       const post = new THREE.Mesh(compassGeo, compassMat);
-      post.position.set(dx, 3, dz);
+      post.position.set(x, 3, z);
       this.scene.add(post);
+    }
+    // Labels float above each post via the WorldHud. Always visible
+    // (no scope predicate) so the compass works as orientation aid
+    // at every vantage.
+    if (!this.worldHud) {
+      this.worldHud = new WorldHud({ canvas: this.canvas });
+    }
+    for (const { letter, x, z } of compassPoints) {
+      this.worldHud.addLabel({
+        worldPos: new THREE.Vector3(x, 10, z),
+        text: letter,
+        className: "world-hud__compass-label",
+      });
     }
 
     // v0.1.2: SmartObject registry owns entity geometry. The

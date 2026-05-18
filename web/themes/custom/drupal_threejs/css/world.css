@@ -5,6 +5,21 @@
  * page chrome until Sprint 5 adds the card-runtime DOM overlay.
  */
 
+/* v0.4 — Compass-label styling. Each cardinal compass post gets a
+   WorldHud label with className 'world-hud__compass-label' that
+   reads as a small monospaced glyph (N / S / E / W) instead of the
+   default chunky label chrome. */
+.world-hud__compass-label {
+  background: transparent !important;
+  padding: 0 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  font: 600 18px/1 ui-monospace, Menlo, Consolas, monospace !important;
+  color: #f0e8c8 !important;
+  letter-spacing: 0.05em !important;
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.7);
+}
+
 html.world-shell,
 html.world-shell body {
   margin: 0;
