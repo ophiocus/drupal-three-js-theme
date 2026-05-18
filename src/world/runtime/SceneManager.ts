@@ -303,49 +303,77 @@ export class SceneManager {
   setMode(mode: Mode): void {
     if (mode === this.mode) return;
     this.mode = mode;
-    // v0.4: when entering reading mode, shift the camera's
-    // effective projection right so the entity stays visible in
-    // the right half of the canvas while the modal occupies the
-    // left half. setViewOffset (Three's tiled-rendering mechanism)
-    // is the right shape — it shifts the projection without
-    // moving the camera or changing the established vantage.
-    // Cleared on exit so the world recenters when the user closes
-    // the modal and the loop resumes.
+    // v0.4: lateral camera shift on reading entry. The modal
+    // covers the left half of the canvas; we want the entity to
+    // stay visible in the right half. The correct way to do this
+    // is parallax — move the camera leftward (perpendicular to
+    // its view direction). Same geometry, same FOV, same pixel
+    // scale; the world apparently shifts right by an angular
+    // amount equivalent to the lateral move.
+    //
+    // The first iteration tried `camera.setViewOffset(W*2, H, 0,
+    // 0, W, H)` which DOES shift the framing right — but does so
+    // by narrowing the horizontal view frustum without narrowing
+    // the canvas, stretching everything horizontally. Distortion
+    // visible immediately when the modal opened. Battle-scar: a
+    // tiled-rendering function isn't the right shape for a
+    // viewport-pan operation. Lateral camera movement is.
     if (mode === "reading") {
-      this.applyReadingViewOffset();
+      this.enterReadingMode();
     } else {
-      this.camera.clearViewOffset();
+      this.exitReadingMode();
     }
     this.refreshLoopState();
     // Reading mode pauses the loop, but we want the LAST frame
-    // rendered to include the new view-offset (otherwise the
-    // canvas stays at the pre-modal framing until exit). Force one
+    // rendered to include the lateral shift (otherwise the canvas
+    // keeps the pre-modal framing for the duration). Force one
     // render after mode change.
     if (mode === "reading") {
       this.renderer.render(this.scene, this.camera);
     }
   }
 
+  /** Stashed camera position for restoration on reading exit. */
+  private preReadingCameraPos: THREE.Vector3 | null = null;
+
   /**
-   * Configure the camera's view offset so that the visible right
-   * half of the canvas frames the world the way a centered camera
-   * normally would. Used when entering reading mode — the modal
-   * occupies the left half of the canvas, so the entity should
-   * appear in the right half.
+   * Move the camera laterally so the entity (originally centered
+   * in view) appears in the right half of the canvas. The modal
+   * occupies the left.
    *
-   * Math: setViewOffset(fullWidth, fullHeight, x, y, width, height)
-   * tells the camera "the full image is fullWidth × fullHeight;
-   * render the rect (x, y, width, height) of it." If full=2W and
-   * we render (0, 0, W, H), we're getting the LEFT half of a
-   * doubled-horizontal-FOV view. Objects that were at center
-   * (column W of the doubled view) end up at the RIGHT edge of
-   * the rendered output — exactly what we want when the modal
-   * covers the left half.
+   * Lateral direction: camera-local right vector (cross of
+   * world-direction × world-up), negated so we move LEFT and the
+   * apparent world shift is RIGHT.
+   *
+   * Magnitude: a fraction of the established close-up distance.
+   * Empirically tuned to ~0.5 — that's roughly the angle subtended
+   * by a quarter-canvas at the perspective FOV.
    */
-  private applyReadingViewOffset(): void {
-    const w = this.canvas.clientWidth || this.renderer.domElement.width;
-    const h = this.canvas.clientHeight || this.renderer.domElement.height;
-    this.camera.setViewOffset(w * 2, h, 0, 0, w, h);
+  private enterReadingMode(): void {
+    const w = this.snapshot?.world;
+    if (!w) return;
+    const forward = new THREE.Vector3();
+    this.camera.getWorldDirection(forward);
+    const right = new THREE.Vector3()
+      .crossVectors(forward, this.camera.up)
+      .normalize();
+    if (right.lengthSq() < 1e-6) return; // pathological camera up; skip
+    this.preReadingCameraPos = this.camera.position.clone();
+    const shiftMagnitude = w.closeUpDistance * 0.5;
+    this.camera.position.addScaledVector(right, -shiftMagnitude);
+  }
+
+  /**
+   * Restore camera.position to its pre-reading value so the world
+   * recenters when the modal closes. CameraController's internal
+   * state is unchanged through reading mode (the loop was paused),
+   * so on resume it picks up where it left off.
+   */
+  private exitReadingMode(): void {
+    if (this.preReadingCameraPos) {
+      this.camera.position.copy(this.preReadingCameraPos);
+      this.preReadingCameraPos = null;
+    }
   }
 
   /** Whether the animation loop is currently running. Mirrors the
@@ -783,11 +811,11 @@ export class SceneManager {
     if (this.camera) {
       this.camera.aspect = w / h;
       this.camera.updateProjectionMatrix();
-      // Re-apply the reading-mode view offset against the new
-      // dimensions, so the modal-side framing stays valid through
-      // a resize while paused.
+      // Re-render the reading-mode frame against the new
+      // dimensions so the modal-side framing stays valid through a
+      // resize while paused. The lateral camera shift is unchanged
+      // by canvas size — no re-shift needed here.
       if (this.mode === "reading") {
-        this.applyReadingViewOffset();
         this.renderer.render(this.scene, this.camera);
       }
     }
