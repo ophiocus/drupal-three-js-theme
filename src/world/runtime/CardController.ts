@@ -451,8 +451,12 @@ class CardOverlay {
       "padding:48px 56px",
       "border-radius:8px",
       "box-shadow:0 24px 48px rgba(0,0,0,0.32)",
-      "font-family:system-ui,-apple-system,sans-serif",
-      "line-height:1.55",
+      // v0.4 typography pass — Georgia for body, Iowan Old Style /
+      // Hoefler Text / Georgia fallback ladder. The modal reads as
+      // an article, not a UI panel.
+      "font-family:'Iowan Old Style','Hoefler Text','Georgia',serif",
+      "font-size:17px",
+      "line-height:1.65",
       "position:relative",
     ].join(";");
 
@@ -463,28 +467,66 @@ class CardOverlay {
     // is the proper home for those decisions; client-side CSS
     // chrome-hiding was a v0.4-fix-of-a-fix that's now obsolete.
     //
-    // Two CSS bits remain in this style block: the title
-    // (.node__title) needs lift/scale because Drupal's standard
-    // node template renders it as an <h2> with the link decoration
-    // of a page-context link — without a page wrapper around it,
-    // the underline + medium font reads as a fragment. The byline
-    // (.node__meta) gets hidden because content-type
-    // display_submitted is template-level, not view-display-level;
-    // article in Standard install has display_submitted=true, so
-    // its byline is in every render unless we hide it here.
+    // Remaining CSS:
+    //   - .node__title styling — Drupal's node template renders
+    //     title as <h2><a></a></h2>; without a page wrapper around
+    //     it the inline-link decoration reads as junk. Restyle to
+    //     editorial heading proportions, strip the underline.
+    //   - .node__meta hidden — display_submitted is template-level,
+    //     not view-display-level; article in Standard install has
+    //     display_submitted=true, so byline appears unless hidden.
+    //   - .node--type-event .field--name-body first paragraph as
+    //     hero callout. Events lead with "Dates: ..." in the body
+    //     prose; styling the first <p> elevates that anchor as the
+    //     reader's first read.
+    //
+    // When a field_event_date lands as a real field in a future
+    // v0.4.x, this CSS becomes redundant — the date renders as its
+    // own templated block above body.
     const overlayStyle = document.createElement("style");
     overlayStyle.textContent = `
       .world-card-overlay__content .node__meta {
         display: none;
       }
       .world-card-overlay__content .node__title {
-        font-size: 28px;
-        line-height: 1.2;
-        margin: 0 0 24px;
+        font-family: 'Iowan Old Style','Hoefler Text','Georgia',serif;
+        font-size: 36px;
+        line-height: 1.15;
+        font-weight: 600;
+        margin: 0 0 28px;
+        letter-spacing: -0.01em;
       }
       .world-card-overlay__content .node__title a {
         color: inherit;
         text-decoration: none;
+      }
+      .world-card-overlay__content p {
+        margin: 0 0 1em;
+      }
+      /* Event date callout — first paragraph of the body of an
+         event entity. Reads as the temporal anchor before the
+         outcome text. */
+      .world-card-overlay__content .node--type-event
+        .field--name-body > .field__item:first-line,
+      .world-card-overlay__content .node--type-event
+        .field--name-body > .field__item {
+        /* No reliable :first-line for arbitrary text breaks;
+           style the whole body container's first paragraph via
+           ::first-of-type instead — handled below for spec
+           compatibility. */
+      }
+      .world-card-overlay__content .node--type-event
+        .field--name-body > .field__item::first-line {
+        font-weight: 600;
+        font-size: 1.15em;
+        color: #6a4820;
+        letter-spacing: 0.01em;
+      }
+      /* Profile role-anchor opener — same treatment, cooler tint. */
+      .world-card-overlay__content .node--type-profile
+        .field--name-body > .field__item::first-line {
+        font-weight: 600;
+        color: #3a4a2a;
       }
     `;
     this.article.appendChild(overlayStyle);
