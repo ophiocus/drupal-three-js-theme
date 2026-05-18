@@ -15,7 +15,35 @@ substantial hover / FullView polish that surfaced as it went.
 
 What landed in v0.4 so far (latest first):
 
-- **Hover summary subtitle** (this commit). DescriptorBuilder
+- **Modal left-align + 3D pivot recentre** (ccf9a73). FullView
+  modal anchors to the left half of the canvas (max-width
+  min(760px, 48vw)) with a translucent paper backdrop; the
+  camera's `setViewOffset(W*2, H, 0, 0, W, H)` shifts the rendered
+  projection so the entity stays visible in the right half. The
+  right half is pointer-event-live (the .root backdrop is
+  transparent + pointer-events:none) so the world stays navigable
+  while reading. Esc + × button close the modal; click-on-backdrop
+  no longer works (acceptable tradeoff).
+
+- **Compass axis letters** (5080c57). Four `WorldHud` labels at
+  N/S/E/W float above the cardinal compass posts. Three.js
+  convention: -Z = north. Always visible across vantages (no
+  scope predicate) so the compass works mid-fly. Styled via
+  `.world-hud__compass-label` in `world.css` — monospace 18px
+  with a soft text-shadow, no backdrop or padding.
+
+- **FullView typography pass + event/profile callout** (b30a76a).
+  Modal switches to a serif font ladder (Iowan Old Style / Hoefler
+  Text / Georgia), 17px / 1.65. `.node__title` becomes 36px /
+  weight 600 / -0.01em letter-spacing — editorial heading
+  proportions. Event entities' body first line styled via
+  `::first-line` as a hero callout (weight 600, warm bark tint
+  `#6a4820`); profile entities' first line styled in cool green
+  `#3a4a2a`. The temporal anchor / role anchor appears as the
+  reader's first read without needing a real `field_event_date`
+  yet.
+
+- **Hover summary subtitle** (8674546). `DescriptorBuilder`
   exports a `summary` field — first sentence of the entity's body,
   ~140 chars, sentence-boundary-aware truncation with ellipsis
   fallback. The renderer's `HudLabel` gains an optional subtitle
