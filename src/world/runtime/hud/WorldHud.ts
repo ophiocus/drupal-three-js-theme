@@ -27,8 +27,21 @@ import * as THREE from "three";
 export interface HudLabelOptions {
   /** World-space anchor — where this label "points at" in the scene. */
   worldPos: THREE.Vector3;
-  /** Displayed text. */
+  /** Displayed text (the title line). */
   text: string;
+  /**
+   * Optional subtitle line — hidden by default; revealed when the
+   * HUD's setHoveredEntity matches this label's entityId. Used for
+   * one-line summaries that appear on hover without cluttering the
+   * default spray.
+   */
+  subtitle?: string;
+  /**
+   * Optional entity ID for hover-driven subtitle routing. When
+   * `WorldHud.setHoveredEntity(id)` is called, the label with the
+   * matching entityId shows its subtitle; others hide theirs.
+   */
+  entityId?: string;
   /** Optional click handler. If absent, the label is a passive label. */
   onClick?: () => void;
   /**
@@ -52,6 +65,10 @@ export interface HudLabelOptions {
 export class HudLabel {
   /** The owned DOM node. */
   readonly element: HTMLDivElement;
+  /** Inner title element. */
+  private readonly titleEl: HTMLDivElement;
+  /** Optional subtitle element — created only when options.subtitle is set. */
+  private readonly subtitleEl: HTMLDivElement | null = null;
 
   constructor(
     private readonly hud: WorldHud,
@@ -74,13 +91,40 @@ export class HudLabel {
       "border-radius:4px",
       "backdrop-filter:blur(6px)",
       "-webkit-backdrop-filter:blur(6px)",
-      "white-space:nowrap",
       "display:none",                       // start hidden; first update() reveals
       "transition:opacity 120ms ease-out",
       "opacity:0",
       "cursor:" + (options.onClick ? "pointer" : "default"),
+      // Allow subtitles to wrap; the title row stays nowrap via its own style.
+      "max-width:320px",
     ].join(";");
-    this.element.textContent = options.text;
+
+    // Title row — nowrap so the entity name stays on one line.
+    this.titleEl = document.createElement("div");
+    this.titleEl.className = "world-hud__label-title";
+    this.titleEl.style.cssText = "white-space:nowrap;";
+    this.titleEl.textContent = options.text;
+    this.element.appendChild(this.titleEl);
+
+    // Optional subtitle — hidden by default; toggled via
+    // setSubtitleVisible() which the HUD calls in response to
+    // hover events.
+    if (options.subtitle) {
+      this.subtitleEl = document.createElement("div");
+      this.subtitleEl.className = "world-hud__label-subtitle";
+      this.subtitleEl.style.cssText = [
+        "display:none",
+        "margin-top:4px",
+        "font-size:12px",
+        "font-style:italic",
+        "opacity:0.85",
+        "letter-spacing:0",
+        "white-space:normal",
+        "line-height:1.35",
+      ].join(";");
+      this.subtitleEl.textContent = options.subtitle;
+      this.element.appendChild(this.subtitleEl);
+    }
 
     if (options.onClick) {
       this.element.addEventListener("click", (e) => {
@@ -90,9 +134,15 @@ export class HudLabel {
     }
   }
 
-  /** Update displayed text without recreating the label. */
+  /** Update displayed title text without recreating the label. */
   setText(text: string): void {
-    this.element.textContent = text;
+    this.titleEl.textContent = text;
+  }
+
+  /** Show / hide the subtitle. No-op if the label has no subtitle. */
+  setSubtitleVisible(visible: boolean): void {
+    if (!this.subtitleEl) return;
+    this.subtitleEl.style.display = visible ? "block" : "none";
   }
 
   /** Move the world anchor (e.g. if the entity is repositioned). */
@@ -121,6 +171,10 @@ export interface WorldHudOptions {
 export class WorldHud {
   private readonly root: HTMLDivElement;
   private readonly labels = new Set<HudLabel>();
+  /** entityId → label lookup for hover-driven subtitle routing. */
+  private readonly labelsByEntityId = new Map<string, HudLabel>();
+  /** Currently hovered entity. The matching label shows its subtitle. */
+  private hoveredEntityId: string | null = null;
   /** Scratch vector reused across project() calls — avoids GC churn. */
   private readonly scratchVec = new THREE.Vector3();
 
@@ -153,13 +207,39 @@ export class WorldHud {
     const label = new HudLabel(this, opts);
     this.labels.add(label);
     this.root.appendChild(label.element);
+    if (opts.entityId) {
+      this.labelsByEntityId.set(opts.entityId, label);
+    }
     return label;
+  }
+
+  /**
+   * Mark one entity as hovered. The matching label's subtitle
+   * (if any) reveals; any previously-hovered label's subtitle hides.
+   * Call with null to clear.
+   *
+   * This is the universal hover-driven UI extension point — the
+   * HUD owns it because subtitles are HUD content; PointerNavigator
+   * just emits the event.
+   */
+  setHoveredEntity(entityId: string | null): void {
+    if (entityId === this.hoveredEntityId) return;
+    if (this.hoveredEntityId) {
+      this.labelsByEntityId.get(this.hoveredEntityId)?.setSubtitleVisible(false);
+    }
+    if (entityId) {
+      this.labelsByEntityId.get(entityId)?.setSubtitleVisible(true);
+    }
+    this.hoveredEntityId = entityId;
   }
 
   /** Remove a label and its DOM node. */
   removeLabel(label: HudLabel): void {
     if (this.labels.delete(label)) {
       label.element.remove();
+      if (label.options.entityId) {
+        this.labelsByEntityId.delete(label.options.entityId);
+      }
     }
   }
 
@@ -167,6 +247,8 @@ export class WorldHud {
   clear(): void {
     for (const l of this.labels) l.element.remove();
     this.labels.clear();
+    this.labelsByEntityId.clear();
+    this.hoveredEntityId = null;
   }
 
   /**

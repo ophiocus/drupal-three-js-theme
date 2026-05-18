@@ -6,6 +6,81 @@ this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased] — v0.1 in progress
 
+### Added (v0.4 — real .glb pipeline + information LOD + hover redesign)
+
+The v0.4 release thesis: "the forest becomes real and gains
+landmarks." Track A is the .glb pipeline (real assets replacing
+primitives) and Track B is monument framework pages. Plus
+substantial hover / FullView polish that surfaced as it went.
+
+What landed in v0.4 so far (latest first):
+
+- **Hover summary subtitle** (this commit). DescriptorBuilder
+  exports a `summary` field — first sentence of the entity's body,
+  ~140 chars, sentence-boundary-aware truncation with ellipsis
+  fallback. The renderer's `HudLabel` gains an optional subtitle
+  element that's hidden by default; `WorldHud.setHoveredEntity(id)`
+  toggles it visible for the matching label. `PointerNavigator`
+  emits the hover-change event; `SceneManager` wires the callback
+  to the HUD. Per-bundle entity summaries appear under each entity
+  title only when that entity is the active hover target —
+  no clutter on non-hovered entities.
+
+- **Hover redesign** (c7cb08e). In-shader Fresnel glow via Three's
+  `onBeforeCompile`, no extra mesh in the scene. Per-OBJECT
+  hover (walks up to the SmartObject ancestor, glows the whole
+  entity coherently). Universal title-visibility gate — hover
+  only triggers when the entity's HUD title label is currently
+  rendering. Iteration history kept in the commit message
+  (back-face hull → diagnostic sphere → sibling Fresnel sphere →
+  bounding-sphere Fresnel → in-shader Fresnel).
+
+- **Idle-reset on mouse-move** (e5a260f). Plain pointermove resets
+  `CameraController.idleTimer`. Distinct from
+  `setUserInteracting(true)` which suppresses settle detection
+  for active drag-orbit gestures. The 3-second idle drift winds
+  down smoothly when the user moves the mouse, restarts when they
+  stop.
+
+- **`card` view-mode** (448ee44). Dedicated Drupal view-mode for
+  the FullView modal — comments + login prompts hidden at the
+  view-display layer, not via client-side CSS. Three new
+  per-bundle view-displays
+  (`core.entity_view_display.node.{article,profile,event}.card.yml`).
+  CardController fetches `/world/card/<type>/<id>/card` for the
+  modal content.
+
+- **FullView modal polish** (b0075fc). Title restored as `<h2>` at
+  modal top; comments / byline hidden via scoped style block.
+
+- **WorldHud + Information-LOD activities A/B/C** (1e65505 +
+  d80a9b4). Region labels at overview (Activity A), per-entity
+  title spray at sector vantage (Activity B), one-click to
+  FullView for in-sector entities (Activity C, context-aware).
+
+- **DescriptorBuilder + Entity + adaptSnapshot three-layer
+  pattern**. Each new descriptor field needs DescriptorBuilder
+  + Entity TS type + SceneManager.adaptSnapshot to surface in
+  the renderer. Documented as battle-scar P1 in
+  `docs/BATTLE_SCARS.md`.
+
+- **`asset` + `pack` content types** (4aab257 + 6b81ba3 + d63fb80).
+  Two-bundle prop catalog model — pack (acquisition unit) +
+  asset (use unit). 23-entry CANDIDATES.md shortlist materialized
+  as 15 packs + 17 assets in Drupal.
+
+- **Corpus enrichment** (205c440). atlas_coffee from 20 → 24
+  entries with deliberately uneven per-sector mixes (Sierra Madre
+  6 / Antigua 5 / Cauca 5 / Boquete 4 / Tarrazú 4).
+
+- **v0.3.0 — Profiles + Events ship** (1796b6f). SmartObject
+  abstraction proves out across bundles: forest atmosphere
+  renders article trees, profile spirits, and event totems as
+  distinct silhouettes.
+
+- **BATTLE_SCARS.md** (c7caace). Indexed reference doc of bugs
+  that bit, with diagnoses and fixes, organised by category.
+
 ### Changed (v0.2.x — config-scaffold consolidation; UE5-meta defaults)
 
 Carlos's directive: remove all `hook_update_N`, condense floating

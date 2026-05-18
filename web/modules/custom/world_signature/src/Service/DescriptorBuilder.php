@@ -25,6 +25,7 @@ final class DescriptorBuilder {
    * @return array{
    *   _id: string,
    *   title: string,
+   *   summary: string,
    *   type: string,
    *   embeddingText: string,
    *   signature: array,
@@ -53,6 +54,11 @@ final class DescriptorBuilder {
       // before; exposing it as its own field is cheap and removes
       // the renderer's need to parse the concatenated text.
       'title' => (string) ($entity->label() ?? ''),
+      // v0.4 hover subtitle: first sentence of body as a one-line
+      // teaser. Surfaced by the renderer when the entity is
+      // hovered. Generated server-side so the renderer doesn't
+      // have to parse / truncate per pointermove.
+      'summary' => $this->extractSummary($facts->bodyText, 140),
       'type' => sprintf('%s:%s', $facts->entityType, $facts->bundle),
       'embeddingText' => $this->embeddingText($entity, $facts),
       'signature' => $signature->toArray(),
@@ -64,6 +70,45 @@ final class DescriptorBuilder {
       'changedAt' => max($facts->createdAt, $facts->changedAt),
       'cards' => $metaphor->cards($entity),
     ];
+  }
+
+  /**
+   * First-sentence summary of the body, truncated to ~$maxLen
+   * characters. Picks the last sentence terminator within the
+   * window; falls back to a hard truncation with ellipsis when
+   * no sentence break exists in range.
+   *
+   * Used by the renderer's hover subtitle on entity title labels.
+   */
+  private function extractSummary(string $bodyText, int $maxLen): string {
+    $text = trim($bodyText);
+    if ($text === '') {
+      return '';
+    }
+    // Collapse internal whitespace (newlines + tabs) to single
+    // spaces — the subtitle is a one-line teaser.
+    $text = (string) preg_replace('/\s+/', ' ', $text);
+    if (mb_strlen($text) <= $maxLen) {
+      return $text;
+    }
+    $window = mb_substr($text, 0, $maxLen);
+    // Last sentence terminator inside the window.
+    $candidates = [];
+    foreach (['.', '!', '?'] as $term) {
+      $pos = mb_strrpos($window, $term);
+      if ($pos !== FALSE) {
+        $candidates[] = $pos;
+      }
+    }
+    if ($candidates !== [] && max($candidates) > $maxLen * 0.4) {
+      return mb_substr($text, 0, max($candidates) + 1);
+    }
+    // No sentence break in range — hard cut at last word boundary.
+    $lastSpace = mb_strrpos($window, ' ');
+    $cut = ($lastSpace !== FALSE && $lastSpace > $maxLen * 0.4)
+      ? $lastSpace
+      : $maxLen;
+    return mb_substr($text, 0, $cut) . '…';
   }
 
   /**

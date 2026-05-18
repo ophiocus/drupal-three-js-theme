@@ -32,6 +32,13 @@ interface NavigatorOptions {
   cardController: CardController;
   cameraController: CameraController;
   snapshot: CorpusSnapshot;
+  /**
+   * Hover-change callback. Fires with an entityId when the user
+   * starts hovering an eligible entity body / trigger pad; fires
+   * with null when the hover clears. SceneManager wires this to
+   * WorldHud.setHoveredEntity for subtitle reveal.
+   */
+  onHoverChange?: (entityId: string | null) => void;
 }
 
 /** Click vs drag thresholds. */
@@ -344,12 +351,19 @@ export class PointerNavigator {
     this.silhouette.set(hoverTarget);
     this.hovered = mesh;
     document.body.style.cursor = "pointer";
+
+    // Notify any subscriber (typically WorldHud, for subtitle reveal).
+    const entityId = mesh.userData.entityId;
+    if (entityId) {
+      this.options.onHoverChange?.(String(entityId));
+    }
   }
 
   private clearHover(): void {
     this.silhouette.clear();
     this.hovered = null;
     document.body.style.cursor = "";
+    this.options.onHoverChange?.(null);
   }
 
   // ─── Util ────────────────────────────────────────────────────────────────

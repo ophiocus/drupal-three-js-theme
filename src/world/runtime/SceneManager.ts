@@ -37,6 +37,7 @@ interface DescriptorShape {
   _id: string;
   type: string;
   title?: string;
+  summary?: string;
   sector?: string;
   sectorTermIds?: string[];
   signature?: unknown;
@@ -267,6 +268,12 @@ export class SceneManager {
       cardController: this.cardController,
       cameraController: this.cameraController,
       snapshot: snap,
+      // v0.4: hover-driven subtitle reveal. PointerNavigator emits
+      // an entityId on hover start / null on clear; WorldHud finds
+      // the matching label and toggles its subtitle.
+      onHoverChange: (entityId) => {
+        this.worldHud?.setHoveredEntity(entityId);
+      },
     });
     // Sprint 6b: region biomes. Each sector contributes a tonal
     // overlay weighted by inverse-square distance from the camera's
@@ -586,6 +593,13 @@ export class SceneManager {
           wp.z,
         ),
         text: title,
+        // v0.4 hover subtitle: first-sentence body summary shown
+        // only when this entity is the current hover target (HUD
+        // toggles it via setHoveredEntity). Empty on legacy
+        // snapshots; WorldHud skips creating the subtitle node.
+        subtitle: entity.summary,
+        // Keyed for hover-driven subtitle reveal.
+        entityId: entity.id,
         className: "world-hud__entity-label",
         visibleIf: (camera) => {
           const y = camera.position.y;
@@ -725,6 +739,11 @@ export class SceneManager {
         // (pre-v0.4 publish runs) — falls through cleanly because
         // the label loop short-circuits on empty.
         title: d.title ?? "",
+        // First-sentence summary shown as subtitle on hover. Same
+        // contract as `title` — present on v0.4+ descriptors, empty
+        // on legacy. (Battle-scar P1: every new descriptor field
+        // needs DescriptorBuilder + Entity type + adaptSnapshot.)
+        summary: d.summary ?? "",
       };
     }
     return {

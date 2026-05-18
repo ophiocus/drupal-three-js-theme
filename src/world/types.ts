@@ -59,6 +59,10 @@ export interface Entity {
   // Activity B). Empty for legacy snapshots before the
   // DescriptorBuilder exposed it as a top-level field.
   title?: string;
+  // First-sentence body summary (~140 chars). Surfaced as a hover
+  // subtitle on the entity's title label. Empty for legacy
+  // snapshots from before DescriptorBuilder.extractSummary.
+  summary?: string;
 }
 
 export interface WorldConstants {
