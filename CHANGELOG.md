@@ -15,6 +15,17 @@ substantial hover / FullView polish that surfaced as it went.
 
 What landed in v0.4 so far (latest first):
 
+- **3D recentre via lateral camera shift, not setViewOffset**
+  (64c9fd8). User noticed the v0.4 modal-recentre was distorting
+  FOV proportions — `setViewOffset(W*2, H, 0, 0, W, H)` narrows
+  the horizontal frustum without narrowing the canvas, so
+  everything stretches horizontally. Replaced with parallax: move
+  the camera laterally (along its right vector, negative) by
+  `closeUpDistance * 0.5`. Same geometry, same FOV, same pixel
+  scale; the entity shifts into the right half of the canvas.
+  Camera position stashed pre-shift and restored on modal close
+  so the world recenters cleanly.
+
 - **Modal left-align + 3D pivot recentre** (ccf9a73). FullView
   modal anchors to the left half of the canvas (max-width
   min(760px, 48vw)) with a translucent paper backdrop; the
