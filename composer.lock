@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "6eed17bb5a6bbf94930160c40626f979",
+    "content-hash": "1f918b4a6c682db651ccc5e0e9cde820",
     "packages": [
         {
             "name": "asm89/stack-cors",
@@ -3235,6 +3235,37 @@
                 }
             ],
             "time": "2026-04-19T20:35:01+00:00"
+        },
+        {
+            "name": "ophiocus/threed_assets",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/ophiocus/threed_assets.git",
+                "reference": "cb074a7d77ba3552110c70fca98db728c83b23af"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/ophiocus/threed_assets/zipball/cb074a7d77ba3552110c70fca98db728c83b23af",
+                "reference": "cb074a7d77ba3552110c70fca98db728c83b23af",
+                "shasum": ""
+            },
+            "require": {
+                "drupal/core": "^11",
+                "php": ">=8.3"
+            },
+            "default-branch": true,
+            "type": "drupal-module",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "description": "Drupal-aware 3D/WebGL asset manager: models, textures, HDRIs and audio as first-class media with LOD variants and a normalized descriptor for three.js front-ends.",
+            "homepage": "https://github.com/ophiocus/threed_assets",
+            "support": {
+                "source": "https://github.com/ophiocus/threed_assets/tree/master",
+                "issues": "https://github.com/ophiocus/threed_assets/issues"
+            },
+            "time": "2026-05-23T06:59:44+00:00"
         },
         {
             "name": "pear/archive_tar",
@@ -13516,7 +13547,9 @@
     ],
     "aliases": [],
     "minimum-stability": "dev",
-    "stability-flags": {},
+    "stability-flags": {
+        "ophiocus/threed_assets": 20
+    },
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {},

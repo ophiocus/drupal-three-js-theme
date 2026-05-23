@@ -6,6 +6,11 @@
     "homepage": "https://github.com/ophiocus/drupal-three-js-theme",
     "repositories": [
         {
+            "name": "threed_assets",
+            "type": "vcs",
+            "url": "https://github.com/ophiocus/threed_assets"
+        },
+        {
             "type": "composer",
             "url": "https://packages.drupal.org/8"
         }
@@ -23,7 +28,8 @@
         "drupal/migrate_plus": "^6.0",
         "drupal/migrate_tools": "^6.0",
         "drupal/paragraphs": "^1.20",
-        "drush/drush": "^13.7"
+        "drush/drush": "^13.7",
+        "ophiocus/threed_assets": "dev-master"
     },
     "require-dev": {
         "drupal/core-dev": "^11.3",
