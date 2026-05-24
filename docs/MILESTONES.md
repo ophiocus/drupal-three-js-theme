@@ -198,11 +198,11 @@ running them interchangeably on the same install.
 - **Per-property atmosphere binding** — today the active atmosphere is one
   global field on the active World node; a property-scoped binding makes
   two installs wear two skins.
-- **Atmosphere-switch UX** — a HUD preview toggle (client-only, no node
-  write) + an animated crossfade (fade to palette bg → rebuild → fade in).
-  The client already sends a `?atmosphere=` hint `switchAtmosphere` could
-  use once the publisher honors it read-only. This is v2 in the
-  world-switcher doc.
+- **Atmosphere-switch UX** — the in-world HUD preview toggle
+  (`AtmosphereSwitcher`, client-only, no node write) ships, backed by the
+  read-only `?atmosphere=` snapshot hint. Remaining polish: an animated
+  crossfade (fade to palette bg → rebuild → fade in) and per-atmosphere
+  audio. This is the v2 tail in the world-switcher doc.
 
 ---
 

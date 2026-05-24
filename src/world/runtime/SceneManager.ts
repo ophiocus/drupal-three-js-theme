@@ -27,6 +27,7 @@ import { FLOOR_LAYERS } from "./floor-layers.js";
 import { sectorPadDecal } from "./sector-pad-texture.js";
 import { vantage } from "../vantage.js";
 import { WorldHud, type HudLabel } from "./hud/WorldHud.js";
+import { AtmosphereSwitcher } from "./hud/AtmosphereSwitcher.js";
 
 interface BootOptions {
   snapshotUrl: string;
@@ -168,6 +169,14 @@ export class SceneManager {
   private entityLabels: HudLabel[] = [];
   /** Compass letter labels — held so teardown can clear them too. */
   private compassLabels: HudLabel[] = [];
+  /**
+   * v2 world switcher: in-world skin toggle. Chrome, NOT world content
+   * — created once in mount() and survives a switch (buildScene/teardown
+   * never touch it).
+   */
+  private atmosphereSwitcher: AtmosphereSwitcher | null = null;
+  /** Re-entrancy guard: a switch in flight ignores further switch calls. */
+  private switching = false;
 
   constructor(private readonly canvas: HTMLCanvasElement) {
     this.renderer = new THREE.WebGLRenderer({
@@ -227,6 +236,7 @@ export class SceneManager {
       await this.buildScene(loader);
       // Start the render loop only after the scene is fully built.
       this.refreshLoopState();
+      this.ensureAtmosphereSwitcher();
       await loader.hide();
     } catch (err) {
       loader.setMessage("world failed to load");
@@ -395,6 +405,12 @@ export class SceneManager {
       console.warn("[world] switchAtmosphere() before mount(); ignoring.");
       return;
     }
+    if (this.switching) {
+      console.info("[world] switch already in flight; ignoring re-entrant call.");
+      return;
+    }
+    this.switching = true;
+    this.atmosphereSwitcher?.setBusy(true);
     // Pause the loop for the teardown / rebuild window. (The loop body
     // is fully optional-chained, so a stray focus event re-starting it
     // mid-rebuild renders an empty—loader-covered—scene without error.)
@@ -422,6 +438,7 @@ export class SceneManager {
       await this.buildScene(loader);
       this.camera.position.copy(stashedPos);
       this.refreshLoopState();
+      this.atmosphereSwitcher?.setActive(this.palette.activeAtmosphere ?? "none");
       await loader.hide();
       const mem = this.renderer.info.memory;
       console.info(
@@ -435,6 +452,9 @@ export class SceneManager {
       // on a frozen world.
       this.refreshLoopState();
       throw err;
+    } finally {
+      this.switching = false;
+      this.atmosphereSwitcher?.setBusy(false);
     }
   }
 
@@ -516,6 +536,32 @@ export class SceneManager {
   private withQuery(url: string, key: string, value: string): string {
     const sep = url.includes("?") ? "&" : "?";
     return `${url}${sep}${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
+  }
+
+  /**
+   * Create the in-world atmosphere toggle once (idempotent). It's chrome
+   * that survives switches — buildScene/teardown never touch it. Offers
+   * the two real skins; "none" (the UE5 blockout) stays reachable via
+   * drush / the URL hint but isn't a casual preview button. Clicking a
+   * skin calls switchAtmosphere(name), which previews it via the
+   * read-only ?atmosphere= hint (no node write).
+   */
+  private ensureAtmosphereSwitcher(): void {
+    const active = this.palette.activeAtmosphere ?? "none";
+    if (this.atmosphereSwitcher) {
+      this.atmosphereSwitcher.setActive(active);
+      return;
+    }
+    this.atmosphereSwitcher = new AtmosphereSwitcher({
+      atmospheres: [
+        { name: "forest", label: "Forest" },
+        { name: "inner-mind", label: "Inner mind" },
+      ],
+      initial: active,
+      onSelect: (name) => {
+        void this.switchAtmosphere(name);
+      },
+    });
   }
 
   setMode(mode: Mode): void {

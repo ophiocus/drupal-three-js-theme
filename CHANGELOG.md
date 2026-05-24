@@ -15,6 +15,19 @@ substantial hover / FullView polish that surfaced as it went.
 
 What landed in v0.4 so far (latest first):
 
+- **World switcher v2 (start): in-world HUD atmosphere toggle.**
+  `AtmosphereSwitcher` (`src/world/runtime/hud/AtmosphereSwitcher.ts`) —
+  a small bottom-center pill (Forest / Inner mind) that flips the skin
+  live via `switchAtmosphere(name)` (the read-only `?atmosphere=` preview
+  hint — no node write, so it's a per-client preview, not a global edit).
+  Pure DOM, zero deps; highlights the active skin; it's chrome that
+  survives a switch (created once in `mount`, never torn down by
+  `buildScene`/teardown). Added a re-entrancy guard (`switching` flag +
+  `setBusy`) so a mid-flight click can't stack switches. Verified
+  in-browser: clicking Forest flips inner-mind → forest with no drush,
+  button highlight tracks the active skin. Animated crossfade is the
+  remaining v2 polish.
+
 - **World switcher v1.5 — live in-place atmosphere flip (no reload).**
   `SceneManager.switchAtmosphere(name?)` tears the world down to the
   surviving renderer/scene/camera, re-fetches the snapshot
