@@ -86,6 +86,14 @@ export class CameraController {
   /** Canonical vantage position before drift. Drag-orbit moves this. */
   private readonly baseTargetPos = new THREE.Vector3();
   private readonly targetLook = new THREE.Vector3();
+  /**
+   * Interpretation engine: when set, the look target (and drag-orbit
+   * pivot) is pinned to this world point every frame, overriding the
+   * vantage's lookAt. inner-mind sets it to the entity mass centre so
+   * the camera frames the floating 3D cloud rather than the ground
+   * origin. null = normal vantage-driven look.
+   */
+  private focusOverride: THREE.Vector3 | null = null;
   private readonly lastPos = new THREE.Vector3();
   // Spherical coords of baseTargetPos relative to targetLook —
   // makes drag-orbit a simple azimuth/polar/radius mutation.
@@ -177,6 +185,14 @@ export class CameraController {
       this.targetPos.copy(this.baseTargetPos);
     }
 
+    // 0.4. Focus override (interpretation engine). Pin the look target —
+    // and thus the drag-orbit pivot — to the entity mass centre each
+    // frame, overriding whatever vantage seeding set. inner-mind aims at
+    // its floating 3D cloud rather than the world origin.
+    if (this.focusOverride) {
+      this.targetLook.copy(this.focusOverride);
+    }
+
     // 0.5. Viewport-axis shift (reading-mode parallax). Applied to
     // targetPos rather than camera.position so the damp converges
     // to the SHIFTED target — direct-writes to camera.position
@@ -251,8 +267,32 @@ export class CameraController {
   setTarget(vantage: Vantage): void {
     this.targetVantage = vantage;
     this.syncTargetVectors();
+    // Re-apply a focus override after a vantage change clobbers targetLook,
+    // so inner-mind keeps framing the mass centre across URL settles.
+    if (this.focusOverride) {
+      this.targetLook.copy(this.focusOverride);
+      this.syncBaseFromOrbit();
+    }
     // Don't reset settleTimer here — motion will rise above threshold
     // naturally on the next frame's damp, which resets the timer.
+  }
+
+  /**
+   * Pin (or clear) the camera's focus point (interpretation engine). When
+   * set, the look target and drag-orbit pivot track this world point
+   * regardless of vantage — inner-mind uses it to centre on the entity
+   * mass centre. Re-derives the orbit spherical state so a subsequent
+   * drag pivots smoothly around the new centre.
+   */
+  setFocusOverride(point: { x: number; y: number; z: number } | null): void {
+    if (point) {
+      if (!this.focusOverride) this.focusOverride = new THREE.Vector3();
+      this.focusOverride.set(point.x, point.y, point.z);
+      this.targetLook.copy(this.focusOverride);
+      this.syncBaseFromOrbit();
+    } else {
+      this.focusOverride = null;
+    }
   }
 
   /**

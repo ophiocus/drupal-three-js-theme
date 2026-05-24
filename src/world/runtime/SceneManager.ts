@@ -389,6 +389,10 @@ export class SceneManager {
       );
     }
     await this.placeEntities(loader);
+    // Interpretation engine: when the atmosphere supplies its own 3D
+    // layout, aim the camera at the entity mass centre (not the world
+    // origin) so the floating cloud is framed. Cleared otherwise.
+    this.cameraController?.setFocusOverride(this.atmosphereLayoutCentroid());
     console.info(
       `[world] built: ${Object.keys(this.snapshot.entities).length} entities ` +
         `across ${Object.keys(this.snapshot.sectors).length} sectors, ` +
@@ -560,6 +564,24 @@ export class SceneManager {
   private withQuery(url: string, key: string, value: string): string {
     const sep = url.includes("?") ? "&" : "?";
     return `${url}${sep}${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
+  }
+
+  /**
+   * Mass centre of the active atmosphere's 3D layout (interpretation
+   * engine), or null when there's no atmosphere layout. The camera
+   * focuses here so a floating cloud is framed, not the ground origin.
+   */
+  private atmosphereLayoutCentroid(): Vec3 | null {
+    const layout = this.atmosphereLayout;
+    if (!layout || layout.size === 0) return null;
+    let x = 0, y = 0, z = 0;
+    for (const p of layout.values()) {
+      x += p.x;
+      y += p.y;
+      z += p.z;
+    }
+    const n = layout.size;
+    return { x: x / n, y: y / n, z: z / n };
   }
 
   /**
