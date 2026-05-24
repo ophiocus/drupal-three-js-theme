@@ -28,6 +28,8 @@ import { sectorPadDecal } from "./sector-pad-texture.js";
 import { vantage } from "../vantage.js";
 import { WorldHud, type HudLabel } from "./hud/WorldHud.js";
 import { AtmosphereSwitcher } from "./hud/AtmosphereSwitcher.js";
+import { CrossfadeOverlay } from "./hud/CrossfadeOverlay.js";
+import { AtmosphereAudio } from "./AtmosphereAudio.js";
 
 interface BootOptions {
   snapshotUrl: string;
@@ -175,6 +177,11 @@ export class SceneManager {
    * never touch it).
    */
   private atmosphereSwitcher: AtmosphereSwitcher | null = null;
+  /**
+   * Procedural per-atmosphere ambient audio. Created with the switcher;
+   * silent until the user flips the sound toggle (autoplay etiquette).
+   */
+  private audio: AtmosphereAudio | null = null;
   /** Re-entrancy guard: a switch in flight ignores further switch calls. */
   private switching = false;
 
@@ -257,13 +264,13 @@ export class SceneManager {
   private async fetchSnapshot(
     url: string,
     noStore: boolean,
-    loader: LoaderOverlay,
+    loader?: LoaderOverlay,
   ): Promise<void> {
     const init: RequestInit = { headers: { Accept: "application/json" } };
     if (noStore) init.cache = "no-store";
     const response = await fetch(url, init);
     if (!response.ok) {
-      loader.setMessage(`snapshot fetch failed: HTTP ${response.status}`);
+      loader?.setMessage(`snapshot fetch failed: HTTP ${response.status}`);
       throw new Error(`snapshot fetch failed: HTTP ${response.status}`);
     }
     const raw = (await response.json()) as RawSnapshot;
@@ -286,7 +293,7 @@ export class SceneManager {
    * it after the first build; switchAtmosphere() resumes it after the
    * camera pose is restored.
    */
-  private async buildScene(loader: LoaderOverlay): Promise<void> {
+  private async buildScene(loader?: LoaderOverlay): Promise<void> {
     if (!this.snapshot) return;
 
     // The disposable seam. One group holds every mount/atmosphere-time
@@ -306,7 +313,7 @@ export class SceneManager {
     this.registry = new SmartObjectRegistry(new FallbackBuilder());
     const atmosphere = this.palette.activeAtmosphere;
     if (atmosphere && atmosphere !== "none") {
-      loader.setMessage(`loading ${atmosphere} atmosphere`);
+      loader?.setMessage(`loading ${atmosphere} atmosphere`);
       await this.registerAtmosphere(atmosphere);
     }
     this.registry.register(new ArticleBuilder());
@@ -413,7 +420,7 @@ export class SceneManager {
     this.atmosphereSwitcher?.setBusy(true);
     // Pause the loop for the teardown / rebuild window. (The loop body
     // is fully optional-chained, so a stray focus event re-starting it
-    // mid-rebuild renders an empty—loader-covered—scene without error.)
+    // mid-rebuild renders behind the crossfade cover without error.)
     this.renderer.setAnimationLoop(null);
     this.loopRunning = false;
 
@@ -422,34 +429,43 @@ export class SceneManager {
     // restoring position avoids a dolly while the look-target damps.
     const stashedPos = this.camera.position.clone();
 
-    const loader = new LoaderOverlay({
-      title: "Shifting the world",
-      message: name ? `switching to ${name}` : "switching atmosphere",
-      namespace: "world-loader",
+    // v2 polish: a palette crossfade in place of the loader's hard cut —
+    // fade the world out to the OUTGOING palette background, rebuild
+    // behind the cover, then fade in on the new skin.
+    const fade = new CrossfadeOverlay({
+      color: this.palette.background,
+      namespace: "world-crossfade",
     });
 
     try {
+      await fade.cover();
       this.teardownScene();
       const url = name
         ? this.withQuery(this.snapshotUrl, "atmosphere", name)
         : this.snapshotUrl;
-      await this.fetchSnapshot(url, true, loader);
-      loader.setMessage("assembling entities");
-      await this.buildScene(loader);
+      await this.fetchSnapshot(url, true);
+      await this.buildScene();
       this.camera.position.copy(stashedPos);
-      this.refreshLoopState();
+      // Recolour the cover to the INCOMING palette (invisible swap while
+      // opaque), update the toggle highlight, resume the loop, and paint
+      // one frame of the new scene under the cover so the reveal shows
+      // the world even if the loop is paused (tab defocused).
+      fade.setColor(this.palette.background);
       this.atmosphereSwitcher?.setActive(this.palette.activeAtmosphere ?? "none");
-      await loader.hide();
+      this.audio?.setAtmosphere(this.palette.activeAtmosphere ?? "none");
+      this.refreshLoopState();
+      this.renderer.render(this.scene, this.camera);
+      await fade.reveal();
       const mem = this.renderer.info.memory;
       console.info(
         `[world] atmosphere switched → ${this.palette.activeAtmosphere ?? "none"} ` +
           `(mem: geometries=${mem.geometries}, textures=${mem.textures})`,
       );
     } catch (err) {
-      loader.setMessage("atmosphere switch failed");
-      setTimeout(() => loader.dispose(), 1500);
-      // Best-effort resume so a failed switch doesn't strand the user
-      // on a frozen world.
+      console.error("[world] atmosphere switch failed:", err);
+      // Best-effort: drop the cover + resume so a failed switch doesn't
+      // strand the user behind an opaque overlay on a frozen world.
+      fade.dispose();
       this.refreshLoopState();
       throw err;
     } finally {
@@ -552,6 +568,7 @@ export class SceneManager {
       this.atmosphereSwitcher.setActive(active);
       return;
     }
+    this.audio = new AtmosphereAudio();
     this.atmosphereSwitcher = new AtmosphereSwitcher({
       atmospheres: [
         { name: "forest", label: "Forest" },
@@ -560,6 +577,16 @@ export class SceneManager {
       initial: active,
       onSelect: (name) => {
         void this.switchAtmosphere(name);
+      },
+      // Ambient sound is off by default; the toggle click is the gesture
+      // that lets the Web Audio context start. Enabling plays the current
+      // skin's bed; switching crossfades it (see switchAtmosphere).
+      sound: {
+        initialOn: false,
+        onToggle: (on) => {
+          if (on) void this.audio?.enable(this.palette.activeAtmosphere ?? "none");
+          else this.audio?.disable();
+        },
       },
     });
   }

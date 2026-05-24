@@ -15,6 +15,24 @@ substantial hover / FullView polish that surfaced as it went.
 
 What landed in v0.4 so far (latest first):
 
+- **World switcher v2 polish (BETA 1): crossfade + per-atmosphere audio.**
+  `CrossfadeOverlay` (`src/world/runtime/hud/CrossfadeOverlay.ts`) replaces
+  the switch's loader hard-cut with a palette crossfade: fade the world out
+  to the outgoing palette background, rebuild behind the cover, recolour to
+  the incoming palette, force one frame, fade in. (`fetchSnapshot`/
+  `buildScene` loaders are now optional — mount keeps its progress gate, the
+  switch uses the crossfade.) `AtmosphereAudio`
+  (`src/world/runtime/AtmosphereAudio.ts`) adds procedural per-atmosphere
+  ambient beds — zero asset files, pure Web Audio: forest = noise→swept
+  lowpass (wind), inner-mind = detuned saw drones + octave shimmer under a
+  slow filter sweep. Opt-in via a ♪ toggle on the switcher (default off —
+  autoplay etiquette; the click is the gesture that starts the context);
+  beds crossfade on switch. Verified in-browser: Forest⇄Inner-mind flips
+  with a clean crossfade (overlay created → revealed → removed), audio
+  context runs and swaps beds, highlights track state. These are the BETA 1
+  switch-experience deliverables (the milestone's remaining work is the
+  real inner-mind design + per-property binding).
+
 - **World switcher v2 (start): in-world HUD atmosphere toggle.**
   `AtmosphereSwitcher` (`src/world/runtime/hud/AtmosphereSwitcher.ts`) —
   a small bottom-center pill (Forest / Inner mind) that flips the skin

@@ -25,6 +25,12 @@ export interface AtmosphereSwitcherOptions {
   initial: string;
   /** Invoked with the chosen atmosphere key when a button is clicked. */
   onSelect: (name: string) => void;
+  /**
+   * Optional ambient-sound toggle appended after the skins. `onToggle`
+   * fires on click with the new on/off state — and since the click is a
+   * user gesture, it's a valid moment to start a Web Audio context.
+   */
+  sound?: { initialOn: boolean; onToggle: (on: boolean) => void };
 }
 
 export class AtmosphereSwitcher {
@@ -72,6 +78,30 @@ export class AtmosphereSwitcher {
       });
       this.buttons.set(opt.name, btn);
       this.root.appendChild(btn);
+    }
+
+    // Optional ambient-sound toggle — a separator then a note glyph that
+    // highlights when sound is on. Click is a user gesture (lets Web
+    // Audio start). Default off, set by the caller.
+    if (options.sound) {
+      const sep = document.createElement("span");
+      sep.style.cssText =
+        "width:1px;align-self:stretch;margin:2px 2px;background:rgba(240,240,235,0.18)";
+      this.root.appendChild(sep);
+
+      let soundOn = options.sound.initialOn;
+      const sbtn = document.createElement("button");
+      sbtn.type = "button";
+      sbtn.textContent = "♪"; // musical note
+      sbtn.title = "Toggle ambient sound";
+      sbtn.setAttribute("aria-label", "Toggle ambient sound");
+      sbtn.style.cssText = this.buttonCss(soundOn);
+      sbtn.addEventListener("click", () => {
+        soundOn = !soundOn;
+        sbtn.style.cssText = this.buttonCss(soundOn);
+        options.sound!.onToggle(soundOn);
+      });
+      this.root.appendChild(sbtn);
     }
 
     document.body.appendChild(this.root);

@@ -131,9 +131,13 @@ preview that mutates global state for everyone is the wrong default.
 - **v1 (snap):** world-layer disposal refactor · `world:switch` ·
   `switchAtmosphere()` live teardown/rebuild · inner-mind stub · palette
   overlay · loader-covered hard cut · camera preserved. Fallback: reload.
-- **v2 (polish):** ✅ HUD preview toggle (`AtmosphereSwitcher`) · ⏳ animated
-  crossfade (fade scene to palette background → rebuild → fade in; **not** a
-  geometry morph — that's fantasy) · ⏳ per-atmosphere audio.
+- **v2 (polish):** ✅ HUD preview toggle (`AtmosphereSwitcher`) ·
+  ✅ animated crossfade (`CrossfadeOverlay` — fade to outgoing palette bg →
+  rebuild behind the cover → fade in on the new skin; **not** a geometry
+  morph) · ✅ per-atmosphere ambient audio (`AtmosphereAudio` — procedural
+  Web Audio, no asset files; forest wind bed / inner-mind drone, crossfaded
+  on switch, behind an opt-in sound toggle). Shipped under BETA 1
+  (2026-05-24).
 
 ## Risks
 
@@ -174,12 +178,14 @@ preview that mutates global state for everyone is the wrong default.
    `worldScene.switchAtmosphere()` flips in place; geometries return to
    baseline (100) across inner-mind ⇄ forest round-trips; textures bounded
    at 27; camera preserved.
-7. ✅ **(v2) HUD preview button** — `AtmosphereSwitcher` (bottom-center
-   pill: Forest / Inner mind) calls `switchAtmosphere(name)`, previewing
-   via the read-only `?atmosphere=` hint. Re-entrancy-guarded
-   (`switching` flag + `setBusy`), highlights the active skin, and is
-   chrome that survives switches (created once in `mount`, never torn
-   down). ⏳ Animated crossfade still pending.
+7. ✅ **(v2) HUD preview button + crossfade + audio** —
+   `AtmosphereSwitcher` (bottom-center pill: Forest / Inner mind / ♪ sound)
+   calls `switchAtmosphere(name)`, previewing via the read-only
+   `?atmosphere=` hint. Re-entrancy-guarded (`switching` flag + `setBusy`),
+   highlights the active skin, chrome that survives switches.
+   `CrossfadeOverlay` replaces the loader hard-cut with a palette
+   crossfade. `AtmosphereAudio` adds procedural per-skin ambient beds
+   (opt-in via the ♪ toggle), crossfaded on switch.
 
 ### Client `?atmosphere=` hint — SHIPPED (no-drush client flip)
 
