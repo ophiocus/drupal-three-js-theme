@@ -47,11 +47,41 @@ const CLICK_MAX_DURATION_MS = 200;
 /** Hover throttle — every Nth pointermove event runs a raycast. */
 const HOVER_RAYCAST_THROTTLE = 3;
 
+/**
+ * One active pointer's last-known state. Tracked by pointerId so
+ * we can:
+ *   - tell single-finger drag (1 entry) from pinch-zoom (2 entries)
+ *   - clean up correctly on pointerup / pointercancel
+ *   - compute pinch distance frame-to-frame
+ */
+interface PointerState {
+  x: number;
+  y: number;
+  /** Initial down-time, for click-vs-drag duration check. */
+  downTime: number;
+  /** Initial down position, for click-vs-drag distance check. */
+  downX: number;
+  downY: number;
+}
+
 export class PointerNavigator {
   private readonly raycaster = new THREE.Raycaster();
   private readonly pointerNdc = new THREE.Vector2();
-  private downAt: { x: number; y: number; time: number } | null = null;
+  /**
+   * All currently-active pointers keyed by pointerId. PointerEvents
+   * unify mouse / touch / pen — touch fingers each get their own
+   * pointerId, so multi-touch (pinch) reads as `>=2` entries here.
+   * The mouse + pen ALSO get a pointerId but in practice there's
+   * only one of them at a time.
+   */
+  private readonly activePointers = new Map<number, PointerState>();
   private dragging = false;
+  /**
+   * Previous frame's pinch distance, in pixels. Tracked when
+   * activePointers.size === 2 so we can emit a frame-to-frame
+   * zoom delta to CameraController.applyZoomDelta.
+   */
+  private lastPinchDistance: number | null = null;
   private hovered: THREE.Mesh | null = null;
   private hoverThrottleCounter = 0;
   // v0.4: silhouette outline replaces emissive-multiply hover.
@@ -61,10 +91,22 @@ export class PointerNavigator {
 
   constructor(private readonly options: NavigatorOptions) {
     const c = options.canvas;
+    // touch-action:none disables the browser's default touch
+    // gestures (pinch-zoom the page, drag-scroll, pull-to-refresh)
+    // on the canvas so pointer events fire freely for us to
+    // interpret as world-space gestures instead. Without this,
+    // a two-finger pinch on mobile zooms the *page*, not the camera.
+    c.style.touchAction = "none";
     c.addEventListener("pointerdown", this.onPointerDown);
     c.addEventListener("pointermove", this.onPointerMove);
     c.addEventListener("pointerup", this.onPointerUp);
+    c.addEventListener("pointercancel", this.onPointerUp);
     c.addEventListener("pointerleave", this.onPointerLeave);
+    // Wheel-zoom for desktop parity with mobile pinch-zoom. Both
+    // ultimately call cameraController.applyZoomDelta(). passive:false
+    // so we can preventDefault() and the page doesn't scroll while
+    // the user is zooming the world.
+    c.addEventListener("wheel", this.onWheel, { passive: false });
   }
 
   dispose(): void {
@@ -72,7 +114,9 @@ export class PointerNavigator {
     c.removeEventListener("pointerdown", this.onPointerDown);
     c.removeEventListener("pointermove", this.onPointerMove);
     c.removeEventListener("pointerup", this.onPointerUp);
+    c.removeEventListener("pointercancel", this.onPointerUp);
     c.removeEventListener("pointerleave", this.onPointerLeave);
+    c.removeEventListener("wheel", this.onWheel);
     this.clearHover();
     this.silhouette.dispose();
   }
@@ -80,24 +124,62 @@ export class PointerNavigator {
   // ─── Pointer events ──────────────────────────────────────────────────────
 
   private onPointerDown = (event: PointerEvent): void => {
-    this.downAt = { x: event.clientX, y: event.clientY, time: event.timeStamp };
-    this.dragging = false;
+    this.activePointers.set(event.pointerId, {
+      x: event.clientX,
+      y: event.clientY,
+      downTime: event.timeStamp,
+      downX: event.clientX,
+      downY: event.clientY,
+    });
+    // Capture the pointer so dragging beyond the canvas bounds
+    // still routes events here (especially on mobile where a
+    // finger easily leaves the visible canvas area mid-drag).
+    try {
+      this.options.canvas.setPointerCapture(event.pointerId);
+    } catch {
+      // Ignore — setPointerCapture can throw if the pointer has
+      // already been released between events.
+    }
+    // Two-finger pinch starting: seed the baseline distance so the
+    // next pointermove computes a delta from this frame.
+    if (this.activePointers.size === 2) {
+      this.lastPinchDistance = this.computePinchDistance();
+      // A pinch is an "interaction" — suppress settle so the URL
+      // doesn't get rewritten mid-zoom.
+      this.options.cameraController.setUserInteracting(true);
+      this.clearHover();
+    }
   };
 
   private onPointerMove = (event: PointerEvent): void => {
-    // Any mouse movement counts as "user is alive" — reset the
-    // idle-drift timer so the camera's sinusoidal idle motion
-    // doesn't kick in (or, if it has, winds back down). This is
-    // distinct from setUserInteracting(true) — that one is for
-    // active drag-orbit which also suppresses settle detection.
-    // Plain hover-over-the-canvas shouldn't change navigation
-    // semantics, just reset the "is the user idle?" countdown.
+    // Update the tracked position for this pointer first; pinch
+    // distance + drag deltas both read from the map.
+    const state = this.activePointers.get(event.pointerId);
+    if (state) {
+      state.x = event.clientX;
+      state.y = event.clientY;
+    }
+
+    // Mouse hover (no buttons pressed) counts as "user is alive" —
+    // reset the idle-drift timer. Plain hover-over-the-canvas
+    // isn't a navigation gesture, just a "still here" signal.
     this.options.cameraController.resetIdle();
 
-    // If a pointerdown is in progress, watch for the drag threshold.
-    if (this.downAt && !this.dragging) {
-      const dx = event.clientX - this.downAt.x;
-      const dy = event.clientY - this.downAt.y;
+    // ─── Two-finger pinch (mobile) ────────────────────────────────
+    if (this.activePointers.size === 2 && this.lastPinchDistance !== null) {
+      const dist = this.computePinchDistance();
+      // Sign convention: fingers spreading apart (dist grows) → zoom IN
+      // → applyZoomDelta receives a NEGATIVE pixel delta.
+      const deltaPixels = -(dist - this.lastPinchDistance);
+      this.options.cameraController.applyZoomDelta(deltaPixels);
+      this.lastPinchDistance = dist;
+      return;
+    }
+
+    // ─── Single-pointer drag (orbit) ──────────────────────────────
+    if (this.activePointers.size === 1 && state && !this.dragging) {
+      const dx = event.clientX - state.downX;
+      const dy = event.clientY - state.downY;
       if (Math.hypot(dx, dy) > CLICK_MAX_DISTANCE) {
         this.dragging = true;
         this.options.cameraController.setUserInteracting(true);
@@ -105,15 +187,17 @@ export class PointerNavigator {
       }
     }
     if (this.dragging) {
-      // Forward dx/dy deltas to the camera controller. We send the
-      // movementX/Y from the event so multi-frame drags accumulate.
+      // Forward dx/dy deltas to the camera controller. movementX/Y
+      // accumulates multi-frame drags naturally. Note: movementX/Y
+      // is 0 for the first move after capture on some browsers —
+      // not a problem because the next frame's value is correct.
       this.options.cameraController.applyDragDelta(
         event.movementX, event.movementY,
       );
       return;
     }
-    // Hover, throttled so a fast mouse doesn't run a raycast per
-    // pixel of motion.
+    // ─── Hover (mouse only — touch has no hover concept) ──────────
+    if (event.pointerType === "touch") return;
     this.hoverThrottleCounter = (this.hoverThrottleCounter + 1)
       % HOVER_RAYCAST_THROTTLE;
     if (this.hoverThrottleCounter !== 0) return;
@@ -121,30 +205,77 @@ export class PointerNavigator {
   };
 
   private onPointerUp = (event: PointerEvent): void => {
-    const down = this.downAt;
-    this.downAt = null;
+    const down = this.activePointers.get(event.pointerId);
+    this.activePointers.delete(event.pointerId);
+
+    // Pinch ending: clear the baseline so a fresh pinch later seeds
+    // from a new starting distance.
+    if (this.activePointers.size < 2) {
+      this.lastPinchDistance = null;
+    }
+    // If only one finger remains after a pinch, treat it as a
+    // fresh drag start (not a tap continuation) by resetting its
+    // baseline. Without this, lifting one finger while the other
+    // stays would immediately count as a click on release.
+    if (this.activePointers.size === 1) {
+      const remaining = this.activePointers.values().next().value;
+      if (remaining) {
+        remaining.downX = remaining.x;
+        remaining.downY = remaining.y;
+        remaining.downTime = event.timeStamp;
+      }
+    }
+
     if (this.dragging) {
-      this.dragging = false;
-      this.options.cameraController.setUserInteracting(false);
+      // Drag end: only when ALL pointers have lifted (a multi-touch
+      // can end with one finger still down).
+      if (this.activePointers.size === 0) {
+        this.dragging = false;
+        this.options.cameraController.setUserInteracting(false);
+      }
       return;
     }
-    if (!down) return;
-    const dx = event.clientX - down.x;
-    const dy = event.clientY - down.y;
-    const dt = event.timeStamp - down.time;
-    if (Math.hypot(dx, dy) > CLICK_MAX_DISTANCE) return;
-    if (dt > CLICK_MAX_DURATION_MS) return;
-    // Confirmed click.
-    this.handleClick(event);
+    // If no pointers remain and we never crossed the drag threshold,
+    // this is a tap/click candidate.
+    if (this.activePointers.size === 0 && down) {
+      const dx = event.clientX - down.downX;
+      const dy = event.clientY - down.downY;
+      const dt = event.timeStamp - down.downTime;
+      if (Math.hypot(dx, dy) > CLICK_MAX_DISTANCE) return;
+      if (dt > CLICK_MAX_DURATION_MS) return;
+      this.handleClick(event);
+    }
   };
 
-  private onPointerLeave = (): void => {
+  private onPointerLeave = (event: PointerEvent): void => {
+    // Don't drop tracked pointers on leave — pointer capture keeps
+    // them flowing through. Just clear the hover hint.
     this.clearHover();
-    if (this.dragging) {
-      this.dragging = false;
-      this.options.cameraController.setUserInteracting(false);
-    }
-    this.downAt = null;
+    void event;
+  };
+
+  /**
+   * Distance between the two active pointer positions. Caller
+   * must guarantee activePointers.size === 2.
+   */
+  private computePinchDistance(): number {
+    const iter = this.activePointers.values();
+    const a = iter.next().value!;
+    const b = iter.next().value!;
+    return Math.hypot(a.x - b.x, a.y - b.y);
+  }
+
+  private onWheel = (event: WheelEvent): void => {
+    // Prevent the page from scrolling while the user is zooming
+    // the world. The canvas owns wheel events when it's the target.
+    event.preventDefault();
+    // deltaY: positive = wheel scrolled DOWN (zoom OUT). The
+    // applyZoomDelta sign convention matches: positive = zoom out.
+    this.options.cameraController.applyZoomDelta(event.deltaY);
+    // Wheel events don't fire as "user interaction" the way pinch
+    // does (it's instantaneous), but bumping resetIdle keeps the
+    // idle timer at bay during scroll-zooming.
+    this.options.cameraController.resetIdle();
   };
 
   // ─── Click routing ───────────────────────────────────────────────────────
@@ -187,6 +318,21 @@ export class PointerNavigator {
         if (this.isEntityInCurrentSector(tag.entityId)) {
           this.options.cardController.openFullView(tag.entityId);
         } else {
+          // Far-click: fly to the entity. The settle handler in
+          // SceneManager.setUrlFromVantage triggers openFullView
+          // for detail vantages on arrival.
+          //
+          // v0.4-fix: also start the HTML prefetch the moment the
+          // user clicks, parallel with the camera fly. By the time
+          // settle fires applyFullView, the HTML is already in hand
+          // (or much closer to it). Combined with the overlay's
+          // skeleton-loader state, the modal-content transition
+          // reads as one smooth fly + skeleton + content-fade
+          // rather than fly → "Loading…" pop → instant content swap.
+          // CardController.prefetchEntity also flips the overlay
+          // to loading state IF already in reading mode, giving
+          // immediate click-feedback before the camera settles.
+          this.options.cardController.prefetchEntity(tag.entityId);
           this.options.cameraController.navigateTo(
             this.uriForEntity(tag.entityId),
           );

@@ -60,6 +60,15 @@ const DRAG_POLAR_SENSITIVITY = 0.004;
 const POLAR_MIN = 0.2;            // ~11° — almost overhead
 const POLAR_MAX = Math.PI / 2 - 0.1; // ~84° — just above horizon
 
+// Zoom configuration. applyZoomDelta(deltaPixels) multiplies the
+// orbit radius by exp(deltaPixels * ZOOM_SENSITIVITY). A pinch
+// spread of 100px or a wheel notch of ~100px gives ~exp(0.4) ≈
+// 1.5× radius — a perceptible but not jumpy step. Sign convention:
+// positive deltaPixels = zoom out (world recedes); negative = zoom in.
+const ZOOM_SENSITIVITY = 0.004;
+const ORBIT_RADIUS_MIN = 4;        // can't zoom past the entity into negative space
+const ORBIT_RADIUS_MAX = 600;      // can't zoom out so far the world becomes a dot
+
 // Idle drift configuration. After IDLE_THRESHOLD seconds of no
 // interaction and no in-flight motion, gentle sinusoidal
 // perturbation around baseTargetPos keeps the world feeling alive
@@ -89,6 +98,40 @@ export class CameraController {
   private lastReportedUri: string | null = null;
   private bloomedMesh: THREE.Object3D | null = null;
   private userInteracting = false;
+  /**
+   * Per-frame camera offset in viewport-axis units (x = canvas-X
+   * axis / camera-local right; y = canvas-Y axis / camera-local up).
+   *
+   * Reading mode populates this so the entity ends up out from
+   * under the modal:
+   *   - Desktop (modal anchored LEFT):   shift.x negative ⇒ camera
+   *     moves left ⇒ entity apparently moves right ⇒ visible in the
+   *     right half.
+   *   - Mobile  (modal anchored TOP):    shift.y positive ⇒ camera
+   *     moves up ⇒ entity apparently moves down ⇒ visible in the
+   *     bottom half.
+   *
+   * Applied per-frame in update() against the camera-local right
+   * + up vectors derived from (targetLook - targetPos). This means
+   * the shift direction tracks view orientation through drag-orbit
+   * and vantage transitions — no need to recompute on settle, no
+   * direct-write to camera.position that the damp would undo on
+   * the next frame.
+   *
+   * Two-axis design (instead of a single signed magnitude per axis)
+   * keeps the API symmetric across desktop / mobile and allows
+   * future compound shifts (e.g. corner-anchored modal) without
+   * another renaming pass.
+   */
+  private readonly viewportShift = new THREE.Vector2(0, 0);
+  /**
+   * When true, idle drift never starts (idleTimer stays at 0). Used
+   * by reading mode: the user's mouse is over the modal, not the
+   * canvas, so resetIdle() doesn't fire — without this gate, the
+   * camera would drift away from the framing they picked the moment
+   * they started reading.
+   */
+  private suppressIdleDrift = false;
   private readonly lambda: number;
   private readonly settleSeconds: number;
 
@@ -132,6 +175,39 @@ export class CameraController {
       );
     } else {
       this.targetPos.copy(this.baseTargetPos);
+    }
+
+    // 0.5. Viewport-axis shift (reading-mode parallax). Applied to
+    // targetPos rather than camera.position so the damp converges
+    // to the SHIFTED target — direct-writes to camera.position
+    // would be undone by the next frame's damp toward baseTargetPos.
+    //
+    // The shift basis is camera-local (right + up), recomputed each
+    // frame from the current view direction. Drag-orbiting rotates
+    // baseTargetPos around targetLook; the next frame recomputes
+    // right/up from the new orientation, so whichever axis the modal
+    // is anchored to (left on desktop → x; top on mobile → y) stays
+    // consistent through any camera motion.
+    if (this.viewportShift.lengthSq() > 1e-6) {
+      const forward = new THREE.Vector3()
+        .subVectors(this.targetLook, this.targetPos)
+        .normalize();
+      if (forward.lengthSq() > 1e-6) {
+        const right = new THREE.Vector3()
+          .crossVectors(forward, new THREE.Vector3(0, 1, 0))
+          .normalize();
+        if (right.lengthSq() > 1e-6) {
+          // True camera-local up = right × forward (right-handed
+          // basis). Using world-up here would make vertical shifts
+          // wander forward/back as the camera tilts; this keeps the
+          // shift in the canvas plane regardless of pitch.
+          const cameraUp = new THREE.Vector3()
+            .crossVectors(right, forward)
+            .normalize();
+          this.targetPos.addScaledVector(right, this.viewportShift.x);
+          this.targetPos.addScaledVector(cameraUp, this.viewportShift.y);
+        }
+      }
     }
 
     // 1. Damp position toward target.
@@ -234,6 +310,68 @@ export class CameraController {
   }
 
   /**
+   * Set the reading-mode viewport-axis parallax shift (world units,
+   * signed per axis).
+   *
+   *   x: positive  ⇒ camera moves right (entity apparently left)
+   *      negative  ⇒ camera moves left  (entity apparently right) — desktop modal
+   *   y: positive  ⇒ camera moves up    (entity apparently down)   — mobile modal
+   *      negative  ⇒ camera moves down  (entity apparently up)
+   *
+   * Owned by SceneManager.setMode("reading"/"exploration"). Applied
+   * each frame in camera-local basis so the canvas-X / canvas-Y
+   * axes stay stable through any camera motion.
+   */
+  setViewportShift(shift: { x: number; y: number }): void {
+    this.viewportShift.set(shift.x, shift.y);
+  }
+
+  /**
+   * Legacy single-axis API. Equivalent to setViewportShift({x: magnitude, y: 0}).
+   * Retained for one release while call sites migrate; mobile work
+   * uses setViewportShift() directly.
+   *
+   * @deprecated Use setViewportShift({x, y}) instead.
+   */
+  setLateralShiftMagnitude(magnitude: number): void {
+    this.viewportShift.set(magnitude, 0);
+  }
+
+  /**
+   * Zoom by adjusting the orbit radius. Positive delta = zoom out
+   * (radius grows); negative delta = zoom in. Magnitude is in
+   * "pixels-of-input" space; the internal scaling chooses a
+   * sensitivity that feels natural for both pinch fingers spreading
+   * apart (~hundreds of pixels) and wheel ticks (~tens of pixels).
+   *
+   * Clamped to [ORBIT_RADIUS_MIN, ORBIT_RADIUS_MAX] so the user can
+   * never zoom past the entity (into negative radius) or so far out
+   * that the world becomes a dot.
+   */
+  applyZoomDelta(deltaPixels: number): void {
+    const factor = Math.exp(deltaPixels * ZOOM_SENSITIVITY);
+    this.orbitRadius = THREE.MathUtils.clamp(
+      this.orbitRadius * factor,
+      ORBIT_RADIUS_MIN,
+      ORBIT_RADIUS_MAX,
+    );
+    this.syncBaseFromOrbit();
+  }
+
+  /**
+   * Toggle idle-drift suppression. Reading mode sets this true so
+   * the camera doesn't sinusoidally drift while the user reads —
+   * their mouse is over the modal, not the canvas, so the natural
+   * resetIdle() trigger doesn't fire.
+   *
+   * Owned by SceneManager.setMode("reading"/"exploration").
+   */
+  setIdleDriftSuppressed(suppressed: boolean): void {
+    this.suppressIdleDrift = suppressed;
+    if (suppressed) this.idleTimer = 0;
+  }
+
+  /**
    * Apply a pointer drag delta to the camera. Polar-constrained
    * orbit around the current vantage's lookAt point (Q2=b).
    *
@@ -326,7 +464,7 @@ export class CameraController {
    * interaction" gate is correct: drift IS the response to idle.
    */
   private updateIdleDriftState(dt: number): void {
-    if (this.userInteracting) {
+    if (this.userInteracting || this.suppressIdleDrift) {
       this.idleTimer = 0;
       return;
     }

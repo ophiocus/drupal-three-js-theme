@@ -188,11 +188,29 @@ export class CardController {
    * clicks a pad in the world. Drives the Hidden → Bloomed →
    * FullView progression for that entity, collapsing any other
    * card first (single-bloom invariant).
+   *
+   * v0.4-fix: when a FullView is already open, a pad click on a
+   * DIFFERENT entity jumps straight to FullView for that entity
+   * (skipping the Bloomed step — the user is in reading mode and
+   * wants the document, not the preview). A pad click on the
+   * SAME entity is a no-op (already showing).
+   *
+   * The earlier "if (this.fullViewRecord) return;" gate ("Overlay
+   * owns interaction") was a holdover from when the modal covered
+   * the whole canvas. The v0.4 modal covers only the left band, so
+   * pads on the right half MUST stay clickable for the user to
+   * browse between entities while reading.
    */
   activatePad(entityId: string): void {
-    if (this.fullViewRecord) return; // Overlay owns interaction.
     const record = this.cards.find((c) => c.entityId === entityId);
     if (!record) return;
+
+    if (this.fullViewRecord) {
+      if (this.fullViewRecord.entityId !== entityId) {
+        this.openFullView(entityId);
+      }
+      return;
+    }
 
     if (record.state === "hidden") {
       if (this.bloomedRecord && this.bloomedRecord !== record) {
@@ -297,9 +315,56 @@ export class CardController {
     }
   }
 
+  /**
+   * Single-slot prefetch cache. PointerNavigator calls
+   * prefetchEntity() when the user clicks a far entity in reading
+   * mode; the camera starts flying, the fetch fires in parallel,
+   * and by the time settle fires openFullView() the HTML is already
+   * in hand. The slot is replaced on each call — only the most
+   * recent prefetch matters; earlier in-flight fetches resolve and
+   * get ignored if they don't match the eventual fullViewRecord.
+   */
+  private prefetchSlot: {
+    entityId: string;
+    html: Promise<string>;
+  } | null = null;
+
+  /**
+   * Begin loading the entity's FullView HTML in advance of the
+   * camera arriving. Two effects:
+   *   1. The fetch starts immediately (parallel with the camera fly).
+   *   2. If a FullView is already open, the overlay flips to the
+   *      `loading` state — the user sees a steady skeleton
+   *      throughout the fly+fetch rather than the modal flickering
+   *      from old-content → "Loading…" → new-content on settle.
+   *
+   * Idempotent for the same entityId. Calling with a different
+   * entityId replaces the slot — any prior in-flight fetch is
+   * orphaned and its result discarded on resolution.
+   *
+   * Returns silently for unknown entityIds; PointerNavigator
+   * doesn't need to know whether a record is registered.
+   */
+  prefetchEntity(entityId: string): void {
+    if (this.prefetchSlot?.entityId === entityId) return;
+    const record = this.cards.find((c) => c.entityId === entityId);
+    if (!record) return;
+    const url = `/world/card/${record.entityType}/${record.numericId}/${this.fullViewMode}`;
+    this.prefetchSlot = { entityId, html: fetchCardHtml(url) };
+    if (this.fullViewRecord !== null) {
+      // Already in reading mode — give the user immediate "going
+      // somewhere new" feedback by swapping the overlay to its
+      // loading state. The current content slides to opacity 0,
+      // skeleton blocks pulse during the fly.
+      this.overlay.setState("loading");
+    }
+  }
+
   private async applyFullView(record: CardRecord): Promise<void> {
-    // Pause the engine first — even if the fetch is slow, the
-    // contract is "world stops the moment the user enters reading."
+    // v0.4-fix: keep the engine running — the right half of the
+    // canvas stays a navigable live world while the modal occupies
+    // the left band. setMode("reading") just configures the camera
+    // controller (lateral shift + idle suppression).
     this.options.setMode("reading");
     this.fullViewRecord = record;
     // The 3D surface mesh stays in the scene but recedes from
@@ -309,19 +374,39 @@ export class CardController {
       this.bloomedRecord = null;
       this.options.onBloomedMesh?.(null);
     }
-    this.overlay.show("<p>Loading…</p>");
+
+    // Resolve which fetch we're going to consume.
+    //   - prefetch slot matches this entity → reuse its promise
+    //     (likely already resolved or near-resolved — the camera
+    //     fly buys the fetch a head start).
+    //   - prefetch slot mismatched / empty → fresh fetch.
+    // Either way, show the loading state until the promise resolves.
+    let htmlPromise: Promise<string>;
+    if (this.prefetchSlot?.entityId === record.entityId) {
+      htmlPromise = this.prefetchSlot.html;
+    } else {
+      const url = `/world/card/${record.entityType}/${record.numericId}/${this.fullViewMode}`;
+      htmlPromise = fetchCardHtml(url);
+    }
+    // Clear the slot regardless — applyFullView is the consumer.
+    this.prefetchSlot = null;
+    // Show skeleton unless the overlay is already in loading or
+    // content state with content that matches. The simpler rule:
+    // always flip to loading on FullView entry; setContent's
+    // requestAnimationFrame dance fades content in cleanly even
+    // if the promise resolved before we got here.
+    this.overlay.setState("loading");
 
     try {
-      const url = `/world/card/${record.entityType}/${record.numericId}/${this.fullViewMode}`;
-      const html = await fetchCardHtml(url);
-      // Defensive: guard against the user closing during fetch.
+      const html = await htmlPromise;
+      // Defensive: guard against the user closing or switching during fetch.
       if (this.fullViewRecord === record) {
-        this.overlay.show(html);
+        this.overlay.setContent(html);
       }
     } catch (err) {
       console.warn(`[world] FullView fetch failed for ${record.entityId}:`, err);
       if (this.fullViewRecord === record) {
-        this.overlay.show(
+        this.overlay.setError(
           `<p>Could not load this article. <button data-card-close>Close</button></p>`,
         );
       }
@@ -414,46 +499,80 @@ export class CardController {
 // ─── DOM overlay ──────────────────────────────────────────────────────────
 
 /**
+ * Modal lifecycle state.
+ *
+ *   hidden  — root display:none; user not in reading mode.
+ *   loading — root visible; skeleton blocks pulse; content slot hidden.
+ *             Shown when:
+ *               (a) FullView entered with no prefetched HTML, OR
+ *               (b) prefetchEntity() called while a FullView is open
+ *                   (i.e., user clicked a far entity and a fly+swap
+ *                   is in flight).
+ *   content — root visible; content slot fades in (opacity 0→1, 220ms);
+ *             skeleton hidden.
+ *   error   — root visible; error message visible; content/skeleton hidden.
+ *
+ * The state machine eliminates the v0.4-fix-of-a-fix "instant
+ * content swap" jerk: the user sees a steady skeleton while the
+ * fetch is in flight rather than the modal flickering between
+ * "Loading…" plain-text and the article body. Especially valuable
+ * for far-click-while-reading where the camera flies for ~1s and
+ * the prefetch returns somewhere mid-flight.
+ */
+type OverlayState = "hidden" | "loading" | "content" | "error";
+
+/**
  * The FullView panel — a fixed-position fullscreen overlay with a
  * backdrop and a centered article container. Built once, mounted
- * to document.body, shown/hidden via CSS class. Listens for the
- * `[data-card-close]` button inside its content.
+ * to document.body, shown/hidden + state-transitioned via class.
+ * Listens for the `[data-card-close]` button inside its content.
  */
 class CardOverlay {
   private readonly root: HTMLDivElement;
   private readonly article: HTMLDivElement;
+  /** Content slot — innerHTML target for the fetched article. */
+  private readonly content: HTMLDivElement;
+  /** Skeleton — pulsing rectangles shown during loading. */
+  private readonly skeleton: HTMLDivElement;
+  /** Error message slot. */
+  private readonly errorEl: HTMLDivElement;
+  /** Close button. */
+  private readonly closeBtn: HTMLButtonElement;
+  private state: OverlayState = "hidden";
 
   constructor(private readonly onClose: () => void) {
     this.root = document.createElement("div");
     this.root.className = "world-card-overlay";
     this.root.setAttribute("aria-hidden", "true");
+    // Root layout: position/z/pointer rules are static. The anchor
+    // (flex direction + alignment) is responsive — see the
+    // <style> block below. Inline styles cover the universal bits;
+    // the stylesheet handles the desktop vs mobile split via
+    // media query.
     this.root.style.cssText = [
       "position:fixed",
       "inset:0",
-      // v0.4: dial back the backdrop so the right-half world view
-      // (where the entity has been recentered via the camera's
-      // setViewOffset) reads through. Was rgba(20,30,40,0.78) with
-      // blur 8px — fully obscured the world. Now: only the
-      // left-half-ish region carries the heavy backdrop via the
-      // article container's own background.
+      // v0.4: dial back the backdrop so the navigable half of the
+      // world (where the entity has been recentered via the camera's
+      // viewport shift) reads through. Only the modal article
+      // itself carries the heavy backdrop.
       "background:transparent",
-      "display:none",
-      "align-items:flex-start",
-      // v0.4: modal anchored to the left of the canvas; entity
-      // visible in the right half through the SceneManager's
-      // view-offset shift.
-      "justify-content:flex-start",
+      "display:none",   // toggled to "flex" via setState()
       "z-index:1000",
       "overflow:auto",
-      "padding:48px 24px",
-      // Pointer events only on the modal article itself; allow
-      // mouse-through to the canvas (right half) so users can drag
-      // the camera while reading.
+      // Pointer events only on the modal article itself; the rest
+      // of the root passes mouse/touch through to the canvas so
+      // users can drag/orbit while reading.
       "pointer-events:none",
     ].join(";");
 
     this.article = document.createElement("div");
     this.article.className = "world-card-overlay__article";
+    // Universal article styles (typography + chrome). Layout
+    // (max-width / max-height / which edge it anchors to) is
+    // CSS-class driven — see the .world-card-overlay rules in
+    // the <style> block, which respond to the MOBILE_BREAKPOINT_PX
+    // media query.
     this.article.style.cssText = [
       // Slightly translucent so the world behind the article shows
       // a hint through — feels less like a hard takeover.
@@ -461,12 +580,6 @@ class CardOverlay {
       "backdrop-filter:blur(12px)",
       "-webkit-backdrop-filter:blur(12px)",
       "color:#222",
-      // v0.4 layout: cap at the smaller of 760px or 48vw so the
-      // article sits in the left half and the right half stays
-      // a navigable world view.
-      "max-width:min(760px,48vw)",
-      "width:100%",
-      "padding:48px 56px",
       "border-radius:8px",
       "box-shadow:0 24px 48px rgba(0,0,0,0.32)",
       // v0.4 typography pass — Iowan Old Style / Hoefler Text /
@@ -501,11 +614,78 @@ class CardOverlay {
     //     prose; styling the first <p> elevates that anchor as the
     //     reader's first read.
     //
+    // Plus v0.4: skeleton-loader keyframes (pulse) + a content
+    // fade-in transition. Both live in the same style block so the
+    // article carries its own styles regardless of mount order.
+    //
     // When a field_event_date lands as a real field in a future
-    // v0.4.x, this CSS becomes redundant — the date renders as its
-    // own templated block above body.
+    // v0.4.x, the event-body first-line CSS becomes redundant —
+    // the date renders as its own templated block above body.
     const overlayStyle = document.createElement("style");
     overlayStyle.textContent = `
+      /* ─── Responsive layout ─────────────────────────────────────
+         The modal anchors to the side opposite the navigable half.
+         Desktop (≥768px): left-anchored, max-width:min(760px,48vw),
+                           camera shifts laterally → entity in right half.
+         Mobile  (<768px): top-anchored,  max-height:min(60vh,520px),
+                           camera shifts vertically → entity in bottom half.
+
+         Layout is decided by CSS media query so an orientation
+         flip on a tablet doesn't require JS to swap anchors —
+         the browser does it. SceneManager.resize() handles the
+         camera-shift axis swap on the same trigger. */
+      .world-card-overlay {
+        align-items: flex-start;
+        justify-content: flex-start;
+        padding: 48px 24px;
+      }
+      .world-card-overlay__article {
+        max-width: min(760px, 48vw);
+        width: 100%;
+        padding: 48px 56px;
+      }
+      @media (max-width: 767px) {
+        .world-card-overlay {
+          /* Mobile: stack from top, full width, the modal occupies
+             the upper band. flex-start on the cross axis still works
+             because the article is full-width. */
+          align-items: stretch;
+          padding: 24px 16px;
+        }
+        .world-card-overlay__article {
+          /* Cap height so the bottom half of the canvas remains
+             a navigable world. 60vh gives reading room on most
+             phones; the article scrolls internally if longer. */
+          max-width: 100%;
+          max-height: min(60vh, 520px);
+          width: 100%;
+          padding: 28px 24px;
+          overflow-y: auto;
+        }
+        .world-card-overlay__article .node__title {
+          font-size: 28px !important;
+          margin-bottom: 18px !important;
+        }
+      }
+      @keyframes world-card-skeleton-pulse {
+        0%,100% { opacity: 0.4; }
+        50%     { opacity: 0.85; }
+      }
+      .world-card-overlay__skeleton-block {
+        background: linear-gradient(90deg,
+          rgba(120,110,90,0.18) 0%,
+          rgba(120,110,90,0.32) 50%,
+          rgba(120,110,90,0.18) 100%);
+        border-radius: 4px;
+        animation: world-card-skeleton-pulse 1.4s ease-in-out infinite;
+      }
+      .world-card-overlay__content {
+        opacity: 0;
+        transition: opacity 220ms ease-out;
+      }
+      .world-card-overlay--state-content .world-card-overlay__content {
+        opacity: 1;
+      }
       .world-card-overlay__content .node__meta {
         display: none;
       }
@@ -528,15 +708,6 @@ class CardOverlay {
          event entity. Reads as the temporal anchor before the
          outcome text. */
       .world-card-overlay__content .node--type-event
-        .field--name-body > .field__item:first-line,
-      .world-card-overlay__content .node--type-event
-        .field--name-body > .field__item {
-        /* No reliable :first-line for arbitrary text breaks;
-           style the whole body container's first paragraph via
-           ::first-of-type instead — handled below for spec
-           compatibility. */
-      }
-      .world-card-overlay__content .node--type-event
         .field--name-body > .field__item::first-line {
         font-weight: 600;
         font-size: 1.15em;
@@ -552,12 +723,12 @@ class CardOverlay {
     `;
     this.article.appendChild(overlayStyle);
 
-    const closeBtn = document.createElement("button");
-    closeBtn.type = "button";
-    closeBtn.setAttribute("data-card-close", "");
-    closeBtn.setAttribute("aria-label", "Close article");
-    closeBtn.textContent = "×";
-    closeBtn.style.cssText = [
+    this.closeBtn = document.createElement("button");
+    this.closeBtn.type = "button";
+    this.closeBtn.setAttribute("data-card-close", "");
+    this.closeBtn.setAttribute("aria-label", "Close article");
+    this.closeBtn.textContent = "×";
+    this.closeBtn.style.cssText = [
       "position:absolute",
       "top:12px",
       "right:16px",
@@ -570,34 +741,129 @@ class CardOverlay {
       "padding:4px 12px",
     ].join(";");
 
-    const content = document.createElement("div");
-    content.className = "world-card-overlay__content";
+    // Skeleton: a stack of rectangles approximating
+    // <title> + <paragraph chunks> + a wider closing chunk. Visual
+    // analogue of "article-shaped placeholder" while content fetches.
+    // Authored as inline-styled divs rather than a separate <style>
+    // block because there are only six and the magic numbers are
+    // load-bearing for the article-shape silhouette.
+    this.skeleton = document.createElement("div");
+    this.skeleton.className = "world-card-overlay__skeleton";
+    this.skeleton.style.cssText = "display:none";
+    const skelDims: Array<{ h: number; w: string; mt: number }> = [
+      { h: 28, w: "70%", mt: 0 },    // title row 1
+      { h: 28, w: "55%", mt: 6 },    // title row 2
+      { h: 14, w: "100%", mt: 36 },  // body
+      { h: 14, w: "98%", mt: 12 },
+      { h: 14, w: "94%", mt: 12 },
+      { h: 14, w: "60%", mt: 12 },
+    ];
+    for (const dim of skelDims) {
+      const block = document.createElement("div");
+      block.className = "world-card-overlay__skeleton-block";
+      block.style.cssText = `height:${dim.h}px;width:${dim.w};margin-top:${dim.mt}px`;
+      this.skeleton.appendChild(block);
+    }
 
-    this.article.appendChild(closeBtn);
-    this.article.appendChild(content);
+    this.content = document.createElement("div");
+    this.content.className = "world-card-overlay__content";
+    this.content.style.cssText = "display:none";
+
+    this.errorEl = document.createElement("div");
+    this.errorEl.className = "world-card-overlay__error";
+    this.errorEl.style.cssText = [
+      "display:none",
+      "padding:24px 0",
+      "color:#7a3a2a",
+      "font-style:italic",
+    ].join(";");
+
+    this.article.appendChild(this.closeBtn);
+    this.article.appendChild(this.skeleton);
+    this.article.appendChild(this.content);
+    this.article.appendChild(this.errorEl);
     this.root.appendChild(this.article);
     document.body.appendChild(this.root);
 
-    // Click on backdrop OR on close button closes. Click inside the
-    // article (but not on the close button) does nothing.
+    // Click on close button closes. Backdrop-click was a v0.4-pre
+    // affordance that quietly stopped working when the root went
+    // pointer-events:none (target === root never fires); honest
+    // close paths are now the × button and Escape.
     this.root.addEventListener("click", (event) => {
       const target = event.target as HTMLElement;
-      if (target === this.root || target.closest("[data-card-close]")) {
+      if (target.closest("[data-card-close]")) {
         this.onClose();
       }
     });
   }
 
-  show(html: string): void {
-    const content = this.article.querySelector(".world-card-overlay__content");
-    if (content) content.innerHTML = html;
+  /**
+   * Transition the overlay to a new state. Idempotent — re-setting
+   * the same state re-applies the visibility flags. setContent /
+   * setError handle their own state transition; this method is
+   * for callers who want the loading state without yet having html.
+   */
+  setState(state: OverlayState): void {
+    this.state = state;
+    this.root.style.display = state === "hidden" ? "none" : "flex";
+    this.root.setAttribute("aria-hidden", state === "hidden" ? "true" : "false");
+    this.root.className = "world-card-overlay world-card-overlay--state-" + state;
+    this.skeleton.style.display = state === "loading" ? "block" : "none";
+    this.content.style.display = state === "content" ? "block" : "none";
+    this.errorEl.style.display = state === "error" ? "block" : "none";
+  }
+
+  /**
+   * Show HTML content with a fade-in transition. The opacity 0→1
+   * is driven by the .world-card-overlay--state-content class
+   * toggle on the root + the .world-card-overlay__content CSS rule
+   * (220ms ease-out). The two-step (display:block then class flip)
+   * ensures the transition actually fires; setting opacity on an
+   * element that just appeared via display change is a no-op
+   * without a frame in between.
+   */
+  setContent(html: string): void {
+    this.content.innerHTML = html;
+    // Force content visible immediately; defer the class flip so
+    // the opacity transition has a frame to register.
+    this.skeleton.style.display = "none";
+    this.content.style.display = "block";
+    this.errorEl.style.display = "none";
     this.root.style.display = "flex";
     this.root.setAttribute("aria-hidden", "false");
+    this.root.className = "world-card-overlay world-card-overlay--state-loading";
+    this.state = "loading";
+    requestAnimationFrame(() => {
+      this.root.className = "world-card-overlay world-card-overlay--state-content";
+      this.state = "content";
+    });
+  }
+
+  /** Show an error message in place of content. */
+  setError(html: string): void {
+    this.errorEl.innerHTML = html;
+    this.setState("error");
+  }
+
+  /**
+   * Compat shim — old call sites that did overlay.show("<p>...</p>")
+   * now go through setContent for fade-in semantics. Kept as a
+   * dedicated method because there are still error-path call sites
+   * that pass raw HTML; treat them as a flat content set without
+   * the prefetch dance.
+   */
+  show(html: string): void {
+    this.setContent(html);
   }
 
   hide(): void {
-    this.root.style.display = "none";
-    this.root.setAttribute("aria-hidden", "true");
+    this.setState("hidden");
+  }
+
+  /** Current state — useful for callers reasoning about whether
+   *  a setContent will be a fresh-load or a transition-from-loading. */
+  getState(): OverlayState {
+    return this.state;
   }
 
   dispose(): void {
