@@ -37,6 +37,14 @@ cypher routes for deep-linkable sector URLs are all in place.
 **[docs/WALKTHROUGH.md](docs/WALKTHROUGH.md)** — a 6-minute
 reproducible script for a first-time visit. Start there.
 
+**[docs/MILESTONES.md](docs/MILESTONES.md)** — release-agnostic
+completeness model. Seven tiers from MVP through RC1, including
+the backburner items beyond v1.0 (multi-user, dynamic asset
+allocation, LOD, the latent "game engine core" the runtime is
+slowly accreting toward). The per-version `docs/v0.*/ROADMAP.md`
+files are build plans *inside* a tier; MILESTONES.md is the gate
+map.
+
 Architectural commitments:
 
 - **[THESIS.md](THESIS.md)** — *Site as World*: the philosophical
