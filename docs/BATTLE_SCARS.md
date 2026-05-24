@@ -462,6 +462,184 @@ currently has one — `WorldHud.setHoveredEntity` for subtitle
 reveal — but the pattern accepts arbitrary callbacks for future
 hooks (sound design, gaze tracking, breadcrumbs). Commit: `8674546`.
 
+### P5. Deterministic layout is a hard requirement, not a nicety — freeze it in state
+
+**Pattern.** BETA 2 projects embeddings → 2D positions. The naïve
+design recomputes the projection inside `buildSnapshot()` every
+request. Two ways that breaks "URI is a coordinate":
+
+1. **Iterative/stochastic projectors wander.** UMAP/t-SNE seed from
+   RNG; two runs give mirrored/rotated/different layouts. `/node/8`
+   would point at a different place each page load.
+2. **Even a deterministic projector moves under corpus change.**
+   Add one article and MDS re-solves the whole eigenproblem; every
+   existing entity shifts slightly. Bookmarks rot.
+
+**Fix (two layers).**
+
+- *Determinism in the projector itself:* classical MDS (closed-form,
+  not iterative) + power iteration seeded from a FIXED non-uniform
+  vector (`sin(i+1)`, not RNG, not all-ones — all-ones can start
+  orthogonal to the dominant eigenvector of a centred matrix) + a
+  fixed iteration count. Same embeddings → byte-identical coords.
+- *Stability across corpus change:* don't recompute per snapshot.
+  `drush world:relayout` computes once and FREEZES the layout in
+  state; `buildSnapshot` reads the frozen positions. The world
+  moves only when an operator deliberately re-lays-it-out. This
+  trades "always fresh" for "always stable" — the right trade when
+  the coordinate IS the contract.
+
+The remaining sharp edge (parked): re-running relayout after adding
+content still re-solves globally, so the *whole* map can rotate/
+flip even though each run is internally deterministic. Procrustes
+alignment against the previous layout (rotate/reflect the new
+solution to best-match the old) is the fix when it matters.
+
+**Generalisation.** When a derived coordinate becomes a stable
+external reference (URL, bookmark, deep link), the derivation must
+be deterministic AND stable-under-input-change. Those are two
+different properties; closed-form math buys the first, freezing the
+output buys the second.
+
+### A6 (renamed C9). Builder asset/primitive split must share scaffolding via helpers
+
+**Pattern.** A bundle Builder has two paths — load a curated .glb
+vs. assemble primitives — but both paths attach the same
+card-lifecycle scaffolding: trigger pad + HTML surface + (for
+events) ground-decal moss ring. Inlining the scaffold at the end
+of the build method duplicates it inside the `if (prop) { ... }`
+branch; copying that block doubles maintenance every time the
+scaffold changes (e.g., card view-mode swap, trigger-pad radius
+formula tweak, surface dimensions).
+
+**Fix.** Extract the scaffold into private helpers on each Builder:
+
+```ts
+async build(...) {
+  const totalHeight = sizeFromSignature(descriptor);
+  const prop = await ctx.tryLoadProp(SLOT);
+  if (prop) {
+    obj.attach(new GltfComponent({ scene: prop.scene, ... }));
+    await this.attachCardScaffold(obj, ctx, descriptor, totalHeight);
+    return obj;
+  }
+  // ... primitive geometry ...
+  await this.attachCardScaffold(obj, ctx, descriptor, totalHeight);
+  return obj;
+}
+
+private async attachCardScaffold(obj, ctx, descriptor, totalHeight, padZ?) {
+  obj.attach(new TriggerPadComponent({ ... }));
+  obj.attach(new HtmlSurfaceComponent({ ... }));
+}
+```
+
+The pad-Z parameter handles the fact that primitive geometry
+exposes a true trunk radius while a loaded .glb doesn't —
+the caller passes whichever is appropriate. For event totems
+the moss ring is event-coherent regardless of geometry source,
+so it gets its own `attachMossRing()` helper and runs on both
+paths.
+
+**Generalisation.** Any "two ways to produce X, identical wrap-up
+afterwards" pattern wants extract-helper, not copy-paste. The
+inline duplication is plausible at first ("just two paths") but
+the wrap-up always grows new responsibilities (a new component,
+a new tag, a new optional behaviour), and divergence between the
+paths becomes a class of latent bugs nobody notices until a fix
+lands in one path and not the other.
+
+Commits: A.4 builder hookups across ArticleAsTree / ProfileAsSpirit /
+EventAsTotem.
+
+### C8. Touch needs `touch-action: none` + pointer capture or it's a coin-flip
+
+**Pattern.** Mobile pointer events fire fine without setup —
+`pointerdown / pointermove / pointerup` are dispatched the same
+way for touch as for mouse. But two problems make naive
+implementations unusably flaky on phones:
+
+1. **The browser's default touch gestures eat the input.** A
+   two-finger pinch zooms the *page*, not the camera. A one-finger
+   drag pull-to-refreshes the browser. The user thinks the app
+   is broken; actually the browser is just claiming the gesture
+   first.
+
+2. **Fingers leave the canvas mid-drag and events stop firing.**
+   On a small screen the user's finger easily wanders off the
+   canvas while orbiting. Without pointer capture, the
+   `pointermove` events stop arriving the moment the touch exits
+   the canvas bounds — the drag freezes in place until they lift
+   and re-touch.
+
+**Fix.** Two one-liners that have to BOTH be in place:
+
+```ts
+canvas.style.touchAction = "none";                    // (1)
+canvas.setPointerCapture(event.pointerId);            // (2) on pointerdown
+```
+
+`touch-action: none` tells the browser "I'm handling all touch
+gestures on this element; don't interpret them." `setPointerCapture`
+binds the pointer to the canvas so events keep flowing even when
+the finger leaves the element's bounds. Both are necessary; either
+alone leaves a different failure mode.
+
+**Companion.** The hover concept doesn't exist on touch. Pointer
+events fire `pointermove` on touch too (during drag), but treating
+those as "hover" highlights the wrong entity then snaps away when
+the finger lifts. Gate hover on `event.pointerType !== "touch"`.
+Silhouette hover + WorldHud subtitle-on-hover are desktop-only by
+construction; touch users tap-to-open instead.
+
+Commits: v0.4 mobile-touch pass.
+
+### C7. Parallel-prefetch the new entity's HTML during the camera fly
+
+**Pattern.** Far-click on an entity → `cameraController.navigateTo`
+flies the camera, on settle `setUrlFromVantage` fires
+`openFullView(newEntityId)`, and `applyFullView` THEN starts the
+HTML fetch. The camera has settled; the user is staring at the old
+content (or no content) for the fetch's duration; the modal pops
+"Loading…" → content. Two pops, very jerky.
+
+**Fix.** Start the fetch when the click registers, not when the
+camera settles. `CardController.prefetchEntity(id)` stores a
+single-slot promise; `applyFullView` consumes it. The camera fly
+and the fetch race; by the time settle fires, the HTML is usually
+already in hand (or much closer to it).
+
+Companion piece: the overlay's state machine. Calling
+`prefetchEntity` while a FullView is already open flips the
+overlay to `loading` immediately — the user sees a skeleton
+pulsing during the fly rather than watching old content sit
+unchanged until camera arrival, then jerking through "Loading…"
+to new content. The skeleton is a stable visual signal that a
+transition is underway.
+
+```ts
+// PointerNavigator far-click branch:
+this.options.cardController.prefetchEntity(tag.entityId);   // start fetch
+this.options.cameraController.navigateTo(uri);              // start fly
+
+// CardController.applyFullView:
+const promise = this.prefetchSlot?.entityId === record.entityId
+  ? this.prefetchSlot.html        // reuse the in-flight promise
+  : fetchCardHtml(url);           // fresh fetch as fallback
+this.overlay.setState("loading"); // skeleton up
+const html = await promise;
+this.overlay.setContent(html);    // fade-in via class flip + rAF
+```
+
+**Generalisation.** Any "navigate then load" sequence with visible
+in-between time should overlap the two. Compose the gestures by
+making them parallel, not sequential. The single-slot cache is
+deliberately simple: orphaned in-flight fetches just resolve and
+get dropped on the floor; tracking them costs more than it saves.
+
+Commits: v0.4-fix replacing the sequential fetch with parallel
+prefetch + the CardOverlay state machine.
+
 ### C4. WorldHud / CardOverlay z-index coordination
 
 **Pattern (not a bug, but adjacent).** The DOM-overlay stack:
@@ -565,6 +743,54 @@ Stash the original position; restore on modal close. Commits:
 
 ---
 
+### G4. Verifying disposal with `renderer.info.memory` fights freeze-on-defocus — force a manual `render()`
+
+**Context.** The world-switcher v1.5 acceptance is "no GPU leak across
+atmosphere switches": `renderer.info.memory.{geometries,textures}` must
+return to baseline after teardown + rebuild. The obvious test — load the
+page in an automated browser, read `info.memory` before/after
+`switchAtmosphere()` — silently gives garbage.
+
+**Symptom.** In an automated/occluded browser tab, `document.hidden` is
+`true`. Two failures cascade: (1) `mount()` *stalls at "0 / 24"* because
+the HTML-surface texture generation the builders await is throttled to a
+crawl in a hidden tab; (2) even once built, `info.memory.geometries`
+reads low/zero because geometries upload to the GPU lazily on first
+*render*, and the render loop is gated off by our own freeze-on-defocus
+(`refreshLoopState` → `document.hasFocus() && !document.hidden`). So you
+measure a world that never finished building and never rendered.
+
+**Diagnosis.** This is the same freeze-on-defocus property (A3) biting
+from the measurement side. Counts in `info.memory` are renderer-driven:
+geometries/textures increment on *upload* (first render that uses them),
+decrement on the `dispose` event. No render → no upload → no count.
+
+**Fix — two parts.**
+1. **Un-occlude to build.** The build genuinely needs the tab visible
+   (the HTML-surface step). Driving via Claude-in-Chrome, a `screenshot`
+   action brings the controlled window forward → `visibilityState`
+   flips to `visible` → `mount()` completes. (A headless harness would
+   need the surface step stubbed or the tab forced visible.)
+2. **Force a manual render before each read**, so the measurement does
+   not depend on the loop being awake:
+   ```js
+   await sm.switchAtmosphere();
+   sm.renderer.render(sm.scene, sm.camera);   // upload now, not "next frame"
+   const m = sm.renderer.info.memory;          // accurate geometries/textures
+   ```
+
+**Result + the one subtlety.** Geometries returned to the *exact*
+baseline across inner-mind ⇄ forest round-trips. Textures settled at
+baseline **+1** and stayed there — that's the deliberately
+module-cached forest pollen sprite (`pollen.ts` `moteSprite()`),
+allocated once and reused; its `dispose()` intentionally leaves it
+alone. Lesson: a *bounded, non-climbing* delta from a shared cache is
+not a leak — measure across *several* switches and watch the trend, not
+a single before/after pair. (TS `private` fields like `renderer` are
+reachable from the console — `private` is compile-time only.)
+
+---
+
 ## Architecture defense-in-depth
 
 ### A1. Surface-optional CardController.register (C1 again)
@@ -624,37 +850,70 @@ effects from running twice if the module file is evaluated twice
 (B1 / B2). The guard is downstream of the bug; the bug needs an
 upstream fix (single-bundle, single URL identity).
 
-### A5. Engine-pause requires an explicit final render to commit state
+### A5. Engine-pause requires an explicit final render to commit state ⚠ SUPERSEDED by A6
 
-**Pattern.** `SceneManager.setMode("reading")` stops the animation
-loop. If you mutate camera state (position, view offset, lookAt)
-*just before* the pause, that mutation never reaches the screen —
-the last-rendered frame remains, frozen, on the canvas. The new
-camera state is in memory but invisible.
+**Pattern.** `SceneManager.setMode("reading")` *used to* stop the
+animation loop. If you mutate camera state (position, view offset,
+lookAt) just before the pause, that mutation never reaches the
+screen — the last-rendered frame remains, frozen, on the canvas.
 
-**Fix.** Call `this.renderer.render(this.scene, this.camera)`
-explicitly after the state change AND the pause toggle, to flush
-one final frame with the new state. Three's render call is
-synchronous; one extra invocation is cheap and guarantees the
-visible canvas matches the model.
+**Fix-at-the-time.** Call `this.renderer.render(this.scene,
+this.camera)` explicitly after the state change AND the pause
+toggle, to flush one final frame.
 
-Symmetric on exit: when resuming the loop, the next animation tick
-renders normally — no explicit render call needed.
+**Why superseded.** v0.4-fix kept the loop *running* during reading
+mode (see A6). The "final-frame flush" pattern no longer applies
+because there is no pause. The instinct that drove A5 — "if I
+change camera state and the user can't see it, something between
+my write and the canvas is wrong" — generalises into A6's deeper
+lesson: don't write to `camera.position` while the loop is alive.
 
-```ts
-setMode(mode) {
-  // ... mutate camera state ...
-  this.refreshLoopState();  // pauses if mode === "reading"
-  if (mode === "reading") {
-    this.renderer.render(this.scene, this.camera);  // commit the final frame
-  }
-}
-```
+Commits: `ccf9a73` (introduced), `64c9fd8` (carried forward),
+then v0.4-fix removed the explicit-render calls when the
+loop-pause was lifted.
 
-Applies to: resize-during-paused-state (re-render to update
-aspect), camera shifts (the v0.4 lateral-shift modal recentre).
-Commits: `ccf9a73` (introduced the pattern), `64c9fd8` (carried
-forward into the lateral-shift replacement).
+### A6. Direct `camera.position` writes lose to the per-frame damp
+
+**Pattern.** Once the animation loop is running, every frame's
+`CameraController.update(dt)` damps the actual camera position
+toward `targetPos` (vantage + idle drift + lateral shift). Any
+direct `camera.position.set(...)` or `camera.position.add(...)`
+made from outside the controller survives for *exactly one frame*
+— the next damp pass pulls the camera back to where the
+controller thinks it should be.
+
+This was hidden until v0.4-fix because reading mode paused the
+loop: a direct-write `camera.position.addScaledVector(right,
+-shift)` in `enterReadingMode()` survived because nothing ran
+after it. The moment we kept the loop running so the right half
+of the canvas stayed navigable, the direct-write got undone on
+the next frame and the entity snapped back under the modal.
+
+**Fix.** Mutate the *target* state, not the camera. The
+controller exposes the seams:
+
+- Vantage / look target → `setTarget(vantage)` (writes via
+  `syncTargetVectors`).
+- Per-frame additive offset (parallax, modal recentre) →
+  `setLateralShiftMagnitude(magnitude)`, applied to `targetPos`
+  inside `update()` so the damp converges to the shifted target
+  instead of fighting an external write.
+- Drag-orbit deltas → `applyDragDelta(dx, dy)` (writes via
+  `syncBaseFromOrbit`).
+- Suppress autonomous motion (idle drift) while reading →
+  `setIdleDriftSuppressed(true)` (gates the idle timer).
+
+**Generalisation.** Anywhere a system has a target + damp toward
+target, never write the visible state directly. Always write the
+target — the damp does the rest, smoothly, and survives whatever
+else is also writing the target. The renderer-side analogue of
+"single source of truth": the controller owns the camera's
+desired state, and only the controller writes the camera.
+
+Commits: v0.4-fix replacing the `enterReadingMode` direct-write
+with `cameraController.setLateralShiftMagnitude(magnitude)`,
+plus `setIdleDriftSuppressed(true)` so the user's mouse over the
+modal doesn't let idle drift wander the framing.
 
 ---
 

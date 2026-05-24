@@ -110,4 +110,16 @@ export class PollenField {
     }
     attr.needsUpdate = true;
   }
+
+  /**
+   * Free GPU resources. Called on atmosphere teardown (v1.5 switcher)
+   * via the disposer setupForestEnvironment returns. Disposes the
+   * geometry + material only — the mote sprite is a shared module-
+   * level cache reused across mounts, so it is deliberately NOT
+   * disposed here.
+   */
+  dispose(): void {
+    this.points.geometry.dispose();
+    (this.points.material as THREE.Material).dispose();
+  }
 }

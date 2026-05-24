@@ -15,6 +15,347 @@ substantial hover / FullView polish that surfaced as it went.
 
 What landed in v0.4 so far (latest first):
 
+- **World switcher v1.5 — live in-place atmosphere flip (no reload).**
+  `SceneManager.switchAtmosphere(name?)` tears the world down to the
+  surviving renderer/scene/camera, re-fetches the snapshot
+  (`cache:no-store`), and rebuilds — camera pose preserved, behind the
+  `LoaderOverlay`. The load-bearing change is the **disposal refactor**:
+  one world-layer `THREE.Group` that every mount/atmosphere-time object
+  parents to (lights, ground, posts, pads, scenery, particles), so
+  teardown is "remove + dispose one subtree" rather than a checklist.
+  `mount()` split into `fetchSnapshot()` + `buildScene()` (mount and
+  switch share the build). `PollenField` gained `dispose()`; the forest
+  + inner-mind `setupXEnvironment` now attach into the disposable root
+  and return a Points disposer; compass labels are held for teardown;
+  the three controllers' existing `dispose()` detach their listeners on
+  rebuild; `AssetCache` is flushed on teardown. **Verified leak-free in
+  a real browser** (`renderer.info.memory`): inner-mind ⇄ forest
+  round-trips return geometries to the exact baseline (100); textures
+  bounded at 27 (the +1 is the one-time module-cached pollen sprite, no
+  climb). Authored flip is driven by `drush world:switch`; a no-drush
+  client flip via a read-only `?atmosphere=` snapshot hint is a small
+  follow-up (`docs/feature-requests/world-switcher.md`).
+
+- **World switcher v1 (reload-based) + inner-mind "acid-trip" stub.**
+  Per the consensus plan (`docs/feature-requests/world-switcher.md`),
+  the reload-based path — which needs no SceneManager teardown refactor
+  — ships first. New `drush world:switch <none|forest|inner-mind>`
+  flips the active World node's `field_world_atmosphere`; the snapshot
+  serves the new skin on next fetch (node save invalidates
+  `node_list:world`), a reload renders it. New **inner-mind atmosphere**
+  (`src/world/runtime/atmospheres/inner-mind/`): abstract procedural
+  geometry — article = faceted thought-crystal (icosahedron + wireframe
+  aura), profile = psyche-orb (sphere + halo), event = ripple-ring
+  (torus + bright core) — in vivid hue-from-hash acid colours, over
+  drifting multicoloured motes and a per-frame hue-cycling background +
+  fog (the "trip"). Acid palette overlay added to
+  `world_signature.palette` (`atmosphere_overrides.inner-mind` — neon
+  on deep violet). Procedural now; real forms slot in via the asset
+  catalog later (the builders are structured for `tryLoadProp`).
+  Deliberately a STUB to prove the switch — real inner-mind is BETA 1.
+  Verified: `world:switch inner-mind` → snapshot reports
+  `activeAtmosphere: inner-mind` + the acid palette. The live in-place
+  switch (SceneManager teardown/rebuild, camera preserved) is v1.5.
+
+- **`world` content type — world characteristics as editable content
+  (ALPHA 1).** The world's tuned constants — previously scattered
+  across PHP (`WORLD_CONSTANTS`, `SECTOR_RING_RADIUS`,
+  `SECTOR_LOCAL_RADIUS`) and battle-scars — now converge onto an
+  editable `world` node bundle. Fields: `field_world_radius`,
+  `_overview_height`, `_section_height`, `_closeup_distance`,
+  `_closeup_height`, `_sector_ring_radius`, `_sector_local_radius`,
+  `_semantic_radius` (decimals), `_atmosphere` (enum), `_active`
+  (boolean) — each a learned-lesson value made editable, with the
+  baked-in constant as its fallback default. `SnapshotPublisher` reads
+  the **active** World node (active flag → else lowest nid → else
+  none) and emits its values into the snapshot's `world` block +
+  sector placement; the node's atmosphere overrides
+  `world_signature.palette` active_atmosphere. Additive + non-breaking:
+  with no World node, the publisher uses the same constants as before.
+  Bundle ships as config-as-code (`node.type.world.yml`); fields +
+  a seeded default World node install via
+  `scaffold/install-world-bundle.php`. Cache-tagged `node_list:world`
+  + the node, so editing the world invalidates the snapshot. Verified:
+  the seeded world drives the snapshot, and editing a field (ring
+  100→140, closeup 32→44) moves the world; reset to defaults.
+
+- **Boundary + ship runbook; embedding-compute reframed as external.**
+  `docs/BOUNDARY.md` codifies the rule — *the theme owns the data
+  model, the world, and the use of computed results; external services
+  own heavy/specialized compute (binary transform, model inference,
+  offline rendering)* — with a yes/no table across every capability.
+  `docs/SHIP.md` is the concise nodes→world runbook: Part A configures
+  the external services (RESTHeart/Atlas gateway `WORLD_GATEWAY_*`;
+  embedding service `WORLD_EMBED_*`; `asset_workshop`), Part B is the
+  generation flow (`world:publish` → optional `world:embed` +
+  `world:relayout` → optional asset ingest/sanitize/mark-live → build
+  + deploy), plus the shortest path (taxonomy + primitives, gateway
+  only). Consequent correction: embedding **processing** is external —
+  `LocalTfIdfEmbeddingProvider` is now documented + commented as a
+  **dev-only / PoC fallback**, `RemoteEmbeddingProvider`
+  (`WORLD_EMBED_URL`) is the production path, and `world:embed` is
+  reframed as "call the configured embedder, store the result" (dev
+  fallback when unset). The internal half — `SemanticLayoutProjector`
+  + `world:relayout` (vectors → spatial referencing) — stays. Verified
+  the dev-fallback embed→relayout chain still runs; layout reset to
+  taxonomy (the zero-external-service ship default).
+
+- **`asset_workshop/` — headless transform + turntable toolkit (MP4).**
+  A standalone Node toolkit at the repo root, **independent of the
+  Drupal module** — invoked with a file path, writes a normalized
+  `.glb` or a turntable `.mp4`. Two solutions:
+  `node bin/workshop.js transform <in> [out] [--fit-height] [--no-recenter]`
+  (gltf-transform: dedup → flatten → join → weld → prune + base-pivot
+  recenter + optional rescale; pure JS) and
+  `node bin/workshop.js turntable <in> [out] [--size --frames --fps --elev]`
+  (tiny HTTP server → headless Chromium + `<model-viewer>` → per-orbit
+  screenshots → ffmpeg h264 MP4, yuv420p/crf18/+faststart). **All media
+  is MP4 — GIF dropped everywhere** (the module's `field_asset_turntable`
+  tightened to `mp4` only). Both verified end-to-end against a CC0 test
+  model (transform → optimized glb; turntable → valid ISO MP4). ffmpeg
+  is bundled (`@ffmpeg-installer`); turntable needs Chromium runtime
+  libs (documented in `asset_workshop/README.md`). This is the external
+  render/transform platform the module's turntable + curation fields
+  consume — the seam the module deliberately does not cross.
+
+- **Asset turntable preview — hover-autoplay in the teaser.** The
+  module hosts `field_asset_turntable` (file, webm/mp4) on the asset
+  bundle, renders it in the asset **teaser** view-display via core's
+  Video formatter (controls off, autoplay off, loop + muted on), and
+  ships the `world_signature/asset_hover` library (`js/asset-hover.js`
+  + `css/asset-hover.css`, attached on asset/teaser via
+  `world_signature_preprocess_node`) that plays the clip on mouseenter
+  and pauses + rewinds on mouseleave (tap-to-toggle on touch). Video
+  not GIF, because hover-gated playback needs play/pause. **Boundary:
+  the clip is produced by an external render/transform platform — the
+  module only hosts, renders, and plays it; glTF transformation and
+  turntable rendering are explicitly out of module scope.**
+  Field + display installed via `scaffold/install-turntable-field.php`
+  (config-as-code for fresh installs).
+
+- **Asset ingestion — provider layer + copyright/licence gate.** The
+  source-resolution half of the asset-ingestion feature
+  (`docs/feature-requests/asset-ingestion.md`): point a reference at a
+  free-asset source, get back leechable `SourceAsset`s carrying the
+  download URL **and** copyright metadata. New `Ingest\` namespace:
+  `SourceAdapterInterface` + `SourceAdapterManager` (tagged-service,
+  priority-routed), `SourceAsset` value object, and `License` — which
+  normalises free-text licences to canonical codes and gates
+  `live` promotion (KNOWN ∧ commercial-safe ∧ allows-derivatives; a
+  CC-BY asset with no captured credit is also blocked). Five adapters,
+  API contracts researched and (where open) live-verified:
+  `PolyHavenAdapter` (glTF + texture set, CC0, author attribution),
+  `AmbientCgAdapter` (`full_json`, `rawLink`, CC0), `ToxSamRegistryAdapter`
+  (GitHub JSON registry, CC0), `PolyPizzaAdapter` (key-gated, per-model
+  licence), and `DirectUrlAdapter` (catch-all, licence UNKNOWN until a
+  human confirms). Live-resolved Poly Haven / ToxSam / ambientCG
+  end-to-end. `field_asset_raw_file` added (raw-vs-human-curated split,
+  O1). Tests: `IngestProviderTest` (12 cases). Research:
+  `docs/feature-requests/asset-ingestion-sources.md`. The leech →
+  decompress → extract → card pipeline that consumes this layer is the
+  remaining work.
+
+- **BETA 2: embedding-driven semantic layout (the headline feature).**
+  The workflow the thesis always promised but never closed —
+  *content as nodes → embedding model → syntactic proximity in 3D* —
+  now runs end to end. Before this, spatial proximity encoded
+  editorial taxonomy (sector tag → ring slice) + hash scatter;
+  the `signature.semantic.embedding` slot was reserved but always
+  null. Five new pieces close the loop:
+  (1) **Embedding providers** (`src/Embedding/`). `EmbeddingProviderInterface`
+  (corpus-level `embedCorpus`). `LocalTfIdfEmbeddingProvider` —
+  dependency-free, deterministic TF-IDF + feature-hashing to a
+  fixed 256-dim L2-normalized vector; runs in DDEV with zero setup,
+  produces real lexical-proximity signal. `RemoteEmbeddingProvider`
+  — the production neural seam (Voyage/OpenAI-compatible via Guzzle,
+  `WORLD_EMBED_*` env vars, unconfigured → falls back to local).
+  `EmbeddingManager` selects remote-if-configured else local.
+  (2) **`SemanticLayoutProjector`** — classical MDS (cosine-distance
+  → double-centered Gram matrix → top-2 eigenvectors via
+  deterministic power iteration + Hotelling deflation → coords ·
+  √eigenvalue → recentre + fit to radius). Deterministic by
+  construction (fixed seed, fixed iterations) — same embeddings →
+  same coordinates, every run. Chosen over UMAP/t-SNE because the
+  corpus is small, MDS is closed-form, and determinism is required
+  for URI-is-a-coordinate.
+  (3) **`drush world:embed`** — corpus-level batch: gathers each
+  entity's `embeddingText` (same text the descriptor advertises —
+  `DescriptorBuilder::embeddingText` made public), embeds the whole
+  corpus, injects vectors into `signature.semantic.embedding`,
+  re-upserts descriptors so the gateway carries them.
+  (4) **`drush world:relayout`** — reads embeddings from gateway
+  descriptors, projects to 2D, derives EMERGENT sector centroids +
+  radii from where each region's members landed, freezes the layout
+  in state, activates semantic mode. Frozen-in-state = stable: the
+  world only moves when you deliberately re-run relayout, preserving
+  determinism as the corpus grows. `drush world:layout-mode
+  <taxonomy|semantic>` toggles without recomputing.
+  (5) **Snapshot + renderer wiring.** `SnapshotPublisher` (now
+  injected with `@state`) stamps each entity with its projected
+  `worldPos` and replaces sector centroids/radii with emergent
+  values when semantic mode is active; strips the raw embedding
+  vector from the payload (renderer needs the 2D position, not the
+  256-float array). `world.layoutMode` exposed. Renderer:
+  `entityPosition()` returns `worldPos` when present, else falls
+  back to taxonomy+hash; `AssetDescriptor`-style plumbing through
+  `types.ts` + `adaptSnapshot`.
+  Sectors become DESCRIPTIVE (where this region's content landed in
+  meaning-space) rather than PRESCRIPTIVE (a circle slice content is
+  forced into). On the coffee corpus the five region clusters
+  overlap into one organic blob — honest: cross-region coffee
+  articles share heavy vocabulary, so topic-similarity only
+  partially aligns with region. A real neural model (the remote
+  seam) sharpens this; the local TF-IDF proves the pipeline.
+  Tests: `SemanticLayoutTest` — 9 cases / determinism, similarity
+  ordering, radius framing, cluster preservation, edge cases.
+  All 23 world_signature unit tests green.
+
+- **ALPHA 1 sprint A.2–A.4: the .glb pipeline reaches the renderer.**
+  The asset catalog content type has existed since v0.4-early, but
+  the renderer ignored it — every entity was primitives. This change
+  closes the loop in three layers:
+  (1) **A.2 server endpoint.** New `AssetSnapshotBuilder` service
+  projects `bundle=asset && field_asset_status=live` nodes into the
+  renderer's payload shape (`{nid, slot, atmospheres, curatedFileUrl,
+  polycount, pivot, pack: {...}}`). Embedded in `/world/snapshot/full`
+  as `assets[]` (always-array invariant); also served standalone at
+  the new sidecar `/world/snapshot/assets` for diagnostic curl
+  + the future A.5 admin view. Cache tags propagate from each
+  emitted asset+pack node so editorial flips invalidate within the
+  60s max-age window. Defensive logic: omit assets with missing
+  files, dedupe duplicate-live-per-cell by nid asc with watchdog
+  notice, tolerate deleted pack references.
+  Drush companion: `drush world:assets-status` prints a per-atmosphere
+  / per-slot table showing the asset the publisher would emit —
+  same builder, table output for CI + post-edit verification.
+  (2) **A.3 client cache.** New `AssetCache.ts` — singleton parallel
+  to `SurfaceCache`. Loads .glb via `GLTFLoader` once per URL, returns
+  `SkeletonUtils.clone()` per `acquire()` so multiple SmartObjects
+  share parsed geometry without re-decoding. Bound to the snapshot
+  version like SurfaceCache; flushes on version change.
+  New `GltfComponent` parallel to `MeshComponent` — wraps a cloned
+  scene with scale + pivot + entityBody tagging. The scene's mesh
+  hierarchy gets recursive `isEntityBody`+`entityId` tagging so
+  raycasts on any sub-mesh resolve back to the SmartObject's id.
+  Pivot semantics: "base" assumes origin at mesh bottom (default);
+  "center" lifts the mesh by half-height to align bounding-box
+  centre with the SmartObject origin.
+  (3) **A.4 builder hookups.** `ArticleAsTree`, `ProfileAsSpirit`,
+  `EventAsTotem` each call `await ctx.tryLoadProp(slot)` at the top
+  of `build()`; if it returns a prop, attach `GltfComponent` scaled
+  so the asset's bounding-box height matches the signature-derived
+  height (preserves the wordcount/inDegree size signals regardless
+  of which specific .glb is wired). Primitive paths remain as the
+  fallback for any slot with no live asset.
+  Slot bindings hardcoded per builder for now: article→oak-stylized,
+  profile→sapling-figure, event→standing-stone. These migrate to
+  Drupal-side data in ALPHA 3 (skins-as-data).
+  Trigger pad + HTML surface scaffolding factored into per-builder
+  `attachCardScaffold()` helpers so asset and primitive paths share
+  identical card-lifecycle wiring. EventAsTotem's moss ring (event-
+  coherent floor signal) factored into `attachMossRing()` and used
+  by both paths.
+  New types: `AssetDescriptor` (in `world/types.ts`) and `LoadedProp`
+  (returned by `tryLoadProp`). Adapter `adaptSnapshot` defaults
+  `assets` to `[]` so legacy snapshots without the key load cleanly.
+  Bundle grew ~100kB gzipped from `GLTFLoader` — accepted cost.
+
+- **Mobile touch + zoom (the MVP-completion gap from MILESTONES.md).**
+  The desktop split (modal LEFT, world RIGHT) rotates 90° on
+  narrow viewports: modal anchors TOP, world stays in the BOTTOM
+  half. Implemented as four coupled changes:
+  (1) `CameraController.setViewportShift({x, y})` replaces the
+  single-axis `setLateralShiftMagnitude(n)`. The shift is applied
+  per-frame against the camera-local right + up basis vectors
+  (the latter being `right × forward`, which is the canvas-Y
+  axis projected to world space — stable through any camera
+  tilt). Desktop sets `{x: -closeUpDistance*0.5, y: 0}`; mobile
+  sets `{x: 0, y: +closeUpDistance*0.5}`.
+  (2) `SceneManager.isMobileViewport()` (helper) reads
+  `window.innerWidth < 768`; `enterReadingMode()` picks the axis
+  from it. `resize()` re-runs `enterReadingMode` if in reading
+  mode so an orientation flip on a tablet swaps anchors cleanly.
+  (3) `CardOverlay` layout moved from inline cssText into a
+  media-query'd `<style>` block. `@media (max-width: 767px)`
+  switches the article from `max-width:min(760px,48vw)` to
+  `max-height:min(60vh,520px)` with `align-items:stretch` and
+  reduced padding; the heading shrinks from 36px to 28px so it
+  doesn't dominate a phone.
+  (4) `PointerNavigator` rewritten for multi-pointer tracking.
+  `activePointers: Map<number, PointerState>` replaces the
+  single-`downAt`-slot. Two-finger pinch tracks distance frame-to-frame
+  and emits `cameraController.applyZoomDelta(deltaPixels)`.
+  Pointer capture (`canvas.setPointerCapture`) keeps fingers
+  routed even when they leave the canvas mid-drag.
+  `canvas.style.touchAction = "none"` disables browser
+  default gestures so we own all touch input. Hover events
+  suppressed on `pointerType === "touch"` (touch has no hover
+  concept). Wheel-zoom added on the same `applyZoomDelta` path
+  for desktop parity (`event.deltaY` flows through unchanged).
+  Sign convention locked: positive `deltaPixels` = zoom out;
+  negative = zoom in.
+  New constants in `CameraController`:
+  `ZOOM_SENSITIVITY = 0.004`, `ORBIT_RADIUS_MIN = 4`,
+  `ORBIT_RADIUS_MAX = 600` — clamped so the user can never
+  zoom past the entity or so far out the world becomes a dot.
+
+- **CardOverlay state machine + parallel-prefetch eliminate the
+  click→fly→jerk.** Far-click on an entity in another sector while
+  reading used to fly the camera, then jerk the modal: old article
+  vanished, "Loading…" pop, content swap. Three changes give the
+  whole transition a coherent shape:
+  (1) `CardOverlay` is now a four-state machine (`hidden`,
+  `loading`, `content`, `error`). Loading shows a six-block
+  pulsing skeleton in article shape (title rows + paragraph rows +
+  short closing block) via a `@keyframes` opacity pulse. Content
+  transitions from loading via a 220ms opacity fade-in driven by
+  a `.world-card-overlay--state-content` class flip — the
+  `requestAnimationFrame` defer between display-flip and class-flip
+  guarantees the transition actually fires.
+  (2) `CardController.prefetchEntity(entityId)` kicks off the HTML
+  fetch immediately, parallel with the camera fly. If a FullView
+  is already open, it also flips the overlay to `loading` right
+  away — the user gets immediate "going somewhere new" feedback
+  rather than waiting for camera settle. A single-slot cache
+  (`prefetchSlot`) holds the in-flight promise; mismatches resolve
+  and get discarded silently.
+  (3) `PointerNavigator` now calls `prefetchEntity` alongside
+  `navigateTo` on every far-entity click. The settle handler still
+  triggers `openFullView` on arrival; `applyFullView` consumes the
+  prefetched promise instead of starting a fresh fetch. Net effect:
+  click → skeleton appears immediately → camera flies → content
+  fades in once both the camera and the fetch have settled.
+  Backdrop-click-to-close (silently dead since v0.4 modal moved to
+  `pointer-events:none` on the root) is gone from the docs — only
+  × and Esc are honest close paths.
+
+- **Reading mode keeps the right half navigable.** The left-anchored
+  modal at `min(760px, 48vw)` was *intended* to leave the right half
+  of the canvas as a live, navigable world; the implementation didn't
+  honour that intent. Four obstacles fixed in one pass:
+  (1) `SceneManager.refreshLoopState()` stopped pausing the animation
+  loop on `mode === "reading"` — focus + visibility are now the only
+  gates. The right half stays live: drag-orbit responds, hover
+  silhouettes glow, the WorldHud reprojects.
+  (2) The lateral parallax shift moved from a direct
+  `camera.position.add(...)` (which survived because the loop was
+  paused) to a per-frame addition to `targetPos` in
+  `CameraController.update()`. The damp converges to the shifted
+  target instead of fighting the write, and the shift direction
+  tracks view orientation through drag-orbit and vantage transitions.
+  Owned by new `CameraController.setLateralShiftMagnitude(magnitude)`.
+  (3) Idle drift now suppresses in reading mode via new
+  `CameraController.setIdleDriftSuppressed(true)` — the user's mouse
+  is over the modal, not the canvas, so `resetIdle()` no longer fires
+  from pointermove, and without the gate the camera would wander away
+  from the framing the user picked.
+  (4) `CardController.activatePad()` no longer early-returns when a
+  FullView is open. Trigger-pad clicks on the right half route to
+  `openFullView` for the new entity (skipping Bloomed — the user is
+  in reading and wants the document). Combined with PointerNavigator's
+  existing near/far entity-body click routing, this gives "fly +
+  swap modal" navigation between articles while reading.
+
 - **3D recentre via lateral camera shift, not setViewOffset**
   (64c9fd8). User noticed the v0.4 modal-recentre was distorting
   FOV proportions — `setViewOffset(W*2, H, 0, 0, W, H)` narrows

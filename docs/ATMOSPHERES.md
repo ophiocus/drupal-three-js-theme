@@ -207,9 +207,48 @@ export function registerForestAtmosphere(registry: SmartObjectRegistry): void {
 ```
 
 Atmosphere builders register **before** the default builders in
-`SceneManager.mount()`. First-match-wins ordering means the
+`SceneManager.buildScene()` (called by both `mount()` and
+`switchAtmosphere()`). First-match-wins ordering means the
 atmosphere claims its bundles; anything it doesn't claim falls
 through to defaults (FallbackBuilder, ArticleBuilder, etc.).
+
+**Environment + disposability contract (v1.5 — required for live switching).**
+An atmosphere may export an optional `setup<Name>Environment` companion
+for atmosphere-wide visuals (scenery, particles, sky/fog animation). The
+world switcher (`docs/feature-requests/world-switcher.md`) tears the world
+down and rebuilds in place, so this hook MUST be disposable:
+
+- **Attach into the passed `root`, never `scene` directly.** `root` is
+  SceneManager's disposable world-layer `THREE.Group`; everything parented
+  to it is removed + freed on a switch. Meshes attached here have their
+  geometry + material freed automatically by the teardown's Mesh-walk.
+- **Return a disposer for any `THREE.Points`** (particle fields). The
+  Mesh-walk deliberately skips `Points`, so their geometry + material are
+  freed via the returned `() => void`. Shared/module-cached textures (e.g.
+  the pollen sprite) are intentionally NOT disposed — they're reused.
+- **Signature is per-atmosphere** (each `registerAtmosphere` case calls its
+  own): forest takes `(root, snapshot, registerUpdater)`; inner-mind takes
+  `(scene, root, snapshot, registerUpdater)` because its updater mutates
+  `scene.background` / `scene.fog` (the hue cycle) — `scene` survives the
+  switch; `root` does not.
+
+```ts
+// forest/index.ts
+export function setupForestEnvironment(
+  root: THREE.Object3D,
+  snapshot: CorpusSnapshot,
+  registerUpdater: (fn: AtmosphereUpdater) => void,
+): () => void {
+  placeForestScenery(root, snapshot);          // meshes → root (auto-freed)
+  const pollen = new PollenField(snapshot);
+  root.add(pollen.points);                      // Points → root
+  registerUpdater((elapsed) => pollen.update(elapsed));
+  return () => pollen.dispose();                // disposer frees the Points
+}
+```
+
+Per-frame `registerUpdater` callbacks and the disposers are cleared on
+every teardown, so they never accumulate across switches.
 
 **Atmosphere selection + palette** both live in
 `world_signature.palette` (decided 2026-05-14, option f):

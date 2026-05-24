@@ -13,6 +13,7 @@ import type { CorpusSnapshot, Entity, Vec3 } from "../types.js";
 import { entityPosition } from "../layout.js";
 import { hasHtmlInCanvas, type HtmlSurface } from "./HtmlSurface.js";
 import { SurfaceCache } from "./SurfaceCache.js";
+import { AssetCache } from "./AssetCache.js";
 import { CardController } from "./CardController.js";
 import { BiomeMixer, type BiomePaletteEntry } from "./BiomeMixer.js";
 import { CameraController } from "./CameraController.js";
@@ -21,7 +22,7 @@ import { SmartObject, type FrameContext } from "./smart-objects/SmartObject.js";
 import { SmartObjectRegistry } from "./smart-objects/Builder.js";
 import { FallbackBuilder } from "./smart-objects/builders/FallbackBuilder.js";
 import { ArticleBuilder } from "./smart-objects/builders/ArticleBuilder.js";
-import { LoaderOverlay } from "./LoaderOverlay.js";
+import { LoaderOverlay } from "../../shared/LoaderOverlay.js";
 import { FLOOR_LAYERS } from "./floor-layers.js";
 import { sectorPadDecal } from "./sector-pad-texture.js";
 import { vantage } from "../vantage.js";
@@ -41,6 +42,9 @@ interface DescriptorShape {
   sector?: string;
   sectorTermIds?: string[];
   signature?: unknown;
+  /** BETA 2: explicit semantic-layout position, stamped by the
+   *  publisher in semantic mode. Absent in taxonomy mode. */
+  worldPos?: { x: number; z: number };
 }
 
 /**
@@ -68,6 +72,25 @@ interface Palette {
    * docs/ATMOSPHERES.md.
    */
   activeAtmosphere?: string;
+}
+
+/**
+ * Viewport-width threshold for "mobile-ish" layout. Below this,
+ * the FullView modal anchors TOP (covering the upper band of the
+ * canvas) and the reading-mode camera shift goes vertical. Above
+ * this, modal anchors LEFT and the shift goes horizontal.
+ *
+ * 768px aligns with the common phone+portrait-tablet breakpoint
+ * used in CSS frameworks; it's wide enough that a 48vw left modal
+ * remains readable above the threshold, narrow enough that a
+ * full-width top modal makes sense below.
+ */
+const MOBILE_BREAKPOINT_PX = 768;
+
+/** True when the viewport is in the mobile-layout band. */
+export function isMobileViewport(): boolean {
+  return typeof window !== "undefined"
+    && window.innerWidth < MOBILE_BREAKPOINT_PX;
 }
 
 /** Hardcoded fallback if a snapshot lands without a palette key. */
@@ -100,10 +123,24 @@ export class SceneManager {
   private readonly scene: THREE.Scene;
   private readonly camera: THREE.PerspectiveCamera;
   private snapshot: CorpusSnapshot | null = null;
+  /** Snapshot endpoint pinned at mount(); switchAtmosphere() re-fetches it. */
+  private snapshotUrl: string | null = null;
+  /**
+   * v1.5 world switcher: the single disposable world-layer group.
+   * Everything mount/atmosphere-time attaches HERE (lights, ground,
+   * posts, pads, scenery, particles) so teardown is "remove + dispose
+   * one subtree," not a checklist. renderer / scene / camera live
+   * OUTSIDE it and survive a switch. (SmartObjects are tracked in
+   * `smartObjects` and disposed via their component-aware dispose();
+   * see docs/feature-requests/world-switcher.md.)
+   */
+  private worldLayer: THREE.Group | null = null;
   private palette: Palette = DEFAULT_PALETTE;
   private mode: Mode = "exploration";
   private readonly htmlSurfaces: HtmlSurface[] = [];
   private readonly surfaceCache = new SurfaceCache();
+  /** AssetCache — singleton-per-renderer cache of .glb scenes. */
+  private readonly assetCache = new AssetCache();
   private registry: SmartObjectRegistry | null = null;
   private readonly smartObjects = new Map<string, SmartObject>();
   /**
@@ -113,6 +150,13 @@ export class SceneManager {
    * animation loop.
    */
   private readonly atmosphereUpdaters: ((elapsed: number, dt: number) => void)[] = [];
+  /**
+   * Disposers an atmosphere's setupXEnvironment returns for GPU
+   * resources the world-layer Mesh-walk can't reach — namely the
+   * pollen / mote `THREE.Points` (geometry + material). Called on
+   * teardown before the group is freed. Mutable: cleared per switch.
+   */
+  private readonly atmosphereDisposers: (() => void)[] = [];
   private cardController: CardController | null = null;
   private biomeMixer: BiomeMixer | null = null;
   private cameraController: CameraController | null = null;
@@ -122,6 +166,8 @@ export class SceneManager {
   private worldHud: WorldHud | null = null;
   private sectorLabels: HudLabel[] = [];
   private entityLabels: HudLabel[] = [];
+  /** Compass letter labels — held so teardown can clear them too. */
+  private compassLabels: HudLabel[] = [];
 
   constructor(private readonly canvas: HTMLCanvasElement) {
     this.renderer = new THREE.WebGLRenderer({
@@ -169,25 +215,18 @@ export class SceneManager {
    */
   async mount(options: BootOptions): Promise<void> {
     const loader = new LoaderOverlay({
+      title: "Building the world",
       message: "fetching corpus",
+      namespace: "world-loader",
     });
 
+    this.snapshotUrl = options.snapshotUrl;
     try {
-      const response = await fetch(options.snapshotUrl, {
-        headers: { Accept: "application/json" },
-      });
-      if (!response.ok) {
-        loader.setMessage(`snapshot fetch failed: HTTP ${response.status}`);
-        throw new Error(`snapshot fetch failed: HTTP ${response.status}`);
-      }
-      const raw = (await response.json()) as RawSnapshot;
-      this.snapshot = this.adaptSnapshot(raw);
-      this.palette = (raw.world.palette as Palette) ?? DEFAULT_PALETTE;
-      // Cache invalidates atomically when the cypher publishes a new
-      // snapshot version. First-mount call is the initial set; no flush.
-      this.surfaceCache.setSnapshotVersion(raw.version);
+      await this.fetchSnapshot(options.snapshotUrl, false, loader);
       loader.setMessage("assembling entities");
-      await this.mountAfterSnapshot(options, loader);
+      await this.buildScene(loader);
+      // Start the render loop only after the scene is fully built.
+      this.refreshLoopState();
       await loader.hide();
     } catch (err) {
       loader.setMessage("world failed to load");
@@ -199,15 +238,52 @@ export class SceneManager {
   }
 
   /**
-   * The non-snapshot-fetch portion of mount(). Split out so the
-   * mount() wrapper can own the loader lifecycle (show / progress /
-   * hide / error path) without nesting try/finally too deep.
+   * Fetch + adapt the snapshot, set the palette, and bind the asset
+   * / surface caches to its version. Shared by mount() (first load)
+   * and switchAtmosphere() (rebuild). `noStore` bypasses the HTTP
+   * cache — switchAtmosphere needs a fresh read so a node-save
+   * atmosphere flip is reflected immediately.
    */
-  private async mountAfterSnapshot(
-    options: BootOptions,
+  private async fetchSnapshot(
+    url: string,
+    noStore: boolean,
     loader: LoaderOverlay,
   ): Promise<void> {
+    const init: RequestInit = { headers: { Accept: "application/json" } };
+    if (noStore) init.cache = "no-store";
+    const response = await fetch(url, init);
+    if (!response.ok) {
+      loader.setMessage(`snapshot fetch failed: HTTP ${response.status}`);
+      throw new Error(`snapshot fetch failed: HTTP ${response.status}`);
+    }
+    const raw = (await response.json()) as RawSnapshot;
+    this.snapshot = this.adaptSnapshot(raw);
+    this.palette = (raw.world.palette as Palette) ?? DEFAULT_PALETTE;
+    // Cache invalidates atomically when the cypher publishes a new
+    // snapshot version. First-mount call is the initial set; no flush.
+    this.surfaceCache.setSnapshotVersion(raw.version);
+    this.assetCache.setSnapshotVersion(raw.version);
+  }
+
+  /**
+   * Build the entire world from the current snapshot + palette.
+   * Called by mount() (first build) and switchAtmosphere() (rebuild
+   * after teardown). Everything mount/atmosphere-time attaches to a
+   * single disposable world-layer group; the renderer / scene /
+   * camera live OUTSIDE it and survive a switch.
+   *
+   * Does NOT start the render loop — callers own that: mount() starts
+   * it after the first build; switchAtmosphere() resumes it after the
+   * camera pose is restored.
+   */
+  private async buildScene(loader: LoaderOverlay): Promise<void> {
     if (!this.snapshot) return;
+
+    // The disposable seam. One group holds every mount/atmosphere-time
+    // object; teardown removes + disposes its subtree in one shot.
+    this.worldLayer = new THREE.Group();
+    this.worldLayer.name = "world-layer";
+    this.scene.add(this.worldLayer);
 
     this.applyPaletteBackground();
     this.addLights();
@@ -289,91 +365,253 @@ export class SceneManager {
       );
     }
     await this.placeEntities(loader);
-    // Single entry point for "start the loop." Drives through
-    // refreshLoopState so the initial start gets the same
-    // transition-log treatment as later state changes.
-    this.refreshLoopState();
     console.info(
-      `[world] mounted: ${Object.keys(this.snapshot.entities).length} entities ` +
+      `[world] built: ${Object.keys(this.snapshot.entities).length} entities ` +
         `across ${Object.keys(this.snapshot.sectors).length} sectors, ` +
+        `atmosphere=${this.palette.activeAtmosphere ?? "none"}, ` +
         `html-surface path: ${hasHtmlInCanvas() ? "HIC (native)" : "html-to-image (bridge)"}`,
     );
+  }
+
+  /**
+   * Live, in-place atmosphere flip — no page reload. Tears the world
+   * down to the surviving renderer / scene / camera, re-fetches the
+   * snapshot (no-store), and rebuilds behind the LoaderOverlay with
+   * the camera pose preserved.
+   *
+   * `name`, if given, is sent as an `?atmosphere=` hint on the
+   * re-fetch so a client can request a specific skin; a server that
+   * ignores it simply serves the currently-active atmosphere (e.g.
+   * one set earlier via `drush world:switch`). Either way the rebuilt
+   * world reflects whatever the snapshot now declares.
+   *
+   * Disposal completeness is THE risk (docs/feature-requests/
+   * world-switcher.md §Risks): verify renderer.info.memory returns to
+   * baseline across several switches. The post-switch log prints the
+   * live geometry / texture counts for exactly that check.
+   */
+  async switchAtmosphere(name?: string): Promise<void> {
+    if (!this.snapshotUrl) {
+      console.warn("[world] switchAtmosphere() before mount(); ignoring.");
+      return;
+    }
+    // Pause the loop for the teardown / rebuild window. (The loop body
+    // is fully optional-chained, so a stray focus event re-starting it
+    // mid-rebuild renders an empty—loader-covered—scene without error.)
+    this.renderer.setAnimationLoop(null);
+    this.loopRunning = false;
+
+    // Preserve exactly where the user is looking from. The rebuilt
+    // CameraController re-seeds from the (unchanged) URL vantage, so
+    // restoring position avoids a dolly while the look-target damps.
+    const stashedPos = this.camera.position.clone();
+
+    const loader = new LoaderOverlay({
+      title: "Shifting the world",
+      message: name ? `switching to ${name}` : "switching atmosphere",
+      namespace: "world-loader",
+    });
+
+    try {
+      this.teardownScene();
+      const url = name
+        ? this.withQuery(this.snapshotUrl, "atmosphere", name)
+        : this.snapshotUrl;
+      await this.fetchSnapshot(url, true, loader);
+      loader.setMessage("assembling entities");
+      await this.buildScene(loader);
+      this.camera.position.copy(stashedPos);
+      this.refreshLoopState();
+      await loader.hide();
+      const mem = this.renderer.info.memory;
+      console.info(
+        `[world] atmosphere switched → ${this.palette.activeAtmosphere ?? "none"} ` +
+          `(mem: geometries=${mem.geometries}, textures=${mem.textures})`,
+      );
+    } catch (err) {
+      loader.setMessage("atmosphere switch failed");
+      setTimeout(() => loader.dispose(), 1500);
+      // Best-effort resume so a failed switch doesn't strand the user
+      // on a frozen world.
+      this.refreshLoopState();
+      throw err;
+    }
+  }
+
+  /**
+   * Tear down everything buildScene() created, returning to a clean
+   * baseline (only renderer / scene / camera survive). Three buckets:
+   * SmartObjects (component-aware dispose), the world-layer group
+   * (Mesh geometry+material), and the atmosphere Points (via the
+   * disposers). Controllers are disposed so their bound listeners
+   * detach before rebuild.
+   */
+  private teardownScene(): void {
+    // 1. SmartObjects — component-aware dispose, then drop from scene.
+    //    (They live on `scene`, not the world-layer, so the Mesh-walk
+    //    below never double-frees their geometry — keeps
+    //    renderer.info.memory accounting honest.)
+    for (const obj of this.smartObjects.values()) {
+      obj.dispose();
+      // removeFromParent() (vs scene.remove(obj)) sidesteps the
+      // pre-existing SmartObject-vs-Object3D `attach` type clash while
+      // doing exactly the same thing — drop it from the scene graph.
+      obj.removeFromParent();
+    }
+    this.smartObjects.clear();
+
+    // 2. Atmosphere — per-frame updaters + their Points disposers
+    //    (pollen / motes geometry+material, which the Mesh-walk skips).
+    for (const dispose of this.atmosphereDisposers) dispose();
+    this.atmosphereDisposers.length = 0;
+    this.atmosphereUpdaters.length = 0;
+
+    // 3. World-layer group — lights, ground, posts, pads, scenery.
+    //    Remove from scene, then free every Mesh's geometry+material.
+    //    (Lights have no GPU geo/mat; Points were freed in step 2;
+    //    textures are shared module caches — left intact.)
+    if (this.worldLayer) {
+      this.scene.remove(this.worldLayer);
+      this.worldLayer.traverse((o) => {
+        if (o instanceof THREE.Mesh) {
+          o.geometry.dispose();
+          const mat = o.material;
+          if (Array.isArray(mat)) mat.forEach((m) => m.dispose());
+          else mat.dispose();
+        }
+      });
+      this.worldLayer = null;
+    }
+    this.ambientLight = null;
+
+    // 4. HUD labels — sector + entity + compass all share the one
+    //    WorldHud; clear() removes their DOM. Keep the HUD instance
+    //    (its container + resize listener persist across switches).
+    this.worldHud?.clear();
+    this.sectorLabels = [];
+    this.entityLabels = [];
+    this.compassLabels = [];
+
+    // 5. Asset cache — atmosphere-tagged .glb assets differ; drop the
+    //    GPU resources so the rebuild reloads the new skin's models
+    //    and memory returns to baseline. (Surface cache is keyed by
+    //    node + atmosphere-independent; fetchSnapshot's version bump
+    //    handles it.)
+    this.assetCache.flush();
+
+    // 6. Controllers — hold scene / snapshot / camera refs + bound
+    //    listeners. Dispose (detaches listeners, frees overlay +
+    //    silhouette) then null for a clean rebuild.
+    this.pointerNavigator?.dispose();
+    this.pointerNavigator = null;
+    this.cardController?.dispose();
+    this.cardController = null;
+    this.cameraController?.dispose();
+    this.cameraController = null;
+    this.biomeMixer = null;
+    this.registry = null;
+  }
+
+  /** Append a query param to a URL, choosing `?` or `&` as needed. */
+  private withQuery(url: string, key: string, value: string): string {
+    const sep = url.includes("?") ? "&" : "?";
+    return `${url}${sep}${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
   }
 
   setMode(mode: Mode): void {
     if (mode === this.mode) return;
     this.mode = mode;
-    // v0.4: lateral camera shift on reading entry. The modal
-    // covers the left half of the canvas; we want the entity to
-    // stay visible in the right half. The correct way to do this
-    // is parallax — move the camera leftward (perpendicular to
-    // its view direction). Same geometry, same FOV, same pixel
-    // scale; the world apparently shifts right by an angular
-    // amount equivalent to the lateral move.
+    // v0.4 reading-mode is a left-anchored modal at min(760px, 48vw)
+    // — the right half of the canvas stays a live world the user
+    // can still navigate. Two ingredients keep the right half
+    // navigable:
     //
-    // The first iteration tried `camera.setViewOffset(W*2, H, 0,
-    // 0, W, H)` which DOES shift the framing right — but does so
-    // by narrowing the horizontal view frustum without narrowing
-    // the canvas, stretching everything horizontally. Distortion
-    // visible immediately when the modal opened. Battle-scar: a
-    // tiled-rendering function isn't the right shape for a
-    // viewport-pan operation. Lateral camera movement is.
+    //   1. Lateral parallax shift — moves the camera leftward
+    //      (perpendicular to view) so the centered entity ends up
+    //      in the right half rather than under the modal.
+    //   2. Idle-drift suppression — the user's mouse sits over the
+    //      modal (not the canvas) while reading, so resetIdle()
+    //      doesn't fire from pointermove. Without the suppression
+    //      the camera would drift away from the framing they
+    //      picked the moment they started reading.
+    //
+    // The animation loop KEEPS RUNNING in reading mode (v0.4-fix):
+    // earlier versions paused it on the assumption "the modal
+    // covers everything, why render?" — but the modal no longer
+    // does, and pausing froze drag-orbit, hover silhouettes, and
+    // any navigation-during-reading. The loop's exploration vs
+    // reading distinction is now ONLY the lateral shift + idle gate.
+    //
+    // History note: the lateral shift was originally implemented by
+    // writing camera.position directly — that worked while the loop
+    // was paused (the position survived as the last-rendered frame),
+    // but breaks the moment the loop resumes because the per-frame
+    // damp toward baseTargetPos undoes the write. The shift now
+    // lives in CameraController as a per-frame addition to targetPos
+    // (see setLateralShiftMagnitude) so the damp converges to the
+    // shifted target instead of fighting it.
+    //
+    // Predecessor: a setViewOffset(W*2, H, 0, 0, W, H) attempt
+    // shifted framing by narrowing the horizontal frustum without
+    // narrowing the canvas — stretched everything horizontally.
+    // Tiled-rendering function, wrong shape for viewport pan.
     if (mode === "reading") {
       this.enterReadingMode();
     } else {
       this.exitReadingMode();
     }
     this.refreshLoopState();
-    // Reading mode pauses the loop, but we want the LAST frame
-    // rendered to include the lateral shift (otherwise the canvas
-    // keeps the pre-modal framing for the duration). Force one
-    // render after mode change.
-    if (mode === "reading") {
-      this.renderer.render(this.scene, this.camera);
-    }
   }
 
-  /** Stashed camera position for restoration on reading exit. */
-  private preReadingCameraPos: THREE.Vector3 | null = null;
-
   /**
-   * Move the camera laterally so the entity (originally centered
-   * in view) appears in the right half of the canvas. The modal
-   * occupies the left.
+   * Configure the camera controller for reading mode: shift the
+   * effective target away from the modal's anchor (so the entity
+   * sits in the navigable half), suppress idle drift (so the camera
+   * doesn't wander away from the framing while the user reads).
    *
-   * Lateral direction: camera-local right vector (cross of
-   * world-direction × world-up), negated so we move LEFT and the
-   * apparent world shift is RIGHT.
+   * The shift axis switches by viewport:
+   *
+   *   - Wide viewport (desktop)  → modal anchors LEFT  → shift x ⇒
+   *     camera moves LEFT → entity in RIGHT half.
+   *   - Narrow viewport (mobile) → modal anchors TOP   → shift y ⇒
+   *     camera moves UP   → entity in BOTTOM half.
    *
    * Magnitude: a fraction of the established close-up distance.
-   * Empirically tuned to ~0.5 — that's roughly the angle subtended
-   * by a quarter-canvas at the perspective FOV.
+   * Sign chosen per axis so positive close-up distance produces a
+   * shift away from the modal. Empirically tuned to ~0.5 — roughly
+   * the angle subtended by a quarter-canvas at the 60° FOV.
+   *
+   * Idempotent: calling repeatedly is fine; the shift is just
+   * re-set and re-applied per frame by the controller. Also called
+   * on resize so an orientation change recomputes the right axis.
    */
   private enterReadingMode(): void {
     const w = this.snapshot?.world;
-    if (!w) return;
-    const forward = new THREE.Vector3();
-    this.camera.getWorldDirection(forward);
-    const right = new THREE.Vector3()
-      .crossVectors(forward, this.camera.up)
-      .normalize();
-    if (right.lengthSq() < 1e-6) return; // pathological camera up; skip
-    this.preReadingCameraPos = this.camera.position.clone();
-    const shiftMagnitude = w.closeUpDistance * 0.5;
-    this.camera.position.addScaledVector(right, -shiftMagnitude);
+    if (!w || !this.cameraController) return;
+    const magnitude = w.closeUpDistance * 0.5;
+    if (isMobileViewport()) {
+      // Modal top-anchored on mobile: shift up so entity drops into
+      // the bottom half. Positive y = camera moves up = entity
+      // apparent shift downward in viewport space.
+      this.cameraController.setViewportShift({ x: 0, y: magnitude });
+    } else {
+      // Modal left-anchored on desktop: shift left so entity slides
+      // into the right half. Negative x = camera moves left = entity
+      // apparent shift rightward in viewport space.
+      this.cameraController.setViewportShift({ x: -magnitude, y: 0 });
+    }
+    this.cameraController.setIdleDriftSuppressed(true);
   }
 
   /**
-   * Restore camera.position to its pre-reading value so the world
-   * recenters when the modal closes. CameraController's internal
-   * state is unchanged through reading mode (the loop was paused),
-   * so on resume it picks up where it left off.
+   * Reset the camera controller to exploration defaults: zero both
+   * axes of viewport shift (next-frame damp slides the entity back
+   * into canvas-center), re-enable idle drift.
    */
   private exitReadingMode(): void {
-    if (this.preReadingCameraPos) {
-      this.camera.position.copy(this.preReadingCameraPos);
-      this.preReadingCameraPos = null;
-    }
+    if (!this.cameraController) return;
+    this.cameraController.setViewportShift({ x: 0, y: 0 });
+    this.cameraController.setIdleDriftSuppressed(false);
   }
 
   /** Whether the animation loop is currently running. Mirrors the
@@ -399,7 +637,13 @@ export class SceneManager {
       ? document.hasFocus()
       : true;
     const visible = !document.hidden;
-    const shouldRun = this.mode !== "reading" && focused && visible;
+    // v0.4-fix: reading mode no longer pauses the loop. The modal
+    // covers only the left band (min 760px, 48vw); the right half
+    // is a live, navigable world. The loop runs whenever the user
+    // is looking at the page — focus + visibility are the only gates.
+    // Reading-mode-specific concerns (lateral parallax + idle drift
+    // suppression) are owned by CameraController, not by the loop.
+    const shouldRun = focused && visible;
     if (shouldRun === this.loopRunning) return;
     this.loopRunning = shouldRun;
     if (shouldRun) {
@@ -441,12 +685,16 @@ export class SceneManager {
 
   private addLights(): void {
     const p = this.palette;
+    // Lights parent to the disposable world-layer so a switch removes
+    // them with the rest of the world. (Lights own no GPU geometry/
+    // material, so teardown's Mesh-walk skips them harmlessly.)
+    const layer = this.worldLayer ?? this.scene;
 
     const ambient = new THREE.AmbientLight(
       new THREE.Color(p.ambient.color),
       p.ambient.intensity,
     );
-    this.scene.add(ambient);
+    layer.add(ambient);
     this.ambientLight = ambient;
 
     const sun = new THREE.DirectionalLight(
@@ -454,14 +702,14 @@ export class SceneManager {
       p.sun.intensity,
     );
     sun.position.set(...p.sun.position);
-    this.scene.add(sun);
+    layer.add(sun);
 
     const fill = new THREE.DirectionalLight(
       new THREE.Color(p.fill.color),
       p.fill.intensity,
     );
     fill.position.set(...p.fill.position);
-    this.scene.add(fill);
+    layer.add(fill);
   }
 
   private placeCamera(override?: Vec3): void {
@@ -482,6 +730,11 @@ export class SceneManager {
   private async placeEntities(loader?: LoaderOverlay): Promise<void> {
     if (!this.snapshot) return;
     const p = this.palette;
+    // Static world geometry parents to the disposable world-layer so a
+    // switch tears it down in one shot. (SmartObjects are the
+    // exception — they stay on `scene` and are disposed individually
+    // via their component-aware dispose(); see teardownScene().)
+    const layer = this.worldLayer ?? this.scene;
 
     // Ground plane — sized to the world. Palette-driven.
     const groundSize = this.snapshot.world.radius * 4;
@@ -495,7 +748,7 @@ export class SceneManager {
     );
     ground.rotateX(-Math.PI / 2);
     ground.position.y = 0;
-    this.scene.add(ground);
+    layer.add(ground);
 
     // Cardinal compass posts + their letter labels. The posts are
     // ALPHA-era placeholders; the labels were added in v0.4 when
@@ -518,20 +771,24 @@ export class SceneManager {
     for (const { x, z } of compassPoints) {
       const post = new THREE.Mesh(compassGeo, compassMat);
       post.position.set(x, 3, z);
-      this.scene.add(post);
+      layer.add(post);
     }
     // Labels float above each post via the WorldHud. Always visible
     // (no scope predicate) so the compass works as orientation aid
-    // at every vantage.
+    // at every vantage. Held in compassLabels so teardown clears them
+    // on a switch (rebuild re-adds a fresh set).
     if (!this.worldHud) {
       this.worldHud = new WorldHud({ canvas: this.canvas });
     }
+    for (const l of this.compassLabels) l.remove();
+    this.compassLabels = [];
     for (const { letter, x, z } of compassPoints) {
-      this.worldHud.addLabel({
+      const label = this.worldHud.addLabel({
         worldPos: new THREE.Vector3(x, 10, z),
         text: letter,
         className: "world-hud__compass-label",
       });
+      this.compassLabels.push(label);
     }
 
     // v0.1.2: SmartObject registry owns entity geometry. The
@@ -545,6 +802,40 @@ export class SceneManager {
     const total = Object.keys(snap.entities).length;
     let built = 0;
     loader?.setProgress(0, total);
+    // tryLoadProp closure — shared across every builder invocation.
+    // Reads from the snapshot's assets[] (already filtered to
+    // `live` server-side) + the active atmosphere. Returns null on
+    // any miss (no slot match, no atmosphere overlap, load failure);
+    // builders treat null as "use the primitive fallback."
+    const activeAtmosphere = this.palette.activeAtmosphere ?? "none";
+    const tryLoadProp = async (slot: string) => {
+      const candidates = snap.assets.filter(
+        (a) =>
+          a.slot === slot &&
+          (a.atmospheres.length === 0 || a.atmospheres.includes(activeAtmosphere)),
+      );
+      if (candidates.length === 0) return null;
+      // Prefer assets explicitly tagged for the active atmosphere
+      // over "universal" assets (empty atmospheres[]). Within those,
+      // lowest nid wins — same deterministic tiebreak the server uses.
+      candidates.sort((a, b) => {
+        const aExplicit = a.atmospheres.includes(activeAtmosphere) ? 0 : 1;
+        const bExplicit = b.atmospheres.includes(activeAtmosphere) ? 0 : 1;
+        return aExplicit - bExplicit || a.nid - b.nid;
+      });
+      const pick = candidates[0]!;
+      try {
+        const scene = await this.assetCache.acquire(pick.curatedFileUrl);
+        return { scene, descriptor: pick };
+      } catch (err) {
+        console.warn(
+          `[world] failed to load asset ${pick.curatedFileUrl} for slot "${slot}"; falling back. Cause:`,
+          err,
+        );
+        return null;
+      }
+    };
+
     const buildPromises = Object.values(snap.entities).map(async (entity) => {
       const wp = entityPosition(entity, snap);
       const obj = await registry.build(entity, {
@@ -553,6 +844,8 @@ export class SceneManager {
         surfaceCache: this.surfaceCache,
         assetUrl: (path) => `/themes/custom/drupal_threejs/assets/${path}`,
         worldPosition: new THREE.Vector3(wp.x, 0, wp.z),
+        activeAtmosphere,
+        tryLoadProp,
       });
       this.scene.add(obj);
       this.smartObjects.set(entity.id, obj);
@@ -592,7 +885,7 @@ export class SceneManager {
       // ground beneath it as background, not whatever happened to
       // render first by entity-order accident.
       pad.renderOrder = -1;
-      this.scene.add(pad);
+      layer.add(pad);
     }
 
     // v0.4 research/information-lod: WorldHud + region labels.
@@ -730,16 +1023,37 @@ export class SceneManager {
         case "forest": {
           const mod = await import("./atmospheres/forest/index.js");
           mod.registerForestAtmosphere(this.registry);
-          // Environment setup (scenery, particles, atmosphere-
-          // wide visual elements). Atmospheres without env work
-          // simply don't export setupXEnvironment; the duck-
-          // typed call no-ops cleanly.
-          if (this.snapshot) {
-            mod.setupForestEnvironment?.(
-              this.scene,
+          // Environment setup (scenery, particles, atmosphere-wide
+          // visual elements) attaches into the disposable world-layer
+          // and returns a disposer for its Points (pollen). Atmospheres
+          // without env work simply don't export setupXEnvironment; the
+          // duck-typed call no-ops cleanly.
+          if (this.snapshot && this.worldLayer) {
+            const dispose = mod.setupForestEnvironment?.(
+              this.worldLayer,
               this.snapshot,
               (fn) => this.atmosphereUpdaters.push(fn),
             );
+            if (dispose) this.atmosphereDisposers.push(dispose);
+          }
+          break;
+        }
+        case "inner-mind": {
+          // The "acid trip" skin — abstract procedural geometry +
+          // a hue-cycling environment. A stub proving the world
+          // switcher; real inner-mind is BETA 1. Its updater mutates
+          // scene.background/fog, so it takes the scene as well as the
+          // disposable world-layer root for its motes.
+          const mod = await import("./atmospheres/inner-mind/index.js");
+          mod.registerInnerMindAtmosphere(this.registry);
+          if (this.snapshot && this.worldLayer) {
+            const dispose = mod.setupInnerMindEnvironment?.(
+              this.scene,
+              this.worldLayer,
+              this.snapshot,
+              (fn) => this.atmosphereUpdaters.push(fn),
+            );
+            if (dispose) this.atmosphereDisposers.push(dispose);
           }
           break;
         }
@@ -811,13 +1125,19 @@ export class SceneManager {
     if (this.camera) {
       this.camera.aspect = w / h;
       this.camera.updateProjectionMatrix();
-      // Re-render the reading-mode frame against the new
-      // dimensions so the modal-side framing stays valid through a
-      // resize while paused. The lateral camera shift is unchanged
-      // by canvas size — no re-shift needed here.
-      if (this.mode === "reading") {
-        this.renderer.render(this.scene, this.camera);
-      }
+      // v0.4-fix: with the loop running in reading mode, the next
+      // animation frame repaints automatically. The old explicit
+      // renderer.render(...) call here was a side-effect of the
+      // loop-pause approach we no longer use.
+    }
+    // Mobile: an orientation change crosses the MOBILE_BREAKPOINT
+    // mid-session (portrait → landscape on a tablet). If the user
+    // is in reading mode at the moment of the cross, the camera
+    // shift axis needs to swap (vertical ↔ horizontal). Re-running
+    // enterReadingMode is idempotent — it just re-sets the shift
+    // from the new viewport classification.
+    if (this.mode === "reading") {
+      this.enterReadingMode();
     }
   }
 
@@ -845,6 +1165,11 @@ export class SceneManager {
         // on legacy. (Battle-scar P1: every new descriptor field
         // needs DescriptorBuilder + Entity type + adaptSnapshot.)
         summary: d.summary ?? "",
+        // BETA 2: explicit semantic-layout position. Present only
+        // when the snapshot was built in semantic mode; absent →
+        // entityPosition falls back to taxonomy+hash. (Battle-scar
+        // P1 again — new field needs the full plumbing.)
+        worldPos: d.worldPos,
       };
     }
     return {
@@ -852,6 +1177,11 @@ export class SceneManager {
       world: raw.world,
       sectors: raw.sectors,
       entities,
+      // v0.4 / ALPHA 1: assets[] arrives from the snapshot publisher
+      // when the editor has marked at least one asset live. Legacy
+      // snapshots (pre-A.2) omit the key — default to [] so builder
+      // tryLoadProp() returns null cleanly without crashing.
+      assets: raw.assets ?? [],
     };
   }
 
@@ -875,4 +1205,6 @@ interface RawSnapshot {
   world: CorpusSnapshot["world"] & { palette?: Palette };
   sectors: CorpusSnapshot["sectors"];
   entities: Record<string, DescriptorShape>;
+  /** v0.4+: live assets — omitted on legacy publish runs. */
+  assets?: CorpusSnapshot["assets"];
 }

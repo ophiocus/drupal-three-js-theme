@@ -47,24 +47,30 @@ export function registerForestAtmosphere(registry: SmartObjectRegistry): void {
 /**
  * Set up the forest atmosphere's environment — decorative
  * scenery (mushrooms, ferns, stones) scattered near sector
- * centroids, plus (when implemented) particle layers and any
- * other atmosphere-wide visual elements.
+ * centroids, plus a drifting pollen particle layer.
  *
  * Optional companion to registerForestAtmosphere. SceneManager
- * calls it after the builders are registered and entities are
- * placed. Atmospheres without environment work simply omit this
- * export; the contract is duck-typed at the SceneManager side.
+ * calls it after the builders are registered. Atmospheres without
+ * environment work simply omit this export; the contract is
+ * duck-typed at the SceneManager side.
+ *
+ * v1.5 world switcher: attaches everything into `root` — the
+ * SceneManager's disposable world-layer group — so a switch tears
+ * the environment down with the rest of the world. Returns a
+ * disposer for the pollen `THREE.Points` (geometry + material),
+ * which the world-layer's Mesh-walk teardown deliberately skips.
  */
 export function setupForestEnvironment(
-  scene: THREE.Scene,
+  root: THREE.Object3D,
   snapshot: CorpusSnapshot,
   registerUpdater: (fn: AtmosphereUpdater) => void,
-): void {
-  placeForestScenery(scene, snapshot);
+): () => void {
+  placeForestScenery(root, snapshot);
   // Pollen — 80 drifting motes catching the low golden sun.
   // Per-frame sinusoidal drift; registered with the host so
   // SceneManager can tick it from its animation loop.
   const pollen = new PollenField(snapshot);
-  scene.add(pollen.points);
+  root.add(pollen.points);
   registerUpdater((elapsed) => pollen.update(elapsed));
+  return () => pollen.dispose();
 }

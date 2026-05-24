@@ -47,7 +47,7 @@ const COLORS = {
  * at most. Cheap to render.
  */
 export function placeForestScenery(
-  scene: THREE.Scene,
+  parent: THREE.Object3D,
   snapshot: CorpusSnapshot,
 ): void {
   // Each sector's pad has a 25%-of-world-radius footprint
@@ -55,9 +55,9 @@ export function placeForestScenery(
   // scenery within that footprint.
   const sectorPadRadius = snapshot.world.radius * 0.25;
   for (const sector of Object.values(snapshot.sectors)) {
-    scatterMushrooms(scene, sector, sectorPadRadius);
-    scatterFerns(scene, sector, sectorPadRadius);
-    scatterStones(scene, sector, sectorPadRadius);
+    scatterMushrooms(parent, sector, sectorPadRadius);
+    scatterFerns(parent, sector, sectorPadRadius);
+    scatterStones(parent, sector, sectorPadRadius);
   }
 }
 
@@ -105,18 +105,18 @@ function makeStone(): THREE.Mesh {
 
 // ─── Scatter logic ─────────────────────────────────────────────────────────
 
-function scatterMushrooms(scene: THREE.Scene, sector: Sector, padR: number) {
-  scatter(scene, sector, padR, DENSITY.mushroom, SCATTER.mushroom, "mushroom", makeMushroom);
+function scatterMushrooms(parent: THREE.Object3D, sector: Sector, padR: number) {
+  scatter(parent, sector, padR, DENSITY.mushroom, SCATTER.mushroom, "mushroom", makeMushroom);
 }
-function scatterFerns(scene: THREE.Scene, sector: Sector, padR: number) {
-  scatter(scene, sector, padR, DENSITY.fern, SCATTER.fern, "fern", makeFern);
+function scatterFerns(parent: THREE.Object3D, sector: Sector, padR: number) {
+  scatter(parent, sector, padR, DENSITY.fern, SCATTER.fern, "fern", makeFern);
 }
-function scatterStones(scene: THREE.Scene, sector: Sector, padR: number) {
-  scatter(scene, sector, padR, DENSITY.stone, SCATTER.stone, "stone", makeStone);
+function scatterStones(parent: THREE.Object3D, sector: Sector, padR: number) {
+  scatter(parent, sector, padR, DENSITY.stone, SCATTER.stone, "stone", makeStone);
 }
 
 function scatter(
-  scene: THREE.Scene,
+  parent: THREE.Object3D,
   sector: Sector,
   padR: number,
   count: number,
@@ -147,7 +147,7 @@ function scatter(
     // symmetric so this is visible. Cones are symmetric; rotation
     // costs nothing extra to apply uniformly.
     mesh.rotation.y = ((h >>> 12) & 0xff) / 0xff * Math.PI * 2;
-    scene.add(mesh);
+    parent.add(mesh);
   }
 }
 

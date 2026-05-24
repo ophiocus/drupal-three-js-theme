@@ -151,3 +151,41 @@ atmosphere_overrides:
       profile: '#7a5a3a'
       event: '#8a6a40'
       default: '#4a3828'
+  inner-mind:
+    # Acid trip — neon on deep violet. The renderer's hue-cycle
+    # updater rotates background + fog through the spectrum at
+    # runtime; these are the at-rest values + the lights/ground the
+    # cycle doesn't touch. See atmospheres/inner-mind/.
+    background: '#12002e'
+    fog:
+      color: '#5a0a44'
+      near: 60
+      far: 460
+    ambient:
+      color: '#ff66cc'
+      intensity: 1.1
+    sun:
+      color: '#aaff00'
+      intensity: 1.6
+      position:
+        - 60
+        - 140
+        - 40
+    fill:
+      color: '#00e5ff'
+      intensity: 0.8
+      position:
+        - -80
+        - 60
+        - -60
+    ground:
+      color: '#1a0636'
+    sectorPad:
+      color: '#3a0a5a'
+    compassPost:
+      color: '#ff2fb0'
+    bundleColors:
+      article: '#ff2bd6'
+      profile: '#22e0ff'
+      event: '#b6ff2b'
+      default: '#d050ff'
