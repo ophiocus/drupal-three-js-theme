@@ -1,0 +1,25 @@
+{
+  "name": "asset-workshop",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Headless glTF transform + turntable MP4 render for the asset pipeline. Independent of the Drupal module — invoked with a file path, writes transformed .glb or turntable .mp4.",
+  "bin": {
+    "workshop": "bin/workshop.js"
+  },
+  "scripts": {
+    "transform": "node bin/workshop.js transform",
+    "turntable": "node bin/workshop.js turntable"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
+    "@gltf-transform/core": "^4.1.0",
+    "@gltf-transform/extensions": "^4.1.0",
+    "@gltf-transform/functions": "^4.1.0",
+    "@google/model-viewer": "^4.0.0",
+    "puppeteer": "^23.0.0"
+  }
+}

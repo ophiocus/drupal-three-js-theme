@@ -1,0 +1,27 @@
+# World content type — the world's characteristics, declared as
+# editable Drupal content rather than baked into PHP constants.
+#
+# A `world` node carries the tuned geometry (the learned-lesson
+# vantage/scale numbers), the active atmosphere, and a flag marking
+# which world the snapshot publishes. SnapshotPublisher reads the
+# active world and emits its values into the snapshot's `world`
+# block, falling back to the baked-in defaults for any empty field.
+#
+# Like `asset`, this is CONFIGURATION content, not world content:
+# no metaphor plugin, no field_world_sector, no signature. The
+# cypher hook ignores bundles without a Metaphor plugin, so a world
+# node never becomes an entity placed in the 3D scene — it shapes
+# the scene that everything else is placed into.
+#
+# ALPHA 1: "world rules from Drupal content types" — this is the
+# world-level half (per-entity descriptors are the other half).
+langcode: en
+status: true
+dependencies: {  }
+name: World
+type: world
+description: 'The world''s characteristics — vantage geometry, atmosphere, scale. Declared as content; read by the snapshot publisher. Configuration, not world content.'
+help: ''
+new_revision: true
+preview_mode: 1
+display_submitted: false

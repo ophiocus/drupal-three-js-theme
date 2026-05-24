@@ -121,11 +121,16 @@ final class DescriptorBuilder {
   }
 
   /**
-   * The text that Atlas-managed embeddings will vectorise. Title +
-   * body is the v1 default; richer entities (paragraphs, etc.) can
-   * override by giving their metaphor plugin a richer body extractor.
+   * The text that embeddings vectorise. Title + body is the v1
+   * default; richer entities (paragraphs, etc.) can override by
+   * giving their metaphor plugin a richer body extractor.
+   *
+   * Public so the BETA 2 embedding pass (drush world:embed) builds
+   * the corpus from the SAME text the descriptor advertises — one
+   * definition of "what this entity says," shared by the embedder
+   * and the (future Atlas-managed) index.
    */
-  private function embeddingText(EntityInterface $entity, EntityFacts $facts): string {
+  public function embeddingText(EntityInterface $entity, EntityFacts $facts): string {
     $title = (string) ($entity->label() ?? '');
     $body = trim($facts->bodyText);
     if ($title === '') {

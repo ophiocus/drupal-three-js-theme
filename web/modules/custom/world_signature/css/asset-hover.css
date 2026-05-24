@@ -1,0 +1,21 @@
+/**
+ * Asset teaser turntable styling. Fill the card, hide native video
+ * chrome (playback is hover-driven, not user-scrubbed), and signal
+ * interactivity with a pointer cursor.
+ */
+.node--type-asset.node--view-mode-teaser video {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: #1d2a1f; /* forest backdrop while the clip is paused */
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* Hide the native controls bar even if the formatter emits one. */
+.node--type-asset.node--view-mode-teaser video::-webkit-media-controls {
+  display: none !important;
+}
+.node--type-asset.node--view-mode-teaser video::-webkit-media-controls-enclosure {
+  display: none !important;
+}

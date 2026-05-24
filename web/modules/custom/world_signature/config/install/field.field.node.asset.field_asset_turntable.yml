@@ -1,0 +1,29 @@
+# turntable instance on the asset bundle. Receives the externally-
+# rendered turntable clip; the teaser display renders it and the
+# asset_hover library plays it on hover. webm/mp4 only.
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_asset_turntable
+    - node.type.asset
+  module:
+    - file
+id: node.asset.field_asset_turntable
+field_name: field_asset_turntable
+entity_type: node
+bundle: asset
+label: 'Turntable preview'
+description: 'Short looping turntable clip (mp4) of the model, autoplayed on hover in listings. Produced by the external asset_workshop render platform — this module only hosts and plays it.'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  file_directory: 'assets/turntable/[date:custom:Y-m]'
+  file_extensions: 'mp4'
+  max_filesize: ''
+  description_field: false
+  handler: 'default:file'
+  handler_settings: {  }
+field_type: file

@@ -1,0 +1,4 @@
+node_modules/
+tmp/
+*.transformed.glb
+*.turntable.mp4

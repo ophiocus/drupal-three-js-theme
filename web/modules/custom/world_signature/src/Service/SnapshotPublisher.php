@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Drupal\world_signature\Service;
 
+use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\State\StateInterface;
+use Drupal\node\NodeInterface;
 
 /**
  * Assembles a corpus snapshot the renderer consumes.
@@ -18,13 +21,18 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
  *     "world":       { radius, overviewHeight, sectionVantageHeight,
  *                      closeUpDistance, closeUpHeight },
  *     "sectors":     { <termId>: { termId, displayName, centroid, radius } },
- *     "entities":    { <descriptorId>: <descriptor> }
+ *     "entities":    { <descriptorId>: <descriptor> },
+ *     "assets":      [ {nid, slot, atmospheres, curatedFileUrl, ...} ]
  *   }
  *
  * For ALPHA: pulls every descriptor from the gateway, derives sector
  * geometry from the unique `sector` values present in the corpus,
  * spreads them evenly on a circle. Atlas-managed embedding-driven
- * layout will refine this in v0.0.2.
+ * layout will refine this in BETA 2 (docs/MILESTONES.md).
+ *
+ * v0.4 / ALPHA 1: the `assets[]` block lets the renderer load real
+ * .glb meshes for entities whose bundle binds to a slot the editor
+ * has marked `live`. See AssetSnapshotBuilder + ROADMAP.md §A.2.
  */
 final class SnapshotPublisher {
 
@@ -49,21 +57,45 @@ final class SnapshotPublisher {
     'closeUpHeight' => 14.0,
   ];
 
+  /** State keys for the BETA 2 semantic layout. */
+  public const string STATE_LAYOUT_MODE = 'world_signature.layout_mode';
+  public const string STATE_SEMANTIC_LAYOUT = 'world_signature.semantic_layout';
+
   public function __construct(
     private readonly WorldSearchClient $client,
     private readonly ConfigFactoryInterface $configFactory,
     private readonly EntityTypeManagerInterface $entityTypeManager,
+    private readonly AssetSnapshotBuilder $assetBuilder,
+    private readonly StateInterface $state,
   ) {}
 
   /**
    * Build the full snapshot. Cheap when the corpus is small (ALPHA);
-   * static-file caching lands in v0.0.2.
+   * static-file caching lands later.
+   *
+   * Returns the snapshot payload + the CacheableMetadata to attach
+   * to the response so editorial asset edits invalidate the
+   * downstream caches. Caller is responsible for assembling the
+   * HTTP response with the metadata.
+   *
+   * @return array{
+   *   payload: array<string, mixed>,
+   *   cacheability: \Drupal\Core\Cache\CacheableMetadata,
+   * }
    */
   public function buildSnapshot(): array {
     $descriptors = $this->client->findAll();
 
+    // ALPHA 1: the world's characteristics are declared as content.
+    // Read the active World node; every value falls back to the
+    // baked-in learned-lesson constant when its field is empty (or
+    // when no World node exists at all — additive, non-breaking).
+    $worldNode = $this->activeWorld();
+    $ringRadius = $this->worldNum($worldNode, 'field_world_sector_ring_radius', self::SECTOR_RING_RADIUS);
+    $localRadius = $this->worldNum($worldNode, 'field_world_sector_local_radius', self::SECTOR_LOCAL_RADIUS);
+
     $sectorIds = $this->collectSectorIds($descriptors);
-    $sectors = $this->placeSectors($sectorIds);
+    $sectors = $this->placeSectors($sectorIds, $ringRadius, $localRadius);
 
     $entities = [];
     foreach ($descriptors as $d) {
@@ -73,19 +105,111 @@ final class SnapshotPublisher {
       }
       // Strip RESTHeart-internal fields the renderer doesn't need.
       unset($d['_etag']);
+      // Strip the raw embedding vector — the renderer never needs
+      // the high-dim array, only the projected worldPos. Keeps the
+      // snapshot payload lean (256-2048 floats × N entities adds up).
+      if (isset($d['signature']['semantic']['embedding'])) {
+        unset($d['signature']['semantic']['embedding']);
+      }
       $entities[$id] = $d;
     }
 
-    $world = self::WORLD_CONSTANTS;
-    $world['palette'] = $this->loadPalette();
+    // BETA 2: semantic layout override. When layout_mode is
+    // "semantic" and a stored layout exists (from drush
+    // world:relayout), stamp each entity with its projected
+    // worldPos and replace sector centroids/radii with the
+    // emergent values. Renderer reads worldPos first, falling back
+    // to taxonomy+hash placement for any entity the layout misses.
+    $layoutMode = (string) $this->state->get(self::STATE_LAYOUT_MODE, 'taxonomy');
+    if ($layoutMode === 'semantic') {
+      $layout = $this->state->get(self::STATE_SEMANTIC_LAYOUT);
+      if (is_array($layout)) {
+        $this->applySemanticLayout($entities, $sectors, $layout);
+      }
+    }
 
-    return [
+    // World block — node fields over baked-in constants.
+    $world = [
+      'radius' => $this->worldNum($worldNode, 'field_world_radius', self::WORLD_CONSTANTS['radius']),
+      'overviewHeight' => $this->worldNum($worldNode, 'field_world_overview_height', self::WORLD_CONSTANTS['overviewHeight']),
+      'sectionVantageHeight' => $this->worldNum($worldNode, 'field_world_section_height', self::WORLD_CONSTANTS['sectionVantageHeight']),
+      'closeUpDistance' => $this->worldNum($worldNode, 'field_world_closeup_distance', self::WORLD_CONSTANTS['closeUpDistance']),
+      'closeUpHeight' => $this->worldNum($worldNode, 'field_world_closeup_height', self::WORLD_CONSTANTS['closeUpHeight']),
+    ];
+    // Atmosphere: the World node overrides palette config's active_atmosphere.
+    $atmosphere = $this->worldStr($worldNode, 'field_world_atmosphere', NULL);
+    $world['palette'] = $this->loadPalette($atmosphere);
+    $world['layoutMode'] = $layoutMode;
+
+    // v0.4 / ALPHA 1: live asset payload embedded alongside entities.
+    // The sidecar /world/snapshot/assets endpoint serves the same
+    // block in isolation for diagnostic use; both call the same
+    // builder so cache invariants stay coherent.
+    $assetResult = $this->assetBuilder->build();
+
+    $cacheability = new CacheableMetadata();
+    $cacheability->addCacheableDependency($assetResult['cacheability']);
+    // Palette config tag — atmosphere overlay shifts invalidate.
+    $cacheability->addCacheTags(['config:world_signature.palette']);
+    // World content — editing the active World node invalidates the snapshot.
+    $cacheability->addCacheTags(['node_list:world']);
+    if ($worldNode !== NULL) {
+      $cacheability->addCacheableDependency($worldNode);
+    }
+
+    $payload = [
       'version' => 'v1',
       'generatedAt' => time(),
       'world' => $world,
       'sectors' => $sectors,
       'entities' => $entities,
+      'assets' => $assetResult['assets'],
     ];
+
+    return ['payload' => $payload, 'cacheability' => $cacheability];
+  }
+
+  /**
+   * Apply a stored semantic layout over the taxonomy-derived
+   * entities + sectors. Mutates both arrays in place.
+   *
+   * - Each entity gains a `worldPos` {x, z} from the projection.
+   * - Each sector's centroid + radius are replaced with the
+   *   emergent values (mean of member positions + spread). The
+   *   sector concept survives but becomes DESCRIPTIVE (where this
+   *   region's content landed in semantic space) rather than
+   *   PRESCRIPTIVE (a circle slice the content is forced into).
+   *
+   * @param array<string, array<string, mixed>> $entities
+   * @param array<string, array<string, mixed>> $sectors
+   * @param array{entities?: array, sectors?: array} $layout
+   */
+  private function applySemanticLayout(array &$entities, array &$sectors, array $layout): void {
+    $entityPos = $layout['entities'] ?? [];
+    $sectorPos = $layout['sectors'] ?? [];
+
+    foreach ($entities as $id => &$d) {
+      if (isset($entityPos[$id]['x'], $entityPos[$id]['z'])) {
+        $d['worldPos'] = [
+          'x' => (float) $entityPos[$id]['x'],
+          'z' => (float) $entityPos[$id]['z'],
+        ];
+      }
+    }
+    unset($d);
+
+    foreach ($sectors as $termId => &$sector) {
+      if (isset($sectorPos[$termId]['x'], $sectorPos[$termId]['z'])) {
+        $sector['centroid'] = [
+          'x' => (float) $sectorPos[$termId]['x'],
+          'z' => (float) $sectorPos[$termId]['z'],
+        ];
+        if (isset($sectorPos[$termId]['radius'])) {
+          $sector['radius'] = (float) $sectorPos[$termId]['radius'];
+        }
+      }
+    }
+    unset($sector);
   }
 
   /**
@@ -104,14 +228,19 @@ final class SnapshotPublisher {
    *      activeAtmosphere. atmosphere_overrides is config-only and
    *      never reaches the renderer.
    */
-  private function loadPalette(): array {
+  private function loadPalette(?string $atmosphereOverride = NULL): array {
     $config = $this->configFactory->get('world_signature.palette');
     $palette = $config->getRawData() ?: [];
-    if ($palette === []) {
+    if ($palette === [] && $atmosphereOverride === NULL) {
       return self::FALLBACK_PALETTE;
     }
     // 1. Merge config over the fallback.
     $merged = array_replace_recursive(self::FALLBACK_PALETTE, $palette);
+
+    // ALPHA 1: the active World node's atmosphere wins over config.
+    if ($atmosphereOverride !== NULL && $atmosphereOverride !== '') {
+      $merged['active_atmosphere'] = $atmosphereOverride;
+    }
 
     // 2. Apply the active atmosphere's palette overlay.
     $active = $merged['active_atmosphere'] ?? 'none';
@@ -201,7 +330,7 @@ final class SnapshotPublisher {
    * snapshot generations (so `vantage()`'s determinism invariant
    * survives).
    */
-  private function placeSectors(array $sectorIds): array {
+  private function placeSectors(array $sectorIds, float $ringRadius = self::SECTOR_RING_RADIUS, float $localRadius = self::SECTOR_LOCAL_RADIUS): array {
     $sectorIds = array_values(array_unique(array_filter($sectorIds)));
     sort($sectorIds);
     $n = count($sectorIds);
@@ -213,13 +342,58 @@ final class SnapshotPublisher {
         'termId' => $id,
         'displayName' => $this->humaniseTermId($id),
         'centroid' => [
-          'x' => cos($angle) * self::SECTOR_RING_RADIUS,
-          'z' => sin($angle) * self::SECTOR_RING_RADIUS,
+          'x' => cos($angle) * $ringRadius,
+          'z' => sin($angle) * $ringRadius,
         ],
-        'radius' => self::SECTOR_LOCAL_RADIUS,
+        'radius' => $localRadius,
       ];
     }
     return $sectors;
+  }
+
+  /**
+   * Load the active World node — the one whose characteristics the
+   * snapshot publishes. Selection: the published `world` node with
+   * field_world_active set; if none (or several), the lowest node id
+   * wins; NULL when there are no World nodes at all (publisher then
+   * uses the baked-in constants).
+   */
+  private function activeWorld(): ?NodeInterface {
+    try {
+      $storage = $this->entityTypeManager->getStorage('node');
+      $worlds = $storage->loadByProperties(['type' => 'world', 'status' => 1]);
+    }
+    catch (\Throwable) {
+      return NULL;
+    }
+    if ($worlds === []) {
+      return NULL;
+    }
+    ksort($worlds);
+    foreach ($worlds as $world) {
+      if ($world->hasField('field_world_active')
+        && !$world->get('field_world_active')->isEmpty()
+        && (bool) $world->get('field_world_active')->value) {
+        return $world;
+      }
+    }
+    return reset($worlds);
+  }
+
+  /** Read a numeric World field, or the baked-in default when empty. */
+  private function worldNum(?NodeInterface $world, string $field, float $default): float {
+    if ($world !== NULL && $world->hasField($field) && !$world->get($field)->isEmpty()) {
+      return (float) $world->get($field)->value;
+    }
+    return $default;
+  }
+
+  /** Read a string World field, or a default when empty. */
+  private function worldStr(?NodeInterface $world, string $field, ?string $default): ?string {
+    if ($world !== NULL && $world->hasField($field) && !$world->get($field)->isEmpty()) {
+      return (string) $world->get($field)->value;
+    }
+    return $default;
   }
 
   private function collectSectorIds(array $descriptors): array {

@@ -34,6 +34,18 @@ world_signature.snapshot:
   requirements:
     _access: 'TRUE'
 
+# Sidecar to /world/snapshot/full — returns ONLY the assets[] block.
+# Same data, different surface. Used as a diagnostic curl probe
+# (verify which asset is live per slot per atmosphere) and by the
+# A.5 /admin/world/assets view (when shipped).
+world_signature.snapshot_assets:
+  path: '/world/snapshot/assets'
+  defaults:
+    _controller: '\Drupal\world_signature\Controller\WorldController::assetsSnapshot'
+    _format: json
+  requirements:
+    _access: 'TRUE'
+
 world_signature.descriptor:
   path: '/world/descriptor/{id}'
   defaults:

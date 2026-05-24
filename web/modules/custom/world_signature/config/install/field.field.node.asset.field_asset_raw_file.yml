@@ -1,0 +1,30 @@
+# raw_file instance on the asset bundle. Filled by asset ingestion
+# with the mesh binary as received (untransformed). The human curates
+# this into field_asset_curated_file; the renderer never loads raw
+# directly. file_directory mirrors curated but under assets/raw/.
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_asset_raw_file
+    - node.type.asset
+  module:
+    - file
+id: node.asset.field_asset_raw_file
+field_name: field_asset_raw_file
+entity_type: node
+bundle: asset
+label: 'Raw file'
+description: 'The mesh binary as extracted from its source pack, untransformed. Filled by asset ingestion; curation produces the world-ready curated file from it.'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  file_directory: 'assets/raw/[date:custom:Y-m]'
+  file_extensions: 'glb gltf'
+  max_filesize: ''
+  description_field: false
+  handler: 'default:file'
+  handler_settings: {  }
+field_type: file

@@ -32,9 +32,15 @@ import type {
   SmartObjectBuilder,
 } from "../../smart-objects/Builder.js";
 import { MeshComponent } from "../../smart-objects/components/MeshComponent.js";
+import { GltfComponent } from "../../smart-objects/components/GltfComponent.js";
 import { TriggerPadComponent } from "../../smart-objects/components/TriggerPadComponent.js";
 import { HtmlSurfaceComponent, cardPlacement } from "../../smart-objects/components/HtmlSurfaceComponent.js";
 import { FLOOR_LAYERS } from "../../floor-layers.js";
+
+/** Slot the event builder consults. Matches mappings.yml. The
+ *  phallic-pillar v0.3.0-fix becomes irrelevant the moment a
+ *  real standing-stone .glb lands at field_asset_status=live. */
+const EVENT_ASSET_SLOT = "standing-stone";
 
 /** Stone tones — warm bronze with a hint of patina. */
 const TOTEM_STONE_COLOR = "#6e5a3c";
@@ -72,31 +78,35 @@ export class EventAsTotem implements SmartObjectBuilder {
     const baseRadius = totalHeight * 0.18;
     const topRadius = totalHeight * 0.13;   // ~28% taper, basalt-like
 
-    // ── Moss ground decal — flat circle just above the trigger pad
-    //    layer. Reads as "this is where the event is happening." ──
+    // v0.4 / ALPHA 1: real standing-stone .glb if the editor has one
+    // live. Moss decal stays around the base regardless — that's
+    // event-coherent ground signal independent of which totem
+    // geometry rides above it. The TemporalUrgencyComponent (deferred
+    // to v0.5) will modulate emissive on either path.
+    const prop = await ctx.tryLoadProp(EVENT_ASSET_SLOT);
+    if (prop) {
+      const box = new THREE.Box3().setFromObject(prop.scene);
+      const size = new THREE.Vector3();
+      box.getSize(size);
+      const naturalHeight = Math.max(size.y, 0.01);
+      const scale = totalHeight / naturalHeight;
+      obj.attach(new GltfComponent({
+        scene: prop.scene,
+        scale,
+        pivot: prop.descriptor.pivot,
+        entityBody: true,
+      }));
+      // Moss ring is part of the event-coherent floor signal —
+      // attach it on the asset path too.
+      this.attachMossRing(obj, totalHeight);
+      await this.attachCardScaffold(obj, ctx, descriptor, totalHeight);
+      return obj;
+    }
+
+    // Moss ring — the event-coherent ground signal. Asset and
+    // primitive paths share it via attachMossRing().
+    this.attachMossRing(obj, totalHeight);
     const mossRadius = totalHeight * 0.85;
-    const mossGeo = new THREE.CircleGeometry(mossRadius, 32);
-    mossGeo.rotateX(-Math.PI / 2);
-    const mossMat = new THREE.MeshStandardMaterial({
-      color: MOSS_CIRCLE_COLOR,
-      roughness: 0.95,
-      metalness: 0,
-      // Subtle emissive so the moss circle stays readable in deep
-      // forest gloom without becoming a glow ring.
-      emissive: new THREE.Color(MOSS_CIRCLE_COLOR).multiplyScalar(0.10),
-    });
-    obj.attach(new MeshComponent({
-      geometry: mossGeo,
-      material: mossMat,
-      // Dedicated ground_decal layer — sits ABOVE the sector pad
-      // (0.5) and BELOW the trigger pad (1.0). Using
-      // trigger_pad * 0.5 here was a v0.3.0 bug — that math
-      // landed at 0.5, coplanar with sector_pad → z-fighting
-      // across the moss ring whenever an event sat over a sector
-      // centroid. floor-layers.ts exists precisely for this case.
-      offset: { x: 0, y: FLOOR_LAYERS.ground_decal, z: 0 },
-      // Moss isn't the click target — the totem column is.
-    }));
 
     // ── Totem column — tapered cylinder, slight Y rotation so each
     //    totem reads as individual. ──
@@ -148,19 +158,60 @@ export class EventAsTotem implements SmartObjectBuilder {
       entityBody: true,
     }));
 
-    // ── Trigger pad — event-tinted disc on the moss ring's edge. ──
+    await this.attachCardScaffold(obj, ctx, descriptor, totalHeight, mossRadius * 0.75);
+    return obj;
+  }
+
+  /**
+   * Add the moss ring ground decal — the visual signal that an
+   * event is happening here. Same on the asset path (around the
+   * curated standing-stone .glb) and the primitive path (around
+   * the cylinder totem); attached via this helper either way.
+   */
+  private attachMossRing(obj: SmartObject, totalHeight: number): void {
+    const mossRadius = totalHeight * 0.85;
+    const mossGeo = new THREE.CircleGeometry(mossRadius, 32);
+    mossGeo.rotateX(-Math.PI / 2);
+    const mossMat = new THREE.MeshStandardMaterial({
+      color: MOSS_CIRCLE_COLOR,
+      roughness: 0.95,
+      metalness: 0,
+      // Subtle emissive so the moss circle stays readable in deep
+      // forest gloom without becoming a glow ring.
+      emissive: new THREE.Color(MOSS_CIRCLE_COLOR).multiplyScalar(0.10),
+    });
+    obj.attach(new MeshComponent({
+      geometry: mossGeo,
+      material: mossMat,
+      // Dedicated ground_decal layer — sits ABOVE the sector pad
+      // (0.5) and BELOW the trigger pad (1.0). Using
+      // trigger_pad * 0.5 here was a v0.3.0 bug — that math landed
+      // at 0.5, coplanar with sector_pad → z-fighting whenever an
+      // event sat over a sector centroid. floor-layers.ts exists
+      // precisely for this case.
+      offset: { x: 0, y: FLOOR_LAYERS.ground_decal, z: 0 },
+      // Moss isn't the click target — the totem column is.
+    }));
+  }
+
+  /**
+   * Trigger pad + HTML surface — shared between asset and
+   * primitive paths (mirrors ArticleAsTree.attachCardScaffold).
+   */
+  private async attachCardScaffold(
+    obj: SmartObject,
+    ctx: BuilderContext,
+    descriptor: Entity,
+    totalHeight: number,
+    padZ: number,
+  ): Promise<void> {
+    void totalHeight;
     obj.attach(new TriggerPadComponent({
       color: ctx.palette.bundleColors.event ?? "#8a6a40",
-      offset: {
-        x: 0,
-        y: FLOOR_LAYERS.trigger_pad,
-        z: mossRadius * 0.75,
-      },
+      offset: { x: 0, y: FLOOR_LAYERS.trigger_pad, z: padZ },
       radius: 2.2,
     }));
 
-    // ── HTML card surface — same shared cardPlacement helper as
-    //    the other forest builders. ──
     try {
       const dashIdx = descriptor.id.indexOf("-");
       if (dashIdx > 0) {
@@ -180,7 +231,5 @@ export class EventAsTotem implements SmartObjectBuilder {
     } catch (err) {
       console.warn(`[atmosphere:forest] HtmlSurface failed for ${descriptor.id}:`, err);
     }
-
-    return obj;
   }
 }

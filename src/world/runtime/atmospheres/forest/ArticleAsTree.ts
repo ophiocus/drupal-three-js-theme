@@ -26,9 +26,17 @@ import type {
   SmartObjectBuilder,
 } from "../../smart-objects/Builder.js";
 import { MeshComponent } from "../../smart-objects/components/MeshComponent.js";
+import { GltfComponent } from "../../smart-objects/components/GltfComponent.js";
 import { TriggerPadComponent } from "../../smart-objects/components/TriggerPadComponent.js";
 import { HtmlSurfaceComponent, cardPlacement } from "../../smart-objects/components/HtmlSurfaceComponent.js";
 import { FLOOR_LAYERS } from "../../floor-layers.js";
+
+/** Slot name this builder consults for a curated .glb. Matches the
+ *  asset_slots taxonomy term + the forest mappings.yml binding.
+ *  Hardcoded as a per-builder constant rather than read from
+ *  mappings.yml because the binding is the BUILDER's contract;
+ *  mappings.yml will become Drupal-side data in ALPHA 3. */
+const ARTICLE_ASSET_SLOT = "oak-stylized";
 
 /** Forest atmosphere bark palette by atlas_coffee region. */
 const FOREST_BARK_PALETTE: Record<string, string> = {
@@ -80,9 +88,39 @@ export class ArticleAsTree implements SmartObjectBuilder {
     const obj = new SmartObject(descriptor.id, this.name);
     obj.position.copy(ctx.worldPosition);
 
+    // v0.4 / ALPHA 1: prefer the curated .glb when the editor has
+    // marked one live for this slot in the active atmosphere.
+    // Primitive cone+cylinder is the documented fallback for any
+    // article whose slot has no live asset.
+    const totalHeight = forestTreeHeight(descriptor.signature.structural.wordCount);
+    const prop = await ctx.tryLoadProp(ARTICLE_ASSET_SLOT);
+    if (prop) {
+      // Scale the loaded .glb to match the word-count-driven height.
+      // Assumption: the curated asset is authored at ~1m=1unit with
+      // its visible height in the [3, 14] range (per mappings.yml
+      // size_signal). We scale so the asset's bounding-box height
+      // matches our computed totalHeight — keeps the size-vs-wordcount
+      // signal regardless of which specific .glb is wired.
+      const box = new THREE.Box3().setFromObject(prop.scene);
+      const size = new THREE.Vector3();
+      box.getSize(size);
+      const naturalHeight = Math.max(size.y, 0.01); // guard /0
+      const scale = totalHeight / naturalHeight;
+      obj.attach(new GltfComponent({
+        scene: prop.scene,
+        scale,
+        pivot: prop.descriptor.pivot,
+        entityBody: true,
+      }));
+      // Trigger pad + html surface go on regardless of asset vs
+      // primitive — they're the card-lifecycle scaffold.
+      this.attachCardScaffold(obj, ctx, descriptor, totalHeight);
+      return obj;
+    }
+
+    // ─── Primitive fallback (the original v0.2.1-P2 implementation) ──
     // v0.2.1-P2: forest trees use their own size function (range
     // [8, 35]) so they read at sector-pad scale, not garnish.
-    const totalHeight = forestTreeHeight(descriptor.signature.structural.wordCount);
     const trunkHeight = totalHeight * 0.45;
     const trunkRadius = totalHeight * 0.06;
     const canopyHeightBase = totalHeight * 0.65;
@@ -201,19 +239,41 @@ export class ArticleAsTree implements SmartObjectBuilder {
       }));
     }
 
-    // Trigger pad — the bloom interaction. Same shape and
-    // tinting logic as the default ArticleBuilder; scales with
-    // the tree's footprint so it stays proportional.
+    await this.attachCardScaffold(obj, ctx, descriptor, totalHeight, trunkRadius);
+    return obj;
+  }
+
+  /**
+   * Attach the trigger pad + HTML surface — the card-lifecycle
+   * scaffold every article tree carries regardless of geometry
+   * source (asset or primitive). Extracted so the asset path and
+   * the primitive path share one implementation.
+   *
+   * trunkRadius is used to position the trigger pad relative to
+   * the trunk; when loaded from a .glb the asset's true trunk
+   * radius isn't known, so the asset path passes an estimate
+   * (~totalHeight * 0.06, matching the primitive geometry).
+   */
+  private async attachCardScaffold(
+    obj: SmartObject,
+    ctx: BuilderContext,
+    descriptor: Entity,
+    totalHeight: number,
+    trunkRadius: number = totalHeight * 0.06,
+  ): Promise<void> {
+    // Trigger pad — the bloom interaction. Same shape and tinting
+    // logic as the default ArticleBuilder; scales with the tree's
+    // footprint so it stays proportional.
     obj.attach(new TriggerPadComponent({
       color: ctx.palette.bundleColors.article ?? "#5a7a3a",
       offset: { x: 0, y: FLOOR_LAYERS.trigger_pad, z: trunkRadius + 3 },
       radius: 2.4 * (0.7 + 0.3 * (totalHeight / 14)),
     }));
 
-    // HTML surface — shared cardPlacement (v0.2.1-P4) so the
-    // detail vantage frames the card consistently regardless of
-    // tree size. The trunk-and-canopy still scales with word
-    // count; the card sits at a fixed readable height outward.
+    // HTML surface — shared cardPlacement (v0.2.1-P4) so the detail
+    // vantage frames the card consistently regardless of tree size.
+    // The trunk-and-canopy still scales with word count; the card
+    // sits at a fixed readable height outward.
     try {
       const dashIdx = descriptor.id.indexOf("-");
       if (dashIdx > 0) {
@@ -233,7 +293,5 @@ export class ArticleAsTree implements SmartObjectBuilder {
     } catch (err) {
       console.warn(`[atmosphere:forest] HtmlSurface failed for ${descriptor.id}:`, err);
     }
-
-    return obj;
   }
 }

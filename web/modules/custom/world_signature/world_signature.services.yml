@@ -54,6 +54,8 @@ services:
       - '@world_signature.world_search_client'
       - '@config.factory'
       - '@entity_type.manager'
+      - '@world_signature.asset_snapshot_builder'
+      - '@state'
 
   # World manifesto — read-only API over the registry of item
   # types and component types. See docs/MANIFESTO.md.
@@ -61,3 +63,88 @@ services:
     class: Drupal\world_signature\Service\WorldManifesto
     arguments:
       - '@config.factory'
+
+  # Asset snapshot builder — projects asset+pack content into the
+  # renderer's payload shape. Single read path for both the embedded
+  # /world/snapshot/full assets[] block and the sidecar
+  # /world/snapshot/assets diagnostic route. See ROADMAP.md §A.2
+  # and Service/AssetSnapshotBuilder.php.
+  world_signature.asset_snapshot_builder:
+    class: Drupal\world_signature\Service\AssetSnapshotBuilder
+    arguments:
+      - '@entity_type.manager'
+      - '@file_url_generator'
+      - '@logger.channel.world_signature'
+
+  # ─── BETA 2: embedding-driven semantic layout ──────────────────
+  # Local TF-IDF provider — dependency-free, deterministic, no keys.
+  # The dev/demo embedder; produces lexical-proximity vectors.
+  world_signature.embedding.local:
+    class: Drupal\world_signature\Embedding\LocalTfIdfEmbeddingProvider
+
+  # Remote neural provider — production upgrade path. Reads
+  # WORLD_EMBED_* env vars; unconfigured by default (falls back
+  # to local via the manager).
+  world_signature.embedding.remote:
+    class: Drupal\world_signature\Embedding\RemoteEmbeddingProvider
+    arguments:
+      - '@http_client'
+      - '@logger.channel.world_signature'
+
+  # Embedding manager — selects remote-if-configured else local,
+  # exposes embedCorpus().
+  world_signature.embedding.manager:
+    class: Drupal\world_signature\Embedding\EmbeddingManager
+    arguments:
+      - '@world_signature.embedding.local'
+      - '@world_signature.embedding.remote'
+      - '@logger.channel.world_signature'
+
+  # Semantic layout projector — embeddings → deterministic 2D world
+  # coordinates via classical MDS. Pure math, no deps.
+  world_signature.embedding.projector:
+    class: Drupal\world_signature\Embedding\SemanticLayoutProjector
+
+  # ─── Asset ingestion: thin source-provider layer ───────────────
+  # Each adapter resolves a source reference (URL or scheme:id) into
+  # leechable SourceAssets carrying download URL + copyright metadata.
+  # Tagged + priority-ordered; the manager picks the first that
+  # supports() a reference. DirectUrlAdapter is the lowest-priority
+  # catch-all. See docs/feature-requests/asset-ingestion*.md.
+  world_signature.source_adapter.polyhaven:
+    class: Drupal\world_signature\Ingest\Adapter\PolyHavenAdapter
+    arguments: ['@http_client', '@logger.channel.world_signature']
+    tags:
+      - { name: world_signature.source_adapter, priority: 60 }
+
+  world_signature.source_adapter.ambientcg:
+    class: Drupal\world_signature\Ingest\Adapter\AmbientCgAdapter
+    arguments: ['@http_client', '@logger.channel.world_signature']
+    tags:
+      - { name: world_signature.source_adapter, priority: 55 }
+
+  world_signature.source_adapter.toxsam:
+    class: Drupal\world_signature\Ingest\Adapter\ToxSamRegistryAdapter
+    arguments: ['@http_client', '@logger.channel.world_signature']
+    tags:
+      - { name: world_signature.source_adapter, priority: 50 }
+
+  world_signature.source_adapter.polypizza:
+    class: Drupal\world_signature\Ingest\Adapter\PolyPizzaAdapter
+    arguments: ['@http_client', '@logger.channel.world_signature']
+    tags:
+      - { name: world_signature.source_adapter, priority: 45 }
+
+  # Catch-all — any direct http(s) URL. Lowest priority so catalog
+  # adapters claim their own domains/schemes first.
+  world_signature.source_adapter.direct:
+    class: Drupal\world_signature\Ingest\Adapter\DirectUrlAdapter
+    tags:
+      - { name: world_signature.source_adapter, priority: -100 }
+
+  # Manager — collects the tagged adapters (priority-ordered) and
+  # routes a reference to the first that handles it.
+  world_signature.source_adapter_manager:
+    class: Drupal\world_signature\Ingest\SourceAdapterManager
+    arguments:
+      - !tagged_iterator world_signature.source_adapter

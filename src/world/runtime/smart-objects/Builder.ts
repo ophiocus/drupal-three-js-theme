@@ -10,9 +10,20 @@
 // See SMART_OBJECTS.md for the full design.
 
 import * as THREE from "three";
-import type { CorpusSnapshot, Entity } from "../../types.js";
+import type { AssetDescriptor, CorpusSnapshot, Entity } from "../../types.js";
 import type { SurfaceCache } from "../SurfaceCache.js";
 import type { SmartObject } from "./SmartObject.js";
+
+/**
+ * Result of a successful tryLoadProp() call — a fresh asset clone
+ * plus the descriptor metadata builders need to honour pivot +
+ * polycount budget. The clone is owned by the calling builder
+ * once returned; AssetCache won't reuse this specific instance.
+ */
+export interface LoadedProp {
+  scene: THREE.Group;
+  descriptor: AssetDescriptor;
+}
 
 /**
  * Palette shape the Builders read for materials, biome hooks,
@@ -43,6 +54,32 @@ export interface BuilderContext {
    * to recompute or take the entityPosition function as a dep.
    */
   worldPosition: THREE.Vector3;
+  /**
+   * The active atmosphere's name ("forest", "inner-mind", "none").
+   * Builders intersect this against an asset's `atmospheres[]` to
+   * decide whether the asset applies to the current world.
+   */
+  activeAtmosphere: string;
+  /**
+   * Try to load a live .glb asset for the given slot. Returns the
+   * loaded prop + its descriptor when an asset matches the active
+   * atmosphere AND the editor has marked it live; returns null when
+   * no asset is wired, the asset is not eligible for the active
+   * atmosphere, or loading fails. Builders use this as the
+   * default-asset-fallback-primitive switch:
+   *
+   *   const prop = await ctx.tryLoadProp("oak-stylized");
+   *   if (prop) {
+   *     so.attach(new GltfComponent({
+   *       scene: prop.scene,
+   *       pivot: prop.descriptor.pivot,
+   *       entityBody: true,
+   *     }));
+   *   } else {
+   *     so.attach(new MeshComponent({ geometry: cone, material, entityBody: true }));
+   *   }
+   */
+  tryLoadProp: (slot: string) => Promise<LoadedProp | null>;
 }
 
 export interface SmartObjectBuilder {

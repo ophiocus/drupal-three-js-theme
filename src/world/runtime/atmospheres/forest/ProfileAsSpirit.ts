@@ -28,9 +28,13 @@ import type {
   SmartObjectBuilder,
 } from "../../smart-objects/Builder.js";
 import { MeshComponent } from "../../smart-objects/components/MeshComponent.js";
+import { GltfComponent } from "../../smart-objects/components/GltfComponent.js";
 import { TriggerPadComponent } from "../../smart-objects/components/TriggerPadComponent.js";
 import { HtmlSurfaceComponent, cardPlacement } from "../../smart-objects/components/HtmlSurfaceComponent.js";
 import { FLOOR_LAYERS } from "../../floor-layers.js";
+
+/** Slot the profile builder consults. Matches mappings.yml. */
+const PROFILE_ASSET_SLOT = "sapling-figure";
 
 /** Bark / clothing palette by atlas_coffee region. Same termIds as
  *  ArticleAsTree's FOREST_BARK_PALETTE; the profile's clothing
@@ -76,6 +80,33 @@ export class ProfileAsSpirit implements SmartObjectBuilder {
     obj.position.copy(ctx.worldPosition);
 
     const totalHeight = spiritHeight(descriptor.signature.relational.inDegree);
+
+    // v0.4 / ALPHA 1: real .glb if a curated sapling-figure asset
+    // is live in the active atmosphere; primitive bipedal stack is
+    // the fallback. Asset is scaled so its bounding-box height
+    // equals the in-degree-derived spirit height — preserves the
+    // "more connected = taller" signal regardless of which figure
+    // .glb is wired.
+    const prop = await ctx.tryLoadProp(PROFILE_ASSET_SLOT);
+    if (prop) {
+      const box = new THREE.Box3().setFromObject(prop.scene);
+      const size = new THREE.Vector3();
+      box.getSize(size);
+      const naturalHeight = Math.max(size.y, 0.01);
+      const scale = totalHeight / naturalHeight;
+      obj.attach(new GltfComponent({
+        scene: prop.scene,
+        scale,
+        pivot: prop.descriptor.pivot,
+        entityBody: true,
+      }));
+      // torsoRadiusJittered isn't meaningful for a .glb — pass a
+      // proportional estimate matching the primitive's geometry so
+      // the trigger pad sits at the same approximate distance.
+      const padOffset = totalHeight * 0.10 + 2.4;
+      await this.attachCardScaffold(obj, ctx, descriptor, totalHeight, padOffset);
+      return obj;
+    }
 
     // Anatomical proportions — broadly humanoid but stylized.
     //   legs   ~45% of total height
@@ -177,21 +208,38 @@ export class ProfileAsSpirit implements SmartObjectBuilder {
     obj.attach(head);
     head.mesh.rotation.z = headTilt;
 
-    // ── Trigger pad — profile-tinted disc on the ground in front. ──
+    await this.attachCardScaffold(
+      obj,
+      ctx,
+      descriptor,
+      totalHeight,
+      torsoRadiusJittered + 2.4,
+    );
+    return obj;
+  }
+
+  /**
+   * Trigger pad + HTML surface — shared scaffold for asset and
+   * primitive paths (mirrors ArticleAsTree.attachCardScaffold).
+   *
+   * padZ is the pad's Z offset from the entity origin; the asset
+   * path passes a proportional estimate since a .glb doesn't expose
+   * a "torso radius."
+   */
+  private async attachCardScaffold(
+    obj: SmartObject,
+    ctx: BuilderContext,
+    descriptor: Entity,
+    totalHeight: number,
+    padZ: number,
+  ): Promise<void> {
     obj.attach(new TriggerPadComponent({
       color: ctx.palette.bundleColors.profile ?? "#7a5a3a",
-      offset: {
-        x: 0,
-        y: FLOOR_LAYERS.trigger_pad,
-        z: torsoRadiusJittered + 2.4,
-      },
+      offset: { x: 0, y: FLOOR_LAYERS.trigger_pad, z: padZ },
       // Smaller pad than article trees — profiles are intimate.
       radius: 2.0 * (0.7 + 0.3 * (totalHeight / 5.5)),
     }));
 
-    // ── HTML card surface — same shared cardPlacement helper as
-    //    ArticleAsTree, so the detail vantage frames the card the
-    //    same way regardless of bundle. ──
     try {
       const dashIdx = descriptor.id.indexOf("-");
       if (dashIdx > 0) {
@@ -211,7 +259,5 @@ export class ProfileAsSpirit implements SmartObjectBuilder {
     } catch (err) {
       console.warn(`[atmosphere:forest] HtmlSurface failed for ${descriptor.id}:`, err);
     }
-
-    return obj;
   }
 }

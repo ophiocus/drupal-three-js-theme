@@ -1,0 +1,31 @@
+# Turntable preview clip for an asset — a short, muted, looping
+# video (webm/mp4) of the model rotating, autoplayed on hover in
+# asset listings. The clip is PRODUCED EXTERNALLY (the platform's
+# headless render/transform service), not by this module; the module
+# only hosts the field, renders it in the teaser, and plays it on
+# hover. Video, not GIF: "autoplay on hover" requires play/pause
+# gating, which only video supports.
+langcode: en
+status: true
+dependencies:
+  module:
+    - file
+    - node
+id: node.field_asset_turntable
+field_name: field_asset_turntable
+entity_type: node
+type: file
+settings:
+  display_field: false
+  display_default: false
+  uri_scheme: public
+  target_type: file
+module: file
+locked: false
+cardinality: 1
+translatable: false
+indexes:
+  target_id:
+    - target_id
+persist_with_no_fields: false
+custom_storage: false

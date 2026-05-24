@@ -63,6 +63,12 @@ export interface Entity {
   // subtitle on the entity's title label. Empty for legacy
   // snapshots from before DescriptorBuilder.extractSummary.
   summary?: string;
+  // BETA 2: explicit world position from the semantic layout
+  // projection. Present only when the snapshot was built in
+  // semantic layout-mode (drush world:relayout). When present,
+  // entityPosition() returns it directly instead of computing the
+  // taxonomy+hash placement. Absent → taxonomy fallback.
+  worldPos?: Vec2;
 }
 
 export interface WorldConstants {
@@ -73,11 +79,47 @@ export interface WorldConstants {
   closeUpHeight: number;
 }
 
+/**
+ * A live asset emitted by /world/snapshot/* — see
+ * docs/v0.4/ROADMAP.md §A.2 for the server-side spec.
+ *
+ * The `slot` is the canonical join key: builders binding a bundle
+ * to a slot via mappings.yml look up the asset by slot machine name.
+ *
+ * `atmospheres` is the eligibility list — builders intersect it
+ * with the active atmosphere to decide whether this asset applies
+ * to the current world.
+ */
+export interface AssetDescriptor {
+  nid: number;
+  slot: string;
+  atmospheres: string[];
+  curatedFileUrl: string;
+  curatedFileSize: number;
+  polycount: number | null;
+  pivot: "base" | "center" | "custom";
+  pack?: {
+    nid: number;
+    title: string;
+    license: string;
+    attribution: string;
+    sourceUrl: string;
+  };
+}
+
 export interface CorpusSnapshot {
   version: string;
   world: WorldConstants;
   sectors: Record<string, Sector>;
   entities: Record<string, Entity>;
+  /**
+   * Live assets the editor has marked `live` in Drupal. v0.4+ /
+   * ALPHA 1 — assets the renderer should load instead of falling
+   * back to primitive geometry. Always present as an array
+   * (possibly empty); legacy snapshots before A.2 omitted the key,
+   * and adaptSnapshot supplies `[]` as the default.
+   */
+  assets: AssetDescriptor[];
 }
 
 export type VantageKind = "front" | "section" | "detail" | "listing";

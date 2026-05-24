@@ -1,0 +1,47 @@
+# Asset teaser — the listing card. Renders the turntable clip via
+# core's Video formatter with controls OFF, autoplay OFF, loop +
+# muted ON. The asset_hover library (attached on this view-mode in
+# world_signature.module) plays it on mouseenter and pauses + rewinds
+# on mouseleave — "autoplay on hover."
+langcode: en
+status: true
+dependencies:
+  config:
+    - core.entity_view_mode.node.teaser
+    - field.field.node.asset.field_asset_turntable
+    - node.type.asset
+  module:
+    - file
+    - user
+id: node.asset.teaser
+targetEntityType: node
+bundle: asset
+mode: teaser
+content:
+  field_asset_turntable:
+    type: file_video
+    label: hidden
+    settings:
+      controls: false
+      autoplay: false
+      loop: true
+      muted: true
+      width: 320
+      height: 320
+      multiple_file_display_type: tags
+    third_party_settings: {  }
+    weight: 0
+    region: content
+hidden:
+  field_asset_atmospheres: true
+  field_asset_curated_file: true
+  field_asset_curated_pivot: true
+  field_asset_curated_polycount: true
+  field_asset_curation_notes: true
+  field_asset_pack: true
+  field_asset_raw_file: true
+  field_asset_raw_polycount: true
+  field_asset_raw_preview: true
+  field_asset_slot: true
+  field_asset_status: true
+  links: true

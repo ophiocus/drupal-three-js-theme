@@ -1,0 +1,12 @@
+# Asset teaser hover-autoplay. Attached on node/asset/teaser renders
+# by world_signature_preprocess_node().
+asset_hover:
+  version: 1.0.x
+  js:
+    js/asset-hover.js: {}
+  css:
+    component:
+      css/asset-hover.css: {}
+  dependencies:
+    - core/drupal
+    - core/once

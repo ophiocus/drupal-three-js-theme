@@ -22,6 +22,24 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\world_signature\Service\SignatureWriter;
 
 /**
+ * Implements hook_preprocess_HOOK() for node templates.
+ *
+ * Attach the asset-hover library to asset teasers so the turntable
+ * clip plays on hover. The clip itself is rendered by the teaser
+ * view-display (core Video formatter, autoplay off); this only adds
+ * the play/pause-on-hover behavior. Scoped tightly to bundle=asset +
+ * view_mode=teaser so it never loads anywhere else.
+ */
+function world_signature_preprocess_node(array &$variables): void {
+  $node = $variables['node'] ?? NULL;
+  if ($node instanceof EntityInterface
+    && $node->bundle() === 'asset'
+    && ($variables['view_mode'] ?? '') === 'teaser') {
+    $variables['#attached']['library'][] = 'world_signature/asset_hover';
+  }
+}
+
+/**
  * Implements hook_entity_insert().
  */
 function world_signature_entity_insert(EntityInterface $entity): void {

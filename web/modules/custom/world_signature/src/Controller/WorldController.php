@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Drupal\world_signature\Controller;
 
+use Drupal\Core\Cache\CacheableJsonResponse;
+use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Controller\ControllerBase;
+use Drupal\world_signature\Service\AssetSnapshotBuilder;
 use Drupal\world_signature\Service\SnapshotPublisher;
 use Drupal\world_signature\Service\WorldSearchClient;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -30,12 +33,14 @@ final class WorldController extends ControllerBase {
   public function __construct(
     private readonly WorldSearchClient $client,
     private readonly SnapshotPublisher $publisher,
+    private readonly AssetSnapshotBuilder $assetBuilder,
   ) {}
 
   public static function create(ContainerInterface $container): self {
     return new self(
       $container->get('world_signature.world_search_client'),
       $container->get('world_signature.snapshot_publisher'),
+      $container->get('world_signature.asset_snapshot_builder'),
     );
   }
 
@@ -61,11 +66,15 @@ final class WorldController extends ControllerBase {
    * GET /world/snapshot/full
    *
    * Full corpus snapshot per ARCHITECTURE §5. Cheap to compute at
-   * ALPHA-corpus sizes; v0.0.2 will cache a static artifact.
+   * ALPHA-corpus sizes; static-file caching lands later.
+   *
+   * v0.4 / ALPHA 1: response now includes assets[] (per ROADMAP §A.2)
+   * and propagates cache tags from asset+pack nodes so editorial
+   * edits invalidate within the 60s max-age window.
    */
   public function snapshot(): JsonResponse {
     try {
-      $snapshot = $this->publisher->buildSnapshot();
+      $result = $this->publisher->buildSnapshot();
     }
     catch (\RuntimeException $e) {
       return new JsonResponse([
@@ -73,8 +82,32 @@ final class WorldController extends ControllerBase {
         'message' => $e->getMessage(),
       ], 502);
     }
-    $response = new JsonResponse($snapshot);
+    $response = new CacheableJsonResponse($result['payload']);
+    $response->addCacheableDependency($result['cacheability']);
     // Light client cache; the renderer fetches once per page load.
+    $response->setMaxAge(60);
+    return $response;
+  }
+
+  /**
+   * GET /world/snapshot/assets
+   *
+   * Sidecar diagnostic — same `assets[]` block as /world/snapshot/full,
+   * served in isolation without the entity/sector corpus around it.
+   * Cheap to curl, useful for verifying which asset is `live` per
+   * (atmosphere, slot) cell without parsing a full snapshot.
+   *
+   * Returns: { version: "v1", generatedAt: <ts>, assets: [...] }
+   */
+  public function assetsSnapshot(): JsonResponse {
+    $result = $this->assetBuilder->build();
+    $payload = [
+      'version' => 'v1',
+      'generatedAt' => time(),
+      'assets' => $result['assets'],
+    ];
+    $response = new CacheableJsonResponse($payload);
+    $response->addCacheableDependency($result['cacheability']);
     $response->setMaxAge(60);
     return $response;
   }

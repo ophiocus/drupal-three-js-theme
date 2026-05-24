@@ -39,6 +39,15 @@ export function entityPosition(
   entity: Entity,
   snapshot: CorpusSnapshot,
 ): Vec3 {
+  // BETA 2: semantic layout. When the snapshot provides an explicit
+  // worldPos (embedding projection, drush world:relayout), it is
+  // authoritative — the entity sits where its MEANING places it, not
+  // where its taxonomy tag does. Falls through to taxonomy+hash
+  // placement when absent (taxonomy layout-mode, or legacy snapshot).
+  if (entity.worldPos) {
+    return { x: entity.worldPos.x, y: 0, z: entity.worldPos.z };
+  }
+
   const terms = entity.taxonomyTerms;
 
   if (terms.length === 0) {
