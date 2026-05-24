@@ -11,7 +11,7 @@
 // + setupXEnvironment, both called by SceneManager.
 
 import * as THREE from "three";
-import type { CorpusSnapshot } from "../../../types.js";
+import type { CorpusSnapshot, Vec3 } from "../../../types.js";
 import type { SmartObjectRegistry } from "../../smart-objects/Builder.js";
 import type { AtmosphereUpdater } from "../forest/index.js";
 import { ArticleAsCrystal } from "./ArticleAsCrystal.js";
@@ -19,11 +19,44 @@ import { ProfileAsOrb } from "./ProfileAsOrb.js";
 import { EventAsRing } from "./EventAsRing.js";
 import { AcidMotes } from "./motes.js";
 import { SurrealZodiac } from "./zodiac.js";
+import { projectMds3D } from "./projection.js";
 
 export function registerInnerMindAtmosphere(registry: SmartObjectRegistry): void {
   registry.register(new ArticleAsCrystal());
   registry.register(new ProfileAsOrb());
   registry.register(new EventAsRing());
+}
+
+/**
+ * inner-mind's OWN interpretation of the embedding data
+ * (docs/INTERPRETATION_ENGINE.md): project the corpus embeddings into a
+ * 3D cloud (MDS-3D) and lift it into the air, so the centre reads as a
+ * star system the camera orbits in full 3D — rather than the forest's
+ * 2D ground layout. Returns null when too few entities carry embeddings
+ * (the snapshot strips them for large corpora, or world:embed hasn't
+ * run), in which case SceneManager falls back to taxonomy placement.
+ *
+ * SceneManager calls this (duck-typed) at registerAtmosphere time and
+ * uses the result as the per-entity world position.
+ */
+export function computeLayout(snapshot: CorpusSnapshot): Map<string, Vec3> | null {
+  const embeddings = new Map<string, number[]>();
+  for (const e of Object.values(snapshot.entities)) {
+    const emb = e.signature?.semantic?.embedding;
+    if (Array.isArray(emb) && emb.length > 0) embeddings.set(e.id, emb);
+  }
+  if (embeddings.size < 2) return null;
+
+  // Project into a ball ~half the world radius, then lift the whole
+  // cloud airborne so the free-orbit camera circles a floating system
+  // (not something half-buried in the ground plane).
+  const cloud = projectMds3D(embeddings, snapshot.world.radius * 0.55);
+  const baseY = snapshot.world.overviewHeight * 0.6;
+  const out = new Map<string, Vec3>();
+  for (const [id, p] of cloud) {
+    out.set(id, { x: p.x, y: p.y + baseY, z: p.z });
+  }
+  return out;
 }
 
 /**

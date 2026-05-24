@@ -184,6 +184,13 @@ export class SceneManager {
   private audio: AtmosphereAudio | null = null;
   /** Re-entrancy guard: a switch in flight ignores further switch calls. */
   private switching = false;
+  /**
+   * Per-atmosphere layout override (interpretation engine). When the
+   * active atmosphere exports computeLayout(), its result — an entityId →
+   * 3D position map — wins over the default taxonomy placement. inner-mind
+   * uses it for its MDS-3D cloud; forest leaves it null (ground layout).
+   */
+  private atmosphereLayout: Map<string, Vec3> | null = null;
 
   constructor(private readonly canvas: HTMLCanvasElement) {
     this.renderer = new THREE.WebGLRenderer({
@@ -546,6 +553,7 @@ export class SceneManager {
     this.cameraController = null;
     this.biomeMixer = null;
     this.registry = null;
+    this.atmosphereLayout = null;
   }
 
   /** Append a query param to a URL, choosing `?` or `&` as needed. */
@@ -910,13 +918,16 @@ export class SceneManager {
     };
 
     const buildPromises = Object.values(snap.entities).map(async (entity) => {
-      const wp = entityPosition(entity, snap);
+      // Interpretation engine: the active atmosphere's layout (if any)
+      // places the entity; otherwise taxonomy placement. The layout
+      // carries a real y (3D); entityPosition returns y=0 (ground).
+      const wp = this.atmosphereLayout?.get(entity.id) ?? entityPosition(entity, snap);
       const obj = await registry.build(entity, {
         snapshot: snap,
         palette: this.palette,
         surfaceCache: this.surfaceCache,
         assetUrl: (path) => `/themes/custom/drupal_threejs/assets/${path}`,
-        worldPosition: new THREE.Vector3(wp.x, 0, wp.z),
+        worldPosition: new THREE.Vector3(wp.x, wp.y, wp.z),
         activeAtmosphere,
         tryLoadProp,
       });
@@ -1039,17 +1050,17 @@ export class SceneManager {
       if (!title) continue;
       const primarySector = entity.taxonomyTerms[0];
       if (!primarySector) continue;
-      const wp = entityPosition(entity, snap);
+      // Same layout resolution as the entity body so labels track the
+      // 3D position in an atmosphere that supplies its own layout.
+      const wp = this.atmosphereLayout?.get(entity.id) ?? entityPosition(entity, snap);
       const label = this.worldHud.addLabel({
         worldPos: new THREE.Vector3(
           wp.x,
-          // Lift above the entity so the anchor projects to a
-          // point in the air above the tree/spirit/totem rather
-          // than overlapping its geometry. Article trees range
-          // 8-35 units; profiles 2.5-5.5; events ~6. Pick a
-          // generous mid-value; per-bundle tuning is a v0.4.x
-          // refinement.
-          12,
+          // Lift above the entity so the anchor projects to a point in
+          // the air above its geometry. On the ground layout wp.y=0, so
+          // a fixed +12 reads as before; on a 3D layout wp.y carries the
+          // height and we lift a little above it.
+          wp.y + 12,
           wp.z,
         ),
         text: title,
@@ -1119,6 +1130,11 @@ export class SceneManager {
           // disposable world-layer root for its motes.
           const mod = await import("./atmospheres/inner-mind/index.js");
           mod.registerInnerMindAtmosphere(this.registry);
+          // Interpretation engine: inner-mind projects the embeddings
+          // into its own 3D layout (overrides taxonomy placement).
+          if (this.snapshot) {
+            this.atmosphereLayout = mod.computeLayout?.(this.snapshot) ?? null;
+          }
           if (this.snapshot && this.worldLayer) {
             const dispose = mod.setupInnerMindEnvironment?.(
               this.scene,
@@ -1226,7 +1242,7 @@ export class SceneManager {
         id: d._id,
         bundle: (d.type ?? "node:unknown").split(":")[1] ?? "unknown",
         taxonomyTerms: d.sectorTermIds ?? (d.sector ? [d.sector] : []),
-        signature: this.fallbackSignature(),
+        signature: this.adaptSignature(d.signature),
         // v0.4 information-lod: WorldHud entity labels need the
         // title. DescriptorBuilder now writes it as a top-level
         // field; adapt it here. Missing on legacy descriptors
@@ -1267,8 +1283,30 @@ export class SceneManager {
       },
       temporal: { createdAt: 0, changedAt: 0 },
       relational: { inDegree: 0, outDegree: 0 },
-      semantic: {},
+      semantic: {} as { embedding?: number[] },
     };
+  }
+
+  /**
+   * Build the renderer's Signature from the raw descriptor signature.
+   * The renderer only needs the semantic embedding (interpretation
+   * engine, docs/INTERPRETATION_ENGINE.md) — structural/temporal/
+   * relational stay zeroed. The embedding is present only when the
+   * snapshot shipped it (small corpora); absent → atmospheres without
+   * their own layout fall back to taxonomy placement.
+   */
+  private adaptSignature(raw: unknown): ReturnType<typeof this.fallbackSignature> {
+    const sig = this.fallbackSignature();
+    if (typeof raw === "object" && raw !== null) {
+      const semantic = (raw as { semantic?: unknown }).semantic;
+      if (typeof semantic === "object" && semantic !== null) {
+        const emb = (semantic as { embedding?: unknown }).embedding;
+        if (Array.isArray(emb) && emb.every((v) => typeof v === "number")) {
+          sig.semantic.embedding = emb as number[];
+        }
+      }
+    }
+    return sig;
   }
 }
 

@@ -61,6 +61,14 @@ final class SnapshotPublisher {
   public const string STATE_LAYOUT_MODE = 'world_signature.layout_mode';
   public const string STATE_SEMANTIC_LAYOUT = 'world_signature.semantic_layout';
 
+  /**
+   * Max corpus size for which raw embedding vectors are shipped in the
+   * snapshot (for client-side interpretation, docs/INTERPRETATION_ENGINE.md).
+   * Above this the payload cost outweighs the benefit; large worlds use
+   * the server-side projection path. ~400 × 512 floats ≈ a couple MB ceiling.
+   */
+  public const int INTERPRETATION_EMBEDDING_LIMIT = 400;
+
   public function __construct(
     private readonly WorldSearchClient $client,
     private readonly ConfigFactoryInterface $configFactory,
@@ -103,6 +111,14 @@ final class SnapshotPublisher {
     $sectorIds = $this->collectSectorIds($descriptors);
     $sectors = $this->placeSectors($sectorIds, $ringRadius, $localRadius);
 
+    // Interpretation engine (docs/INTERPRETATION_ENGINE.md): for small
+    // corpora, ship the raw embedding vectors so a world's atmosphere can
+    // run its OWN client-side interpretation (e.g. inner-mind's 3D
+    // projection) — "each world its own lens." Above this size the
+    // payload cost wins and we keep stripping; large worlds use the
+    // server-side projection path instead (open question O-I3).
+    $shipEmbeddings = count($descriptors) <= self::INTERPRETATION_EMBEDDING_LIMIT;
+
     $entities = [];
     foreach ($descriptors as $d) {
       $id = $d['_id'] ?? NULL;
@@ -111,10 +127,9 @@ final class SnapshotPublisher {
       }
       // Strip RESTHeart-internal fields the renderer doesn't need.
       unset($d['_etag']);
-      // Strip the raw embedding vector — the renderer never needs
-      // the high-dim array, only the projected worldPos. Keeps the
-      // snapshot payload lean (256-2048 floats × N entities adds up).
-      if (isset($d['signature']['semantic']['embedding'])) {
+      // The raw embedding is high-dim (256-2048 floats × N). Strip it
+      // unless we're shipping it for client-side interpretation.
+      if (!$shipEmbeddings && isset($d['signature']['semantic']['embedding'])) {
         unset($d['signature']['semantic']['embedding']);
       }
       $entities[$id] = $d;
