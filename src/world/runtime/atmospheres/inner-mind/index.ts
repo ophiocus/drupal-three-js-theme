@@ -18,6 +18,7 @@ import { ArticleAsCrystal } from "./ArticleAsCrystal.js";
 import { ProfileAsOrb } from "./ProfileAsOrb.js";
 import { EventAsRing } from "./EventAsRing.js";
 import { AcidMotes } from "./motes.js";
+import { SurrealZodiac } from "./zodiac.js";
 
 export function registerInnerMindAtmosphere(registry: SmartObjectRegistry): void {
   registry.register(new ArticleAsCrystal());
@@ -46,11 +47,18 @@ export function setupInnerMindEnvironment(
   const motes = new AcidMotes(snapshot);
   root.add(motes.points);
 
+  // BETA 1: the surrounding zodiac — surreal structures in the
+  // unreachable outer orbit, framing the navigable centre as a star
+  // system. Slowly orbits the centre; self-spins per structure.
+  const zodiac = new SurrealZodiac(snapshot);
+  root.add(zodiac.group);
+
   // Cache fog ref once; cheap per-frame writes thereafter.
   const fog = scene.fog instanceof THREE.Fog ? scene.fog : null;
 
   registerUpdater((elapsed) => {
     motes.update(elapsed);
+    zodiac.update(elapsed);
     // Slow hue rotation — the whole world breathes through the
     // spectrum. ~40s per full cycle.
     const hue = (elapsed * 0.025) % 1;
@@ -62,5 +70,8 @@ export function setupInnerMindEnvironment(
     }
   });
 
-  return () => motes.dispose();
+  return () => {
+    motes.dispose();
+    zodiac.dispose();
+  };
 }

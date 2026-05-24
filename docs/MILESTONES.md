@@ -179,9 +179,14 @@ running them interchangeably on the same install.
   switching plumbing.
 - **A second skin** — `inner-mind` (`src/world/runtime/atmospheres/
   inner-mind/`): procedural thought-crystals / psyche-orbs / ripple-rings
-  in acid hues over a hue-cycling background + multicoloured motes. A
-  deliberate STUB (crude on purpose) that proves the *machinery*, not the
-  final metaphor.
+  in acid hues over a hue-cycling background + multicoloured motes.
+- **Inner-mind design pass — the surrounding zodiac** (`zodiac.ts`): the
+  navigable centre reads as a star system; the *unreachable* outer orbit
+  (radius × 1.4, inside the fog far-plane) is seeded with twelve surreal
+  structures — an alternate zodiac wheel that slowly orbits the centre.
+  Six procedural archetypes (knot, spiked orb, twist totem, armillary,
+  crystal shell, obelisk+halo), emissive so they glow through the haze.
+  This turns the stub from "proves the machinery" toward a real metaphor.
 - **Live in-place switching** — `SceneManager.switchAtmosphere()` tears
   down + rebuilds against a fresh snapshot with the camera preserved,
   verified leak-free via `renderer.info.memory` (one disposable
@@ -191,10 +196,11 @@ running them interchangeably on the same install.
 
 ### What's missing
 
-- **Design pass for `inner-mind`**. The shipped one is a stub. Are nodes
-  neurons? thoughts orbiting a self? memories rising from below? Each
-  implies different builders + scenery + navigation semantics. This is
-  the design work that turns the stub into a real BETA 1 metaphor.
+- **Design pass for `inner-mind`** — *begun.* The surrounding zodiac
+  (above) establishes the "centre = star system, periphery = surreal
+  zodiac" metaphor. Remaining depth, if wanted: a literal central star,
+  per-bundle navigation semantics, richer entity forms, and tuning the
+  ring (distance / scale / density) to taste.
 - **Per-property atmosphere binding** — today the active atmosphere is one
   global field on the active World node; a property-scoped binding makes
   two installs wear two skins.

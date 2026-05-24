@@ -15,6 +15,20 @@ substantial hover / FullView polish that surfaced as it went.
 
 What landed in v0.4 so far (latest first):
 
+- **Inner-mind design pass (BETA 1): the surrounding zodiac.**
+  `SurrealZodiac` (`src/world/runtime/atmospheres/inner-mind/zodiac.ts`)
+  seeds the *unreachable* outer orbit (world.radius × 1.4 ≈ 280, inside
+  the fog far-plane 460) with twelve surreal structures — an alternate
+  zodiac wheel framing the navigable centre as a star system. Six
+  deterministic procedural archetypes (torus knot, spiked orb, twist
+  totem, armillary, crystal shell, obelisk+halo), acid-hued + emissive so
+  they glow through the haze; the whole wheel slowly orbits the centre,
+  each structure self-spins on a tilt. Attaches to the disposable
+  world-layer; wired into `setupInnerMindEnvironment` with a `dispose()`
+  for the switch teardown. Verified leak-free across a forest⇄inner-mind
+  round-trip (geometries 142 → 185 → 142 exact). The first real step of
+  the BETA 1 inner-mind design pass (was a deliberate stub).
+
 - **World switcher v2 polish (BETA 1): crossfade + per-atmosphere audio.**
   `CrossfadeOverlay` (`src/world/runtime/hud/CrossfadeOverlay.ts`) replaces
   the switch's loader hard-cut with a palette crossfade: fade the world out
