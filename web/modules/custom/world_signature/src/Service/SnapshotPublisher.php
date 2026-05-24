@@ -78,12 +78,18 @@ final class SnapshotPublisher {
    * downstream caches. Caller is responsible for assembling the
    * HTTP response with the metadata.
    *
+   * @param string|null $atmosphereOverride
+   *   Optional read-only atmosphere preview hint (v1.5 world switcher).
+   *   When set, it overrides the active World node's atmosphere for THIS
+   *   snapshot only — the palette overlay differs, nothing is persisted.
+   *   The caller (WorldController) validates it against the known set.
+   *
    * @return array{
    *   payload: array<string, mixed>,
    *   cacheability: \Drupal\Core\Cache\CacheableMetadata,
    * }
    */
-  public function buildSnapshot(): array {
+  public function buildSnapshot(?string $atmosphereOverride = NULL): array {
     $descriptors = $this->client->findAll();
 
     // ALPHA 1: the world's characteristics are declared as content.
@@ -136,8 +142,13 @@ final class SnapshotPublisher {
       'closeUpDistance' => $this->worldNum($worldNode, 'field_world_closeup_distance', self::WORLD_CONSTANTS['closeUpDistance']),
       'closeUpHeight' => $this->worldNum($worldNode, 'field_world_closeup_height', self::WORLD_CONSTANTS['closeUpHeight']),
     ];
-    // Atmosphere: the World node overrides palette config's active_atmosphere.
+    // Atmosphere: the World node overrides palette config's active_atmosphere;
+    // a request-level preview hint (v1.5 switcher, controller-validated) in
+    // turn overrides the node — read-only, this response only.
     $atmosphere = $this->worldStr($worldNode, 'field_world_atmosphere', NULL);
+    if ($atmosphereOverride !== NULL && $atmosphereOverride !== '') {
+      $atmosphere = $atmosphereOverride;
+    }
     $world['palette'] = $this->loadPalette($atmosphere);
     $world['layoutMode'] = $layoutMode;
 

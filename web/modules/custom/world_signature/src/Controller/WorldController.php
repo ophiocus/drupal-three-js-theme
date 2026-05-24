@@ -12,6 +12,7 @@ use Drupal\world_signature\Service\SnapshotPublisher;
 use Drupal\world_signature\Service\WorldSearchClient;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -29,6 +30,13 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
  * mounts into the DOM overlay (per ARCHITECTURE.md §4.3).
  */
 final class WorldController extends ControllerBase {
+
+  /**
+   * Atmospheres a `?atmosphere=` preview hint may request. Mirrors
+   * field_world_atmosphere's allowed_values — keep in sync if a skin
+   * is added. Anything outside this set is ignored (no override).
+   */
+  private const array ATMOSPHERE_HINTS = ['none', 'forest', 'inner-mind'];
 
   public function __construct(
     private readonly WorldSearchClient $client,
@@ -72,9 +80,19 @@ final class WorldController extends ControllerBase {
    * and propagates cache tags from asset+pack nodes so editorial
    * edits invalidate within the 60s max-age window.
    */
-  public function snapshot(): JsonResponse {
+  public function snapshot(Request $request): JsonResponse {
+    // v1.5 world switcher: optional read-only atmosphere preview hint.
+    // GET ?atmosphere=<none|forest|inner-mind> overrides the active World
+    // node's atmosphere for THIS response only — no node write, so the
+    // client (switchAtmosphere) can preview a skin without drush and
+    // without mutating global state for everyone. Validated against the
+    // known set; anything else is ignored (the node's atmosphere stands).
+    $hint = $request->query->get('atmosphere');
+    $override = (is_string($hint) && in_array($hint, self::ATMOSPHERE_HINTS, TRUE))
+      ? $hint
+      : NULL;
     try {
-      $result = $this->publisher->buildSnapshot();
+      $result = $this->publisher->buildSnapshot($override);
     }
     catch (\RuntimeException $e) {
       return new JsonResponse([
@@ -84,6 +102,11 @@ final class WorldController extends ControllerBase {
     }
     $response = new CacheableJsonResponse($result['payload']);
     $response->addCacheableDependency($result['cacheability']);
+    // Vary the cache by the hint so a forest preview can't be served
+    // from an inner-mind-cached entry (or vice versa).
+    $hintMeta = new CacheableMetadata();
+    $hintMeta->addCacheContexts(['url.query_args:atmosphere']);
+    $response->addCacheableDependency($hintMeta);
     // Light client cache; the renderer fetches once per page load.
     $response->setMaxAge(60);
     return $response;

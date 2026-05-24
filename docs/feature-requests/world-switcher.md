@@ -176,22 +176,31 @@ preview that mutates global state for everyone is the wrong default.
    at 27; camera preserved.
 7. ⏳ **(v2)** HUD preview button + crossfade.
 
-### Client `?atmosphere=` hint (follow-up)
+### Client `?atmosphere=` hint — SHIPPED (no-drush client flip)
 
-`switchAtmosphere(name)` appends `?atmosphere=<name>` to the re-fetch so a
-client could request a specific skin without a `drush` round-trip. The
-server ignores it today (the live flip is driven by `drush world:switch`
-writing the node, then `switchAtmosphere()` re-fetching). Honoring the
-query param read-only in `SnapshotPublisher` (select atmosphere + overlay
-for that one response, **no** node write) is the small addition that makes
-a HUD preview button (v2, decision O1) work — and it stays SSRF-free
-because it's a GET that only changes which palette overlay is computed.
+`switchAtmosphere(name)` appends `?atmosphere=<name>` to the re-fetch, and
+`WorldController::snapshot()` now honours it **read-only**: a GET
+`?atmosphere=<none|forest|inner-mind>` overrides the active World node's
+atmosphere for that one response (validated against the known set; anything
+else ignored), with **no node write**. `SnapshotPublisher::buildSnapshot()`
+takes the override and threads it into `loadPalette()`; the response carries
+a `url.query_args:atmosphere` cache context so skins don't bleed across
+cached entries. SSRF-free — it's a GET that only selects which palette
+overlay is computed.
+
+Effect: `worldScene.switchAtmosphere('forest')` flips the skin live with no
+`drush` and no global mutation — the preview-switch primitive the v2 HUD
+button needs. Verified: curl `?atmosphere=forest` → forest palette while the
+node stays inner-mind; in-browser flip forest ⇄ inner-mind with no drush.
+The authored, persistent flip remains `drush world:switch`.
 
 ## Open decisions
 
-- **O1 — palette overlay location.** Server computes the atmosphere overlay
-  today. A pure client preview ideally computes it client-side; for v1 we
-  re-fetch instead. Decide before v2's preview button.
+- **O1 — palette overlay location. RESOLVED (re-fetch with `?atmosphere=`).**
+  The server still computes the overlay; the client previews a skin by
+  re-fetching `/world/snapshot/full?atmosphere=<name>` (read-only, no node
+  write). Cheap at ALPHA corpus sizes and keeps overlay logic server-side;
+  moving overlay computation client-side stays a non-goal.
 - **O2 — reload vs live for the true v1 ship.** Default to live
   (camera-preserving) *only if* step 1's memory check is clean; otherwise
   ship reload-based and treat live as v1.5.

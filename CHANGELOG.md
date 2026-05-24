@@ -32,9 +32,19 @@ What landed in v0.4 so far (latest first):
   a real browser** (`renderer.info.memory`): inner-mind ⇄ forest
   round-trips return geometries to the exact baseline (100); textures
   bounded at 27 (the +1 is the one-time module-cached pollen sprite, no
-  climb). Authored flip is driven by `drush world:switch`; a no-drush
-  client flip via a read-only `?atmosphere=` snapshot hint is a small
-  follow-up (`docs/feature-requests/world-switcher.md`).
+  climb). Authored, persistent flip is driven by `drush world:switch`.
+
+- **World switcher: no-drush client flip via `?atmosphere=` hint.**
+  `WorldController::snapshot()` honours a read-only GET
+  `?atmosphere=<none|forest|inner-mind>` (validated; ignored otherwise),
+  overriding the active World node's atmosphere for that one response —
+  no node write, `url.query_args:atmosphere` cache context.
+  `SnapshotPublisher::buildSnapshot()` threads the override into
+  `loadPalette()`. `switchAtmosphere(name)` already sends the hint, so
+  `worldScene.switchAtmosphere('forest')` now flips the skin live with no
+  drush and no global mutation — the preview primitive the v2 HUD button
+  needs. Resolves world-switcher decision O1. SSRF-free (a GET that only
+  selects which palette overlay is computed).
 
 - **World switcher v1 (reload-based) + inner-mind "acid-trip" stub.**
   Per the consensus plan (`docs/feature-requests/world-switcher.md`),
