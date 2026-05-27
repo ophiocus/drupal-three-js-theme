@@ -51,6 +51,11 @@ interface StageEditorOptions {
   /** Active atmosphere key (snapshot's `world.palette.activeAtmosphere`
    *  isn't on the adapted snapshot type — SceneManager passes it through). */
   activeAtmosphere: string;
+  /** Phase 3 v1: invoked after the admin Re-embed POST succeeds, so
+   *  the panel + scene re-read the fresh snapshot (SceneManager wires
+   *  this to switchAtmosphere — re-fetch + rebuild). Optional so the
+   *  editor still works in contexts without a refresh path. */
+  onRefresh?: () => Promise<void>;
 }
 
 export class StageEditor {
@@ -59,6 +64,8 @@ export class StageEditor {
   private readonly camera: THREE.Camera;
   private readonly snapshot: CorpusSnapshot;
   private readonly activeAtmosphere: string;
+  private readonly onRefresh: (() => Promise<void>) | null;
+  private reEmbedding = false;
 
   private readonly toggleBtn: HTMLButtonElement;
   private readonly panel: HTMLDivElement;
@@ -79,6 +86,7 @@ export class StageEditor {
     this.camera = options.camera;
     this.snapshot = options.snapshot;
     this.activeAtmosphere = options.activeAtmosphere;
+    this.onRefresh = options.onRefresh ?? null;
 
     this.toggleBtn = this.buildToggleBtn();
     document.body.appendChild(this.toggleBtn);
@@ -312,6 +320,9 @@ export class StageEditor {
       this.clearSelection();
       this.renderPanel();
     });
+    this.panel.querySelector('[data-act="reembed"]')?.addEventListener("click", () => {
+      void this.reEmbed();
+    });
   }
 
   /** Phase 3 v0 freshness section — see docs/TOOLBOX_AND_STAGE.md §2. */
@@ -341,10 +352,72 @@ export class StageEditor {
         <div style="opacity:0.75;">last embed</div>
         <div style="font-size:11px;"><b>${ago}</b></div>
       </div>
-      <p style="margin:10px 0 0;opacity:0.6;font-size:10.5px;line-height:1.4;">
-        Refresh via <code style="background:rgba(0,0,0,0.25);padding:1px 4px;border-radius:3px;">drush world:embed</code>
-        (an admin re-embed button lands in Phase 3 v1).
+      <button data-act="reembed" ${this.reEmbedding ? "disabled" : ""}
+        style="margin-top:10px;width:100%;padding:8px 12px;border:0;border-radius:4px;
+               background:${this.reEmbedding ? "rgba(255,255,255,0.08)" : "rgba(160,210,255,0.85)"};
+               color:${this.reEmbedding ? "rgba(255,255,255,0.5)" : "#0e1a28"};
+               cursor:${this.reEmbedding ? "wait" : "pointer"};
+               font:600 11px/1 system-ui,-apple-system,sans-serif;
+               text-transform:uppercase;letter-spacing:0.06em;
+               transition:background 200ms,color 200ms;">
+        ${this.reEmbedding ? "Embedding…" : "Re-embed corpus"}
+      </button>
+      <p style="margin:6px 0 0;opacity:0.55;font-size:10.5px;line-height:1.4;">
+        Runs <code style="background:rgba(0,0,0,0.25);padding:1px 4px;border-radius:3px;">world:embed</code>
+        via the admin endpoint. Requires the <i>edit world signature</i>
+        permission. Embedding compute remains external per BOUNDARY.md.
       </p>`;
+  }
+
+  /** Phase 3 v1 — POST /world/admin/embed, then re-fetch via SceneManager. */
+  private async reEmbed(): Promise<void> {
+    if (this.reEmbedding) return;
+    this.reEmbedding = true;
+    this.renderPanel();
+    let ok = false;
+    let message = "";
+    try {
+      const r = await fetch("/world/admin/embed", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { Accept: "application/json" },
+      });
+      if (r.status === 401 || r.status === 403) {
+        message = "auth failed — log in as an editor with the 'edit world signature' permission";
+      } else if (!r.ok) {
+        const body = await r.text().catch(() => "");
+        message = `HTTP ${r.status} ${body.slice(0, 80)}`;
+      } else {
+        const body = (await r.json()) as { embedded?: number; errors?: number };
+        message = `embedded ${body.embedded ?? "?"}, ${body.errors ?? 0} errors`;
+        ok = true;
+      }
+    } catch (e) {
+      message = e instanceof Error ? e.message : String(e);
+    }
+    console.log(`[stage] re-embed: ${ok ? "ok" : "fail"} — ${message}`);
+    if (ok && this.onRefresh) {
+      // Re-fetch the snapshot via SceneManager — the rebuild will
+      // construct a fresh StageEditor with the updated lastEmbed; this
+      // instance gets disposed mid-await, so no further UI updates.
+      try { await this.onRefresh(); } catch { /* swallow */ }
+      return;
+    }
+    // Failure path: show the error briefly in the button.
+    this.reEmbedding = false;
+    this.renderPanel();
+    const btn = this.panel.querySelector('[data-act="reembed"]') as HTMLButtonElement | null;
+    if (btn) {
+      const original = btn.textContent;
+      btn.textContent = "FAILED — see console";
+      btn.style.background = "rgba(255,150,150,0.85)";
+      setTimeout(() => {
+        if (btn.isConnected) {
+          btn.textContent = original;
+          btn.style.background = "rgba(160,210,255,0.85)";
+        }
+      }, 2400);
+    }
   }
 
   /** Human-readable time-ago for a unix-seconds timestamp. */

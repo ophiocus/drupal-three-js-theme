@@ -65,6 +65,22 @@ world_signature.card:
     id: '[0-9]+'
     view_mode: '[a-z_]+'
 
+# Phase 3 v1: admin re-embed trigger. POST endpoint the in-canvas
+# Stage editor's "Re-embed corpus" button calls. Role-gated by the
+# `edit world signature` permission (see world_signature.permissions.yml).
+# Embedding *compute* still happens externally per BOUNDARY.md; this
+# endpoint just orchestrates via EmbedRunner.
+world_signature.admin_embed:
+  path: '/world/admin/embed'
+  defaults:
+    _controller: '\Drupal\world_signature\Controller\WorldController::embedAction'
+    _format: json
+  methods: [POST]
+  requirements:
+    _permission: 'edit world signature'
+  options:
+    no_cache: 'TRUE'
+
 # v0.1.1: /sector/{termId} is a world-coordinate URL. The controller
 # returns an empty render array — the theme's page.html.twig provides
 # the canvas, the bundle boots, and CameraController reads the URL

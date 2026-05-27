@@ -1,0 +1,15 @@
+# Permissions for the world_signature module.
+#
+# `edit world signature`: gates the in-canvas Stage editor's admin
+# actions — currently the POST /world/admin/embed re-embed trigger,
+# and (Phase 4) the world-config + interpretation save endpoints. See
+# docs/TOOLBOX_AND_STAGE.md §2.4 (role gating).
+#
+# Title says "edit world" rather than "administer …" because this is a
+# CONTENT-editor permission, not a Drupal-admin permission. The same
+# editor who tags content into sectors should be able to re-embed.
+
+'edit world signature':
+  title: 'Edit world signature (re-embed, stage placements, world rules)'
+  description: 'Grants access to the in-canvas Stage editor''s admin actions (re-embed corpus; later: save stage placements, world config, interpretation profile). Distinct from "administer site" — editors should hold this.'
+  restrict access: false

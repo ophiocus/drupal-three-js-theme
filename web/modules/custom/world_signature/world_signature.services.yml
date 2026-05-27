@@ -105,6 +105,25 @@ services:
   world_signature.embedding.projector:
     class: Drupal\world_signature\Embedding\SemanticLayoutProjector
 
+  # ─── Phase 3 v1: admin re-embed trigger ────────────────────────
+  # EmbedRunner — single source of truth for "embed the whole corpus
+  # and write the vectors back." Called by both `drush world:embed`
+  # and POST /world/admin/embed, so CLI vs. in-canvas UI can never
+  # drift in semantics. See docs/TOOLBOX_AND_STAGE.md §4 Phase 3 v1.
+  world_signature.embed_runner:
+    class: Drupal\world_signature\Service\EmbedRunner
+    arguments:
+      - '@entity_type.manager'
+      - '@world_signature.entity_facts_reader'
+      - '@world_signature.signature_extractor'
+      - '@world_signature.signature_writer'
+      - '@world_signature.descriptor_builder'
+      - '@world_signature.world_search_client'
+      - '@plugin.manager.world_signature.metaphor'
+      - '@world_signature.embedding.manager'
+      - '@state'
+      - '@logger.channel.world_signature'
+
   # ─── Asset ingestion: thin source-provider layer ───────────────
   # Each adapter resolves a source reference (URL or scheme:id) into
   # leechable SourceAssets carrying download URL + copyright metadata.

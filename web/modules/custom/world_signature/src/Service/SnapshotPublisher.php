@@ -185,6 +185,12 @@ final class SnapshotPublisher {
     $cacheability->addCacheTags(['config:world_signature.palette']);
     // World content — editing the active World node invalidates the snapshot.
     $cacheability->addCacheTags(['node_list:world']);
+    // Phase 3 v1: state-driven freshness (world.lastEmbed) — State API
+    // has no cache tags of its own, so we mint one. EmbedRunner
+    // invalidates it after a successful embed so the next snapshot
+    // fetch sees the fresh timestamp instead of a stale dynamic-page
+    // cache hit.
+    $cacheability->addCacheTags(['world_signature:embed']);
     if ($worldNode !== NULL) {
       $cacheability->addCacheableDependency($worldNode);
     }

@@ -8,6 +8,7 @@ use Drupal\Core\Cache\CacheableJsonResponse;
 use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\world_signature\Service\AssetSnapshotBuilder;
+use Drupal\world_signature\Service\EmbedRunner;
 use Drupal\world_signature\Service\SnapshotPublisher;
 use Drupal\world_signature\Service\WorldSearchClient;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -42,6 +43,7 @@ final class WorldController extends ControllerBase {
     private readonly WorldSearchClient $client,
     private readonly SnapshotPublisher $publisher,
     private readonly AssetSnapshotBuilder $assetBuilder,
+    private readonly EmbedRunner $embedRunner,
   ) {}
 
   public static function create(ContainerInterface $container): self {
@@ -49,6 +51,7 @@ final class WorldController extends ControllerBase {
       $container->get('world_signature.world_search_client'),
       $container->get('world_signature.snapshot_publisher'),
       $container->get('world_signature.asset_snapshot_builder'),
+      $container->get('world_signature.embed_runner'),
     );
   }
 
@@ -133,6 +136,45 @@ final class WorldController extends ControllerBase {
     $response->addCacheableDependency($result['cacheability']);
     $response->setMaxAge(60);
     return $response;
+  }
+
+  /**
+   * POST /world/admin/embed
+   *
+   * Phase 3 v1 (docs/TOOLBOX_AND_STAGE.md §4): the admin re-embed
+   * trigger the in-canvas Stage editor's "Re-embed corpus" button
+   * calls. Role-gated at the route via the `edit world signature`
+   * permission; embedding *compute* still happens externally per
+   * BOUNDARY.md (this just orchestrates the EmbedRunner). Returns
+   * a JSON status the panel uses to refresh the freshness display.
+   *
+   * (CSRF: same-origin authenticated session is the gate today;
+   * formal CSRF token handling is a v1.x addition.)
+   */
+  public function embedAction(): JsonResponse {
+    try {
+      $result = $this->embedRunner->run();
+    }
+    catch (\RuntimeException $e) {
+      return new JsonResponse([
+        'error' => 'embed_failed',
+        'message' => $e->getMessage(),
+      ], 400);
+    }
+    catch (\Throwable $e) {
+      return new JsonResponse([
+        'error' => 'embed_error',
+        'message' => $e->getMessage(),
+      ], 500);
+    }
+    return new JsonResponse([
+      'status' => 'ok',
+      'embedded' => $result['embedded'],
+      'errors' => $result['errors'],
+      'modelVersion' => $result['modelVersion'],
+      'dimensions' => $result['dimensions'],
+      'embeddedAt' => $result['embeddedAt'],
+    ]);
   }
 
   /**

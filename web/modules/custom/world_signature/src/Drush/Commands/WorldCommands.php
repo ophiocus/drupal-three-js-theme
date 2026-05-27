@@ -12,6 +12,7 @@ use Drupal\world_signature\Embedding\SemanticLayoutProjector;
 use Drupal\world_signature\Plugin\MetaphorPluginManager;
 use Drupal\world_signature\Service\AssetSnapshotBuilder;
 use Drupal\world_signature\Service\DescriptorBuilder;
+use Drupal\world_signature\Service\EmbedRunner;
 use Drupal\world_signature\Service\EntityFactsReader;
 use Drupal\world_signature\Service\SignatureWriter;
 use Drupal\world_signature\Service\SnapshotPublisher;
@@ -51,6 +52,7 @@ final class WorldCommands extends DrushCommands {
     private readonly SemanticLayoutProjector $projector,
     private readonly StateInterface $state,
     private readonly LoggerChannelInterface $loggerChannel,
+    private readonly EmbedRunner $embedRunner,
   ) {
     parent::__construct();
   }
@@ -70,6 +72,7 @@ final class WorldCommands extends DrushCommands {
       $container->get('world_signature.embedding.projector'),
       $container->get('state'),
       $container->get('logger.channel.world_signature'),
+      $container->get('world_signature.embed_runner'),
     );
   }
 
@@ -306,118 +309,30 @@ final class WorldCommands extends DrushCommands {
    */
   #[Command(name: 'world:embed', aliases: ['we'])]
   public function embed(): int {
-    $participating = $this->collectParticipatingBundles();
-    if ($participating === []) {
-      $this->logger()->warning('No metaphor plugins registered. Nothing to embed.');
+    // Phase 3 v1: the embed logic lives in EmbedRunner (shared with the
+    // POST /world/admin/embed endpoint so CLI vs. in-canvas-button
+    // can never drift in semantics). This command is the
+    // operator-facing wrapper — logs the summary at drush verbosity.
+    try {
+      $result = $this->embedRunner->run();
+    }
+    catch (\RuntimeException $e) {
+      $this->logger()->warning($e->getMessage());
       return DrushCommands::EXIT_FAILURE;
     }
 
-    // Pass 1: gather corpus text keyed by descriptorId, holding on
-    // to the entity + facts + base signature for the write-back.
-    $corpus = [];
-    $work = [];
-    foreach ($participating as $entityType => $bundles) {
-      $storage = $this->entityTypeManager->getStorage($entityType);
-      $query = $storage->getQuery()->accessCheck(FALSE);
-      $bundleKey = $this->entityTypeManager->getDefinition($entityType)->getKey('bundle');
-      if ($bundleKey) {
-        $query->condition($bundleKey, $bundles, 'IN');
-      }
-      foreach ($query->execute() as $id) {
-        $entity = $storage->load($id);
-        if ($entity === NULL) {
-          continue;
-        }
-        $facts = $this->factsReader->read($entity);
-        if ($facts === NULL) {
-          continue;
-        }
-        $descriptorId = $this->descriptorBuilder->descriptorId($entityType, (string) $id);
-        $text = $this->descriptorBuilder->embeddingText($entity, $facts);
-        $corpus[$descriptorId] = $text;
-        $work[$descriptorId] = [
-          'entityType' => $entityType,
-          'entityId' => (string) $id,
-          'entity' => $entity,
-          'facts' => $facts,
-        ];
-      }
-    }
-
-    if ($corpus === []) {
-      $this->logger()->warning('Corpus is empty. Nothing to embed.');
-      return DrushCommands::EXIT_FAILURE;
-    }
-
-    // Pass 2: embed the whole corpus at once.
-    $result = $this->embeddingManager->embedCorpus($corpus);
-    $vectors = $result['vectors'];
-    $modelVersion = $result['modelVersion'];
-    $embeddedAt = time();
     $this->logger()->notice(sprintf(
       'Embedded %d documents with %s (%d dims).',
-      count($vectors),
-      $modelVersion,
+      $result['embedded'],
+      $result['modelVersion'],
       $result['dimensions'],
     ));
-
-    // Pass 3: inject the embedding into each signature, write back,
-    // re-upsert the descriptor so the gateway carries the vector.
-    $written = 0;
-    $errors = 0;
-    foreach ($work as $descriptorId => $w) {
-      $vector = $vectors[$descriptorId] ?? NULL;
-      if ($vector === NULL) {
-        continue;
-      }
-      try {
-        $base = $this->extractor->extract($w['facts']);
-        $semantic = new SignatureSemantic(
-          embedding: $vector,
-          modelVersion: $modelVersion,
-          embeddedAt: $embeddedAt,
-          semanticHash: $base->semantic->semanticHash,
-        );
-        $signature = new Signature(
-          $base->structural,
-          $base->temporal,
-          $base->relational,
-          $semantic,
-        );
-        $this->writer->write($w['entity'], $signature);
-
-        $pluginId = sprintf('%s:%s', $w['entityType'], $w['entity']->bundle());
-        $metaphor = $this->metaphorManager->createInstance($pluginId);
-        $descriptor = $this->descriptorBuilder->build(
-          $w['entity'], $w['facts'], $signature, $metaphor,
-        );
-        $this->searchClient->upsert($descriptor);
-        $written++;
-      }
-      catch (\Throwable $e) {
-        $errors++;
-        $this->logger()->error(sprintf('%s embed failed: %s', $descriptorId, $e->getMessage()));
-      }
-    }
-
-    // Phase 3 freshness signal (docs/TOOLBOX_AND_STAGE.md): the
-    // snapshot stamps this as world.lastEmbed so editors can see how
-    // stale their world's semantics are without holding a drush shell
-    // open on the side. Also records the model so a model swap shows
-    // as a separate freshness event.
-    $this->state->set('world_signature.last_embed', [
-      'at' => $embeddedAt,
-      'modelVersion' => $modelVersion,
-      'dimensions' => $result['dimensions'],
-      'embedded' => $written,
-    ]);
-
     $this->logger()->success(sprintf(
       'world:embed done — %d embedded, %d errors. Run `drush world:relayout` to project.',
-      $written,
-      $errors,
+      $result['embedded'],
+      $result['errors'],
     ));
-    return $errors > 0 ? DrushCommands::EXIT_FAILURE : DrushCommands::EXIT_SUCCESS;
+    return $result['errors'] > 0 ? DrushCommands::EXIT_FAILURE : DrushCommands::EXIT_SUCCESS;
   }
 
   /** Target radius the projected semantic cloud is scaled to fit. */

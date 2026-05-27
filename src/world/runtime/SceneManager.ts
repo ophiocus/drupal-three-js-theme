@@ -1180,6 +1180,11 @@ export class SceneManager {
                 camera: this.camera,
                 snapshot: this.snapshot,
                 activeAtmosphere: this.palette.activeAtmosphere ?? "none",
+                // Phase 3 v1: after a successful re-embed, ask the
+                // scene manager to re-fetch the snapshot + rebuild —
+                // the new editor instance will read the fresh
+                // world.lastEmbed via the freshly-stamped snapshot.
+                onRefresh: () => this.switchAtmosphere(),
               });
               this.atmosphereUpdaters.push(() => editor.update());
               this.atmosphereDisposers.push(() => editor.dispose());
