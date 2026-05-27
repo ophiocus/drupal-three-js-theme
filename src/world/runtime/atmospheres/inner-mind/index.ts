@@ -78,7 +78,7 @@ export function setupInnerMindEnvironment(
   snapshot: CorpusSnapshot,
   registerUpdater: (fn: AtmosphereUpdater) => void,
   layout: Map<string, Vec3> | null,
-): () => void {
+): { dispose: () => void; zodiac: SurrealZodiac } {
   const motes = new AcidMotes(snapshot);
   root.add(motes.points);
 
@@ -113,9 +113,12 @@ export function setupInnerMindEnvironment(
     }
   });
 
-  return () => {
-    motes.dispose();
-    zodiac.dispose();
-    regions?.dispose();
+  return {
+    zodiac,
+    dispose: () => {
+      motes.dispose();
+      zodiac.dispose();
+      regions?.dispose();
+    },
   };
 }

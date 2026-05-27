@@ -31,9 +31,25 @@ interface Spinner {
   spinSpeed: number;
 }
 
+/**
+ * Mutable per-sign placement (TOOLBOX_AND_STAGE.md phase 2). The
+ * StageEditor reads + writes these via getPlacement / setPlacement; the
+ * ringR is held alongside so an angle edit recomputes the world position
+ * correctly. archetype is stored for future archetype-swap; v0 doesn't
+ * mutate it (would require rebuilding the mesh).
+ */
+export interface ZodiacPlacement {
+  angle: number;
+  height: number;
+  scale: number;
+  ringR: number;
+  archetype: number;
+}
+
 export class SurrealZodiac {
   readonly group: THREE.Group;
   private readonly spinners: Spinner[] = [];
+  private readonly placements: ZodiacPlacement[] = [];
 
   constructor(snapshot: CorpusSnapshot) {
     this.group = new THREE.Group();
@@ -61,7 +77,44 @@ export class SurrealZodiac {
         node,
         spinSpeed: 0.04 + (((h >>> 20) & 0x0f) / 0x0f) * 0.14,
       });
+      this.placements.push({ angle, height, scale, ringR, archetype });
     }
+  }
+
+  // ─── Stage-editor surface (phase 2 v0) ─────────────────────────────────────
+
+  /** Number of signs (12 — a zodiac). */
+  get signCount(): number {
+    return this.placements.length;
+  }
+
+  /** Read the current local placement of a sign. */
+  getPlacement(idx: number): ZodiacPlacement {
+    const p = this.placements[idx]!;
+    return { angle: p.angle, height: p.height, scale: p.scale, ringR: p.ringR, archetype: p.archetype };
+  }
+
+  /**
+   * Update angle / height / scale of a sign and re-apply to its node.
+   * Self-spin (`rotation.y`) is overwritten each frame by update() so
+   * angle here is the LOCAL ring angle, not the sign's facing.
+   */
+  setPlacement(idx: number, partial: Partial<Pick<ZodiacPlacement, "angle" | "height" | "scale">>): void {
+    const p = this.placements[idx];
+    if (!p) return;
+    if (partial.angle !== undefined) p.angle = partial.angle;
+    if (partial.height !== undefined) p.height = partial.height;
+    if (partial.scale !== undefined) p.scale = Math.max(1, partial.scale);
+    const node = this.spinners[idx]!.node;
+    node.position.set(Math.cos(p.angle) * p.ringR, p.height, Math.sin(p.angle) * p.ringR);
+    node.scale.setScalar(p.scale);
+  }
+
+  /** World position of a sign (accounts for the parent group's orbit). */
+  getSignWorldPos(idx: number, out: THREE.Vector3): THREE.Vector3 {
+    const node = this.spinners[idx]?.node;
+    if (!node) return out.set(0, 0, 0);
+    return node.getWorldPosition(out);
   }
 
   /** Slow orbit of the whole wheel + gentle per-structure self-spin. */

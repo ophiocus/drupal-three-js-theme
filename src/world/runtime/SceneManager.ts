@@ -29,6 +29,7 @@ import { vantage } from "../vantage.js";
 import { WorldHud, type HudLabel } from "./hud/WorldHud.js";
 import { AtmosphereSwitcher } from "./hud/AtmosphereSwitcher.js";
 import { CrossfadeOverlay } from "./hud/CrossfadeOverlay.js";
+import { StageEditor } from "./hud/StageEditor.js";
 import { AtmosphereAudio } from "./AtmosphereAudio.js";
 
 interface BootOptions {
@@ -1160,14 +1161,27 @@ export class SceneManager {
             this.atmosphereLayout = mod.computeLayout?.(this.snapshot) ?? null;
           }
           if (this.snapshot && this.worldLayer) {
-            const dispose = mod.setupInnerMindEnvironment?.(
+            const result = mod.setupInnerMindEnvironment?.(
               this.scene,
               this.worldLayer,
               this.snapshot,
               (fn) => this.atmosphereUpdaters.push(fn),
               this.atmosphereLayout,
             );
-            if (dispose) this.atmosphereDisposers.push(dispose);
+            if (result) {
+              this.atmosphereDisposers.push(result.dispose);
+              // Phase 2 (TOOLBOX_AND_STAGE.md): in-canvas stage editor
+              // bound to the zodiac. Marker projection runs per frame
+              // via an atmosphere updater; the disposer tears the DOM
+              // down on switch alongside the rest of the atmosphere.
+              const editor = new StageEditor({
+                zodiac: result.zodiac,
+                canvas: this.canvas,
+                camera: this.camera,
+              });
+              this.atmosphereUpdaters.push(() => editor.update());
+              this.atmosphereDisposers.push(() => editor.dispose());
+            }
           }
           break;
         }
