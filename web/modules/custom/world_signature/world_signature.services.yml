@@ -105,6 +105,18 @@ services:
   world_signature.embedding.projector:
     class: Drupal\world_signature\Embedding\SemanticLayoutProjector
 
+  # ─── Phase 3 v2: in-canvas world-config writer ────────────────
+  # WorldConfigEditor — validates and writes the Stage panel's
+  # "World defaults" patches (today: active_atmosphere) to the
+  # world_signature.palette config. Snapshot cache busts via the
+  # existing `config:world_signature.palette` tag (no manual
+  # invalidation needed). See docs/TOOLBOX_AND_STAGE.md §2.3.
+  world_signature.world_config_editor:
+    class: Drupal\world_signature\Service\WorldConfigEditor
+    arguments:
+      - '@config.factory'
+      - '@logger.channel.world_signature'
+
   # ─── Phase 3 v1: admin re-embed trigger ────────────────────────
   # EmbedRunner — single source of truth for "embed the whole corpus
   # and write the vectors back." Called by both `drush world:embed`

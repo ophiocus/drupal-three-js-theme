@@ -81,6 +81,23 @@ world_signature.admin_embed:
   options:
     no_cache: 'TRUE'
 
+# Phase 3 v2: in-canvas world-config patcher. The Stage editor's
+# "World defaults" section calls this with a JSON body whose keys
+# are a subset of WorldConfigEditor::ALLOWED_KEYS (today:
+# active_atmosphere). Same `edit world signature` permission as
+# the v1 embed trigger. Snapshot cache busts automatically via
+# the snapshot's `config:world_signature.palette` cache tag.
+world_signature.admin_edit_config:
+  path: '/world/edit/config'
+  defaults:
+    _controller: '\Drupal\world_signature\Controller\WorldController::editConfigAction'
+    _format: json
+  methods: [PATCH, POST]
+  requirements:
+    _permission: 'edit world signature'
+  options:
+    no_cache: 'TRUE'
+
 # v0.1.1: /sector/{termId} is a world-coordinate URL. The controller
 # returns an empty render array — the theme's page.html.twig provides
 # the canvas, the bundle boots, and CameraController reads the URL

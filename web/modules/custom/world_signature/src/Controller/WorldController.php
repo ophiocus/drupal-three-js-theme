@@ -10,6 +10,7 @@ use Drupal\Core\Controller\ControllerBase;
 use Drupal\world_signature\Service\AssetSnapshotBuilder;
 use Drupal\world_signature\Service\EmbedRunner;
 use Drupal\world_signature\Service\SnapshotPublisher;
+use Drupal\world_signature\Service\WorldConfigEditor;
 use Drupal\world_signature\Service\WorldSearchClient;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -44,6 +45,7 @@ final class WorldController extends ControllerBase {
     private readonly SnapshotPublisher $publisher,
     private readonly AssetSnapshotBuilder $assetBuilder,
     private readonly EmbedRunner $embedRunner,
+    private readonly WorldConfigEditor $configEditor,
   ) {}
 
   public static function create(ContainerInterface $container): self {
@@ -52,6 +54,7 @@ final class WorldController extends ControllerBase {
       $container->get('world_signature.snapshot_publisher'),
       $container->get('world_signature.asset_snapshot_builder'),
       $container->get('world_signature.embed_runner'),
+      $container->get('world_signature.world_config_editor'),
     );
   }
 
@@ -174,6 +177,74 @@ final class WorldController extends ControllerBase {
       'modelVersion' => $result['modelVersion'],
       'dimensions' => $result['dimensions'],
       'embeddedAt' => $result['embeddedAt'],
+    ]);
+  }
+
+  /**
+   * PATCH /world/edit/config
+   *
+   * Phase 3 v2 (docs/TOOLBOX_AND_STAGE.md §2.3): in-canvas
+   * world-config patcher. The Stage editor's "World defaults"
+   * section calls this with a JSON body whose keys are a subset
+   * of {@see WorldConfigEditor::ALLOWED_KEYS} (today:
+   * `active_atmosphere`). Same `edit world signature` permission
+   * as the v1 embed trigger. The snapshot already carries the
+   * `config:world_signature.palette` cache tag, so Drupal busts
+   * the snapshot cache automatically when the config saves —
+   * no manual invalidation needed here.
+   *
+   * Request body (JSON):
+   *   { "active_atmosphere": "forest" | "inner-mind" | "none" }
+   *
+   * Response:
+   *   200 { status: "ok", updated: ["active_atmosphere"], palette: {...} }
+   *   400 { error, message }    — invalid patch
+   *   500 { error, message }    — unexpected
+   */
+  public function editConfigAction(Request $request): JsonResponse {
+    $body = (string) $request->getContent();
+    if ($body === '') {
+      return new JsonResponse([
+        'error' => 'empty_body',
+        'message' => 'Request body is empty; expected JSON object.',
+      ], 400);
+    }
+    try {
+      $patch = json_decode($body, TRUE, 8, JSON_THROW_ON_ERROR);
+    }
+    catch (\JsonException $e) {
+      return new JsonResponse([
+        'error' => 'invalid_json',
+        'message' => $e->getMessage(),
+      ], 400);
+    }
+    if (!is_array($patch)) {
+      return new JsonResponse([
+        'error' => 'invalid_payload',
+        'message' => 'Body must be a JSON object.',
+      ], 400);
+    }
+
+    try {
+      $result = $this->configEditor->apply($patch);
+    }
+    catch (\InvalidArgumentException $e) {
+      return new JsonResponse([
+        'error' => 'invalid_patch',
+        'message' => $e->getMessage(),
+      ], 400);
+    }
+    catch (\Throwable $e) {
+      return new JsonResponse([
+        'error' => 'config_error',
+        'message' => $e->getMessage(),
+      ], 500);
+    }
+
+    return new JsonResponse([
+      'status' => 'ok',
+      'updated' => $result['updated'],
+      'palette' => $result['palette'],
     ]);
   }
 

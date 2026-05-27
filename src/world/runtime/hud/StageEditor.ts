@@ -28,6 +28,11 @@ const STORAGE_KEY = "world.stage.placements.v0";
 const ANGLE_SENSITIVITY = 0.005;   // rad per pixel of horizontal drag
 const HEIGHT_SENSITIVITY = 0.5;    // y units per pixel of vertical drag (inverted)
 
+/** Atmospheres the Phase 3 v2 "default atmosphere" dropdown offers. Mirrors
+ *  WorldConfigEditor::ALLOWED_ATMOSPHERES on the server — keep in sync when
+ *  a skin is added. The server validates, so this is just UX. */
+const ATMOSPHERE_CHOICES: readonly string[] = ["none", "forest", "inner-mind"];
+
 /**
  * The freshness summary the panel renders (Phase 3 v0). Sourced from the
  * snapshot (corpus + signatures) and the new `world.lastEmbed` state
@@ -66,6 +71,14 @@ export class StageEditor {
   private readonly activeAtmosphere: string;
   private readonly onRefresh: (() => Promise<void>) | null;
   private reEmbedding = false;
+  /** Phase 3 v2: which atmosphere the dropdown is currently *pointing at*.
+   *  Initialized to the snapshot's effective atmosphere and updated on
+   *  dropdown change; SAVE pushes it to the server. */
+  private pendingAtmosphere: string;
+  /** Phase 3 v2: true while a PATCH /world/edit/config is in flight. */
+  private savingConfig = false;
+  /** Phase 3 v2: human-readable status flashed beside the dropdown. */
+  private configStatus: string | null = null;
 
   private readonly toggleBtn: HTMLButtonElement;
   private readonly panel: HTMLDivElement;
@@ -87,6 +100,7 @@ export class StageEditor {
     this.snapshot = options.snapshot;
     this.activeAtmosphere = options.activeAtmosphere;
     this.onRefresh = options.onRefresh ?? null;
+    this.pendingAtmosphere = options.activeAtmosphere;
 
     this.toggleBtn = this.buildToggleBtn();
     document.body.appendChild(this.toggleBtn);
@@ -323,9 +337,22 @@ export class StageEditor {
     this.panel.querySelector('[data-act="reembed"]')?.addEventListener("click", () => {
       void this.reEmbed();
     });
+    // Phase 3 v2 — default-atmosphere dropdown + save.
+    const sel = this.panel.querySelector('[data-act="atmosphere-select"]') as HTMLSelectElement | null;
+    if (sel) {
+      sel.addEventListener("change", () => {
+        this.pendingAtmosphere = sel.value;
+        this.configStatus = null;
+        this.renderPanel();
+      });
+    }
+    this.panel.querySelector('[data-act="save-atmosphere"]')?.addEventListener("click", () => {
+      void this.saveAtmosphereDefault();
+    });
   }
 
-  /** Phase 3 v0 freshness section — see docs/TOOLBOX_AND_STAGE.md §2. */
+  /** Phase 3 v0 freshness section + Phase 3 v2 default-atmosphere
+   *  editor — see docs/TOOLBOX_AND_STAGE.md §2. */
   private renderWorldSection(): string {
     const ents = Object.values(this.snapshot.entities);
     const total = ents.length;
@@ -337,12 +364,38 @@ export class StageEditor {
     const le = this.snapshot.world.lastEmbed ?? null;
     const ago = le?.at ? this.formatTimeAgo(le.at) : "—";
     const model = le?.modelVersion ?? "—";
+    const dirty = this.pendingAtmosphere !== this.activeAtmosphere;
+    const options = ATMOSPHERE_CHOICES.map((a) => {
+      const selected = a === this.pendingAtmosphere ? " selected" : "";
+      return `<option value="${escapeHtml(a)}"${selected}>${escapeHtml(a)}</option>`;
+    }).join("");
+    const statusLine = this.configStatus
+      ? `<div style="margin-top:6px;font-size:10.5px;opacity:0.75;">${escapeHtml(this.configStatus)}</div>`
+      : "";
     return `
       <b>World</b>
       <div style="margin-top:8px;font-variant-numeric:tabular-nums;font-size:12px;line-height:1.55;">
-        <div style="opacity:0.75;">atmosphere</div>
-        <div style="margin-bottom:6px;"><b>${escapeHtml(this.activeAtmosphere)}</b></div>
-        <div style="opacity:0.75;">embedded</div>
+        <div style="opacity:0.75;">default atmosphere</div>
+        <div style="margin-bottom:4px;display:flex;gap:6px;align-items:center;">
+          <select data-act="atmosphere-select"
+            style="flex:1;padding:4px 6px;border:1px solid rgba(255,255,255,0.18);
+                   border-radius:4px;background:rgba(0,0,0,0.25);color:#fff;
+                   font:600 12px/1.2 system-ui,-apple-system,sans-serif;">
+            ${options}
+          </select>
+          <button data-act="save-atmosphere"
+            ${(!dirty || this.savingConfig) ? "disabled" : ""}
+            style="flex:0 0 auto;padding:6px 10px;border:0;border-radius:4px;
+                   background:${dirty && !this.savingConfig ? "rgba(240,232,200,0.92)" : "rgba(255,255,255,0.08)"};
+                   color:${dirty && !this.savingConfig ? "#1d2230" : "rgba(255,255,255,0.5)"};
+                   cursor:${dirty && !this.savingConfig ? "pointer" : "not-allowed"};
+                   font:600 10.5px/1 system-ui,sans-serif;text-transform:uppercase;
+                   letter-spacing:0.06em;">
+            ${this.savingConfig ? "…" : "Save"}
+          </button>
+        </div>
+        ${statusLine}
+        <div style="opacity:0.75;margin-top:6px;">embedded</div>
         <div style="margin-bottom:6px;">
           <b style="color:${allEmbedded ? "rgba(180,235,180,1)" : "rgba(255,200,120,1)"};">${embedded} / ${total}</b>
           ${allEmbedded ? "" : `&nbsp;<span style="opacity:0.6;">stale</span>`}
@@ -418,6 +471,57 @@ export class StageEditor {
         }
       }, 2400);
     }
+  }
+
+  /** Phase 3 v2 — PATCH /world/edit/config { active_atmosphere }, then
+   *  re-fetch via SceneManager so the new default takes effect everywhere
+   *  (HUD pill, snapshot, switcher options). The crossfade pattern is
+   *  reused: the rebuild in onRefresh re-instantiates StageEditor, so
+   *  this instance gets disposed mid-await. */
+  private async saveAtmosphereDefault(): Promise<void> {
+    if (this.savingConfig) return;
+    if (this.pendingAtmosphere === this.activeAtmosphere) return;
+    this.savingConfig = true;
+    this.configStatus = null;
+    this.renderPanel();
+    let ok = false;
+    let message = "";
+    try {
+      const r = await fetch("/world/edit/config", {
+        method: "PATCH",
+        credentials: "same-origin",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ active_atmosphere: this.pendingAtmosphere }),
+      });
+      if (r.status === 401 || r.status === 403) {
+        message = "auth failed — need 'edit world signature' permission";
+      } else if (!r.ok) {
+        const body = await r.text().catch(() => "");
+        message = `HTTP ${r.status} ${body.slice(0, 80)}`;
+      } else {
+        const body = (await r.json()) as { updated?: string[] };
+        const updated = body.updated ?? [];
+        message = updated.length
+          ? `saved (${updated.join(", ")})`
+          : "no change";
+        ok = true;
+      }
+    } catch (e) {
+      message = e instanceof Error ? e.message : String(e);
+    }
+    console.log(`[stage] save atmosphere default: ${ok ? "ok" : "fail"} — ${message}`);
+    if (ok && this.onRefresh) {
+      // Re-fetch + rebuild. This instance gets disposed; nothing
+      // further to render here.
+      try { await this.onRefresh(); } catch { /* swallow */ }
+      return;
+    }
+    this.savingConfig = false;
+    this.configStatus = message;
+    this.renderPanel();
   }
 
   /** Human-readable time-ago for a unix-seconds timestamp. */
