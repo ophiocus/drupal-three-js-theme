@@ -391,8 +391,12 @@ export class SceneManager {
     await this.placeEntities(loader);
     // Interpretation engine: when the atmosphere supplies its own 3D
     // layout, aim the camera at the entity mass centre (not the world
-    // origin) so the floating cloud is framed. Cleared otherwise.
-    this.cameraController?.setFocusOverride(this.atmosphereLayoutCentroid());
+    // origin) so the floating cloud is framed; also widen the polar
+    // clamps so drag-orbit tumbles freely around the cloud. Both
+    // cleared for ground atmospheres (forest stays itself).
+    const centroid = this.atmosphereLayoutCentroid();
+    this.cameraController?.setFocusOverride(centroid);
+    this.cameraController?.setFreeOrbit(centroid !== null);
     console.info(
       `[world] built: ${Object.keys(this.snapshot.entities).length} entities ` +
         `across ${Object.keys(this.snapshot.sectors).length} sectors, ` +
@@ -838,60 +842,66 @@ export class SceneManager {
     // exception — they stay on `scene` and are disposed individually
     // via their component-aware dispose(); see teardownScene().)
     const layer = this.worldLayer ?? this.scene;
+    // Interpretation engine: a 3D atmosphere layout means there's no
+    // "ground" in the metaphor — entities float in a cloud, the zodiac
+    // rings the outer orbit, FuzzyRegions sphere the clusters. Skip
+    // ground plane / sector pads / compass / flat sector labels in
+    // that mode; keep them for ground worlds (forest).
+    const is3D = !!this.atmosphereLayout;
 
-    // Ground plane — sized to the world. Palette-driven.
-    const groundSize = this.snapshot.world.radius * 4;
-    const ground = new THREE.Mesh(
-      new THREE.PlaneGeometry(groundSize, groundSize, 1, 1),
-      new THREE.MeshStandardMaterial({
-        color: new THREE.Color(p.ground.color),
-        roughness: 0.95,
-        metalness: 0,
-      }),
-    );
-    ground.rotateX(-Math.PI / 2);
-    ground.position.y = 0;
-    layer.add(ground);
-
-    // Cardinal compass posts + their letter labels. The posts are
-    // ALPHA-era placeholders; the labels were added in v0.4 when
-    // the user noticed the unlabeled axii while testing the world.
-    //
-    // Convention: Three.js's default-camera "forward" is along -Z.
-    // So -Z = North; +Z = South; +X = East; -X = West. Posts at
-    // distance 60 from origin (well inside the world radius of 200).
-    const compassGeo = new THREE.BoxGeometry(2, 6, 2);
-    const compassMat = new THREE.MeshStandardMaterial({
-      color: new THREE.Color(p.compassPost.color),
-      roughness: 0.9,
-    });
-    const compassPoints: Array<{ letter: string; x: number; z: number }> = [
-      { letter: "E", x: 60, z: 0 },
-      { letter: "W", x: -60, z: 0 },
-      { letter: "S", x: 0, z: 60 },
-      { letter: "N", x: 0, z: -60 },
-    ];
-    for (const { x, z } of compassPoints) {
-      const post = new THREE.Mesh(compassGeo, compassMat);
-      post.position.set(x, 3, z);
-      layer.add(post);
+    if (!is3D) {
+      // Ground plane — sized to the world. Palette-driven.
+      const groundSize = this.snapshot.world.radius * 4;
+      const ground = new THREE.Mesh(
+        new THREE.PlaneGeometry(groundSize, groundSize, 1, 1),
+        new THREE.MeshStandardMaterial({
+          color: new THREE.Color(p.ground.color),
+          roughness: 0.95,
+          metalness: 0,
+        }),
+      );
+      ground.rotateX(-Math.PI / 2);
+      ground.position.y = 0;
+      layer.add(ground);
     }
-    // Labels float above each post via the WorldHud. Always visible
-    // (no scope predicate) so the compass works as orientation aid
-    // at every vantage. Held in compassLabels so teardown clears them
-    // on a switch (rebuild re-adds a fresh set).
+
+    // WorldHud is needed by entity labels in every atmosphere; create
+    // it once here regardless of mode.
     if (!this.worldHud) {
       this.worldHud = new WorldHud({ canvas: this.canvas });
     }
     for (const l of this.compassLabels) l.remove();
     this.compassLabels = [];
-    for (const { letter, x, z } of compassPoints) {
-      const label = this.worldHud.addLabel({
-        worldPos: new THREE.Vector3(x, 10, z),
-        text: letter,
-        className: "world-hud__compass-label",
+
+    if (!is3D) {
+      // Cardinal compass posts + their letter labels. Ground-world
+      // orientation aid; meaningless in a 3D-orbited cloud.
+      // Convention: -Z = North; +Z = South; +X = East; -X = West.
+      // Posts at distance 60 from origin.
+      const compassGeo = new THREE.BoxGeometry(2, 6, 2);
+      const compassMat = new THREE.MeshStandardMaterial({
+        color: new THREE.Color(p.compassPost.color),
+        roughness: 0.9,
       });
-      this.compassLabels.push(label);
+      const compassPoints: Array<{ letter: string; x: number; z: number }> = [
+        { letter: "E", x: 60, z: 0 },
+        { letter: "W", x: -60, z: 0 },
+        { letter: "S", x: 0, z: 60 },
+        { letter: "N", x: 0, z: -60 },
+      ];
+      for (const { x, z } of compassPoints) {
+        const post = new THREE.Mesh(compassGeo, compassMat);
+        post.position.set(x, 3, z);
+        layer.add(post);
+      }
+      for (const { letter, x, z } of compassPoints) {
+        const label = this.worldHud.addLabel({
+          worldPos: new THREE.Vector3(x, 10, z),
+          text: letter,
+          className: "world-hud__compass-label",
+        });
+        this.compassLabels.push(label);
+      }
     }
 
     // v0.1.2: SmartObject registry owns entity geometry. The
@@ -963,74 +973,61 @@ export class SceneManager {
     });
     await Promise.allSettled(buildPromises);
 
-    // Sector centroid pads. v0.1.1: tagged as click targets so
-    // PointerNavigator routes a click → "navigate to this sector."
-    // v0.2.1-P2: alphaMap radial gradient (sector-pad-texture)
-    // fades the pad into the ground so it reads as a clearing,
-    // not a poker chip. Atmospheres tune `sectorPad.color`;
-    // the gradient shape is universal.
-    const padGeo = new THREE.CircleGeometry(this.snapshot.world.radius * 0.25, 48);
-    padGeo.rotateX(-Math.PI / 2);
-    const padAlpha = sectorPadDecal();
-    for (const sector of Object.values(this.snapshot.sectors)) {
-      const padMaterial = new THREE.MeshStandardMaterial({
-        color: new THREE.Color(p.sectorPad.color),
-        roughness: 0.95,
-        metalness: 0,
-        alphaMap: padAlpha,
-        transparent: true,
-        // depthWrite off so transparent edges don't write a hard
-        // depth boundary the canopy would z-fight against.
-        depthWrite: false,
-      });
-      const pad = new THREE.Mesh(padGeo, padMaterial);
-      pad.position.set(sector.centroid.x, FLOOR_LAYERS.sector_pad, sector.centroid.z);
-      pad.userData.isSectorPad = true;
-      pad.userData.termId = sector.termId;
-      // Render before opaque geometry so the alpha blend uses the
-      // ground beneath it as background, not whatever happened to
-      // render first by entity-order accident.
-      pad.renderOrder = -1;
-      layer.add(pad);
-    }
-
-    // v0.4 research/information-lod: WorldHud + region labels.
-    // Five DOM labels at sector centroids, visible only when the
-    // camera is high enough to read as "overview" (Activity A from
-    // docs/v0.4/research/INFORMATION_LOD.md). Clicking a label
-    // flies to the sector vantage — gives visitors a way to choose
-    // a region without guessing which pad is which.
-    if (!this.worldHud) {
-      this.worldHud = new WorldHud({ canvas: this.canvas });
-    }
-    // Clear any prior labels (in case of re-mount).
+    // Sector centroid pads + sector labels — both are ground-world
+    // affordances. In 3D atmospheres FuzzyRegions replaces the pad as a
+    // region cue (translucent sphere overlap on commonality), and
+    // entity labels float with the cloud — flat sector labels would
+    // sit far below it and read as detached.
     for (const l of this.sectorLabels) l.remove();
     this.sectorLabels = [];
+    // Hoisted so the per-entity label loop further down can still read
+    // it on the (rare) non-ground path; harmless in 3D.
     const overviewHeightThreshold = this.snapshot.world.overviewHeight * 0.45;
-    for (const sector of Object.values(this.snapshot.sectors)) {
-      const label = this.worldHud.addLabel({
-        worldPos: new THREE.Vector3(
-          sector.centroid.x,
-          // Lift the label slightly above the sector pad so the
-          // anchor projects to a point readable above the ground,
-          // not buried in the pad geometry.
-          FLOOR_LAYERS.sector_pad + 4,
-          sector.centroid.z,
-        ),
-        text: sector.displayName,
-        className: "world-hud__sector-label",
-        // Visible only at overview-ish altitude. Below the threshold
-        // the labels would clutter the closer view; the sector
-        // titles list (Activity B, not yet implemented) takes over
-        // at that scope.
-        visibleIf: (camera) => camera.position.y > overviewHeightThreshold,
-        onClick: () => {
-          this.cameraController?.setTarget(
-            vantage(`/sector/${sector.termId}`, this.snapshot!),
-          );
-        },
-      });
-      this.sectorLabels.push(label);
+    if (!is3D) {
+      // Sector centroid pads — click target + visual clearing.
+      const padGeo = new THREE.CircleGeometry(this.snapshot.world.radius * 0.25, 48);
+      padGeo.rotateX(-Math.PI / 2);
+      const padAlpha = sectorPadDecal();
+      for (const sector of Object.values(this.snapshot.sectors)) {
+        const padMaterial = new THREE.MeshStandardMaterial({
+          color: new THREE.Color(p.sectorPad.color),
+          roughness: 0.95,
+          metalness: 0,
+          alphaMap: padAlpha,
+          transparent: true,
+          // depthWrite off so transparent edges don't write a hard
+          // depth boundary the canopy would z-fight against.
+          depthWrite: false,
+        });
+        const pad = new THREE.Mesh(padGeo, padMaterial);
+        pad.position.set(sector.centroid.x, FLOOR_LAYERS.sector_pad, sector.centroid.z);
+        pad.userData.isSectorPad = true;
+        pad.userData.termId = sector.termId;
+        // Render before opaque geometry so the alpha blend reads
+        // ground-as-background.
+        pad.renderOrder = -1;
+        layer.add(pad);
+      }
+
+      // Sector labels — overview-altitude only (Information LOD A).
+      for (const sector of Object.values(this.snapshot.sectors)) {
+        const label = this.worldHud.addLabel({
+          worldPos: new THREE.Vector3(
+            sector.centroid.x,
+            FLOOR_LAYERS.sector_pad + 4,
+            sector.centroid.z,
+          ),
+          text: sector.displayName,
+          className: "world-hud__sector-label",
+          visibleIf: (camera) => camera.position.y > overviewHeightThreshold,
+          onClick: () => {
+            this.cameraController?.setTarget(
+              vantage(`/sector/${sector.termId}`, this.snapshot!),
+            );
+          },
+        });
+        this.sectorLabels.push(label);
+      }
     }
 
     // v0.4 information-lod Activity B: per-entity title labels.
@@ -1094,12 +1091,17 @@ export class SceneManager {
         // Keyed for hover-driven subtitle reveal.
         entityId: entity.id,
         className: "world-hud__entity-label",
-        visibleIf: (camera) => {
-          const y = camera.position.y;
-          if (y > overviewHeightThreshold) return false;
-          if (y < detailHeightThreshold) return false;
-          return nearestSector(camera) === primarySector;
-        },
+        // 3D atmospheres: just be visible (the orbit camera makes
+        // camera.y a poor "scope" signal, and there's no flat sector to
+        // pick a "nearest" from). Ground worlds: keep the LOD scoping.
+        visibleIf: is3D
+          ? undefined
+          : (camera) => {
+              const y = camera.position.y;
+              if (y > overviewHeightThreshold) return false;
+              if (y < detailHeightThreshold) return false;
+              return nearestSector(camera) === primarySector;
+            },
         onClick: () => {
           this.cardController?.openFullView(entity.id);
         },
@@ -1163,6 +1165,7 @@ export class SceneManager {
               this.worldLayer,
               this.snapshot,
               (fn) => this.atmosphereUpdaters.push(fn),
+              this.atmosphereLayout,
             );
             if (dispose) this.atmosphereDisposers.push(dispose);
           }

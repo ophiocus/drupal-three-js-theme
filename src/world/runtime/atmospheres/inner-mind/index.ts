@@ -19,6 +19,7 @@ import { ProfileAsOrb } from "./ProfileAsOrb.js";
 import { EventAsRing } from "./EventAsRing.js";
 import { AcidMotes } from "./motes.js";
 import { SurrealZodiac } from "./zodiac.js";
+import { FuzzyRegions } from "./regions.js";
 import { projectMds3D } from "./projection.js";
 
 export function registerInnerMindAtmosphere(registry: SmartObjectRegistry): void {
@@ -76,6 +77,7 @@ export function setupInnerMindEnvironment(
   root: THREE.Object3D,
   snapshot: CorpusSnapshot,
   registerUpdater: (fn: AtmosphereUpdater) => void,
+  layout: Map<string, Vec3> | null,
 ): () => void {
   const motes = new AcidMotes(snapshot);
   root.add(motes.points);
@@ -86,12 +88,20 @@ export function setupInnerMindEnvironment(
   const zodiac = new SurrealZodiac(snapshot);
   root.add(zodiac.group);
 
+  // Interpretation engine §2: fuzzy cluster spheres around each sector's
+  // 3D members — multi-tagged entities pull centroids together so
+  // spheres overlap on commonality (additive blending makes the
+  // intersection glow). Only meaningful when a 3D layout is present.
+  const regions = layout ? new FuzzyRegions(snapshot, layout) : null;
+  if (regions) root.add(regions.group);
+
   // Cache fog ref once; cheap per-frame writes thereafter.
   const fog = scene.fog instanceof THREE.Fog ? scene.fog : null;
 
   registerUpdater((elapsed) => {
     motes.update(elapsed);
     zodiac.update(elapsed);
+    regions?.update(elapsed);
     // Slow hue rotation — the whole world breathes through the
     // spectrum. ~40s per full cycle.
     const hue = (elapsed * 0.025) % 1;
@@ -106,5 +116,6 @@ export function setupInnerMindEnvironment(
   return () => {
     motes.dispose();
     zodiac.dispose();
+    regions?.dispose();
   };
 }

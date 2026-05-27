@@ -57,8 +57,14 @@ const SETTLE_VELOCITY_THRESHOLD = 0.5;
 // down on the target, π/2 = horizontal.
 const DRAG_AZIMUTH_SENSITIVITY = 0.005; // rad / pixel
 const DRAG_POLAR_SENSITIVITY = 0.004;
-const POLAR_MIN = 0.2;            // ~11° — almost overhead
-const POLAR_MAX = Math.PI / 2 - 0.1; // ~84° — just above horizon
+const POLAR_MIN = 0.2;            // ~11° — almost overhead (ground worlds)
+const POLAR_MAX = Math.PI / 2 - 0.1; // ~84° — just above horizon (ground worlds)
+// Free-orbit (inner-mind / any 3D-laid atmosphere): the camera should
+// tumble fully around the cloud — over the top, around the back, under
+// the belly. Polar can range across the full hemisphere bar a sliver to
+// avoid the singular look-straight-up/down quaternion edge case.
+const POLAR_FREE_MIN = 0.05;
+const POLAR_FREE_MAX = Math.PI - 0.05;
 
 // Zoom configuration. applyZoomDelta(deltaPixels) multiplies the
 // orbit radius by exp(deltaPixels * ZOOM_SENSITIVITY). A pinch
@@ -94,6 +100,13 @@ export class CameraController {
    * origin. null = normal vantage-driven look.
    */
   private focusOverride: THREE.Vector3 | null = null;
+  /**
+   * Free-orbit mode: when true, polar (pitch) clamps widen so the
+   * camera can fly fully around the focus point — including over the
+   * top. inner-mind enables this; ground worlds (forest) keep the
+   * "horizon, never below, never overhead" defaults.
+   */
+  private freeOrbit = false;
   private readonly lastPos = new THREE.Vector3();
   // Spherical coords of baseTargetPos relative to targetLook —
   // makes drag-orbit a simple azimuth/polar/radius mutation.
@@ -296,6 +309,17 @@ export class CameraController {
   }
 
   /**
+   * Toggle free-orbit mode (interpretation engine, 3D atmospheres).
+   * Widens the drag-orbit polar clamps so the camera can tumble fully
+   * around the focus point — over the top, around the back, under the
+   * belly. Ground worlds keep the "never overhead, never below horizon"
+   * defaults.
+   */
+  setFreeOrbit(free: boolean): void {
+    this.freeOrbit = free;
+  }
+
+  /**
    * Macro navigation: push a new URL into history and re-target
    * the camera. Used by PointerNavigator on entity/sector clicks
    * and (commit 2) by keyboard hotkeys.
@@ -423,9 +447,12 @@ export class CameraController {
    */
   applyDragDelta(dx: number, dy: number): void {
     this.orbitAzimuth -= dx * DRAG_AZIMUTH_SENSITIVITY;
+    const [pMin, pMax] = this.freeOrbit
+      ? [POLAR_FREE_MIN, POLAR_FREE_MAX]
+      : [POLAR_MIN, POLAR_MAX];
     this.orbitPolar = THREE.MathUtils.clamp(
       this.orbitPolar + dy * DRAG_POLAR_SENSITIVITY,
-      POLAR_MIN, POLAR_MAX,
+      pMin, pMax,
     );
     this.syncBaseFromOrbit();
   }
@@ -477,7 +504,10 @@ export class CameraController {
     this.orbitPolar = Math.acos(
       THREE.MathUtils.clamp(dy / this.orbitRadius, -1, 1),
     );
-    this.orbitPolar = THREE.MathUtils.clamp(this.orbitPolar, POLAR_MIN, POLAR_MAX);
+    const [pMin, pMax] = this.freeOrbit
+      ? [POLAR_FREE_MIN, POLAR_FREE_MAX]
+      : [POLAR_MIN, POLAR_MAX];
+    this.orbitPolar = THREE.MathUtils.clamp(this.orbitPolar, pMin, pMax);
   }
 
   /**
