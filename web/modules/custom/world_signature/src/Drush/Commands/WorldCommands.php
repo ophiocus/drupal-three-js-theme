@@ -400,6 +400,18 @@ final class WorldCommands extends DrushCommands {
       }
     }
 
+    // Phase 3 freshness signal (docs/TOOLBOX_AND_STAGE.md): the
+    // snapshot stamps this as world.lastEmbed so editors can see how
+    // stale their world's semantics are without holding a drush shell
+    // open on the side. Also records the model so a model swap shows
+    // as a separate freshness event.
+    $this->state->set('world_signature.last_embed', [
+      'at' => $embeddedAt,
+      'modelVersion' => $modelVersion,
+      'dimensions' => $result['dimensions'],
+      'embedded' => $written,
+    ]);
+
     $this->logger()->success(sprintf(
       'world:embed done — %d embedded, %d errors. Run `drush world:relayout` to project.',
       $written,

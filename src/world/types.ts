@@ -77,6 +77,16 @@ export interface WorldConstants {
   sectionVantageHeight: number;
   closeUpDistance: number;
   closeUpHeight: number;
+  /**
+   * Phase 3 freshness signal (docs/TOOLBOX_AND_STAGE.md): last
+   * `drush world:embed` execution. Null when no embed has ever run.
+   */
+  lastEmbed?: {
+    at: number;            // unix seconds
+    modelVersion: string;
+    dimensions: number;
+    embedded: number;
+  } | null;
 }
 
 /**

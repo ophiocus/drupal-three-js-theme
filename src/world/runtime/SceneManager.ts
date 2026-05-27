@@ -1178,6 +1178,8 @@ export class SceneManager {
                 zodiac: result.zodiac,
                 canvas: this.canvas,
                 camera: this.camera,
+                snapshot: this.snapshot,
+                activeAtmosphere: this.palette.activeAtmosphere ?? "none",
               });
               this.atmosphereUpdaters.push(() => editor.update());
               this.atmosphereDisposers.push(() => editor.dispose());

@@ -21,22 +21,44 @@
 // rest of the atmosphere chrome.
 
 import * as THREE from "../../../toolbox/three.js";
+import type { CorpusSnapshot } from "../../types.js";
 import type { SurrealZodiac, ZodiacPlacement } from "../atmospheres/inner-mind/zodiac.js";
 
 const STORAGE_KEY = "world.stage.placements.v0";
 const ANGLE_SENSITIVITY = 0.005;   // rad per pixel of horizontal drag
 const HEIGHT_SENSITIVITY = 0.5;    // y units per pixel of vertical drag (inverted)
 
+/**
+ * The freshness summary the panel renders (Phase 3 v0). Sourced from the
+ * snapshot (corpus + signatures) and the new `world.lastEmbed` state
+ * the drush command stamps. Drives the "is my world stale?" answer.
+ */
+interface WorldFreshness {
+  activeAtmosphere: string;
+  totalEntities: number;
+  embeddedCount: number;
+  modelVersion: string | null;
+  lastEmbedAt: number | null;    // unix seconds
+  lastEmbedModel: string | null;
+}
+
 interface StageEditorOptions {
   zodiac: SurrealZodiac;
   canvas: HTMLCanvasElement;
   camera: THREE.Camera;
+  /** Phase 3 v0: read by the World freshness panel section. */
+  snapshot: CorpusSnapshot;
+  /** Active atmosphere key (snapshot's `world.palette.activeAtmosphere`
+   *  isn't on the adapted snapshot type — SceneManager passes it through). */
+  activeAtmosphere: string;
 }
 
 export class StageEditor {
   private readonly zodiac: SurrealZodiac;
   private readonly canvas: HTMLCanvasElement;
   private readonly camera: THREE.Camera;
+  private readonly snapshot: CorpusSnapshot;
+  private readonly activeAtmosphere: string;
 
   private readonly toggleBtn: HTMLButtonElement;
   private readonly panel: HTMLDivElement;
@@ -55,6 +77,8 @@ export class StageEditor {
     this.zodiac = options.zodiac;
     this.canvas = options.canvas;
     this.camera = options.camera;
+    this.snapshot = options.snapshot;
+    this.activeAtmosphere = options.activeAtmosphere;
 
     this.toggleBtn = this.buildToggleBtn();
     document.body.appendChild(this.toggleBtn);
@@ -252,23 +276,28 @@ export class StageEditor {
 
   private renderPanel(): void {
     if (!this.editMode) return;
-    const body = this.selectedIdx === null
-      ? `<b>Stage editor</b>
-         <p style="margin:8px 0 0;opacity:0.75;font-size:12px;line-height:1.45;">
-           Click a numbered marker to select a sign.<br>
-           Drag the marker: horizontal → angle, vertical → height.
-         </p>`
+    const worldSection = this.renderWorldSection();
+    const signSection = this.selectedIdx === null
+      ? `<div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08);">
+           <b>Stage</b>
+           <p style="margin:6px 0 0;opacity:0.75;font-size:12px;line-height:1.45;">
+             Click a numbered marker to select a sign.<br>
+             Drag: horizontal → angle, vertical → height.
+           </p>
+         </div>`
       : (() => {
           const p = this.zodiac.getPlacement(this.selectedIdx!);
-          return `<b>Sign ${this.selectedIdx! + 1}</b>
+          return `<div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08);">
+            <b>Sign ${this.selectedIdx! + 1}</b>
             <p style="margin:6px 0 0;opacity:0.75;font-size:11px;line-height:1.4;">
-              Drag the marker: horizontal → angle, vertical → height.
+              Drag: horizontal → angle, vertical → height.
             </p>
             <div style="margin-top:10px;font-variant-numeric:tabular-nums;font-size:12px;line-height:1.6;">
               <div>angle &nbsp;<b>${p.angle.toFixed(2)}</b> rad</div>
               <div>height <b>${p.height.toFixed(1)}</b> units</div>
               <div>scale &nbsp;<b>${p.scale.toFixed(1)}</b></div>
-            </div>`;
+            </div>
+          </div>`;
         })();
     const actions = `
       <div style="margin-top:14px;display:flex;gap:8px;">
@@ -277,12 +306,54 @@ export class StageEditor {
           : ""}
         <button data-act="save" style="flex:1;padding:8px 12px;border:0;border-radius:4px;background:rgba(240,232,200,0.92);color:#1d2230;cursor:pointer;font:600 12px/1 system-ui,sans-serif;text-transform:uppercase;letter-spacing:0.06em;">Save</button>
       </div>`;
-    this.panel.innerHTML = body + actions;
+    this.panel.innerHTML = worldSection + signSection + actions;
     this.panel.querySelector('[data-act="save"]')?.addEventListener("click", () => this.save());
     this.panel.querySelector('[data-act="deselect"]')?.addEventListener("click", () => {
       this.clearSelection();
       this.renderPanel();
     });
+  }
+
+  /** Phase 3 v0 freshness section — see docs/TOOLBOX_AND_STAGE.md §2. */
+  private renderWorldSection(): string {
+    const ents = Object.values(this.snapshot.entities);
+    const total = ents.length;
+    const embedded = ents.filter((e) => {
+      const v = e.signature?.semantic?.embedding;
+      return Array.isArray(v) && v.length > 0;
+    }).length;
+    const allEmbedded = total > 0 && embedded === total;
+    const le = this.snapshot.world.lastEmbed ?? null;
+    const ago = le?.at ? this.formatTimeAgo(le.at) : "—";
+    const model = le?.modelVersion ?? "—";
+    return `
+      <b>World</b>
+      <div style="margin-top:8px;font-variant-numeric:tabular-nums;font-size:12px;line-height:1.55;">
+        <div style="opacity:0.75;">atmosphere</div>
+        <div style="margin-bottom:6px;"><b>${escapeHtml(this.activeAtmosphere)}</b></div>
+        <div style="opacity:0.75;">embedded</div>
+        <div style="margin-bottom:6px;">
+          <b style="color:${allEmbedded ? "rgba(180,235,180,1)" : "rgba(255,200,120,1)"};">${embedded} / ${total}</b>
+          ${allEmbedded ? "" : `&nbsp;<span style="opacity:0.6;">stale</span>`}
+        </div>
+        <div style="opacity:0.75;">model</div>
+        <div style="margin-bottom:6px;font-size:11px;"><b>${escapeHtml(model)}</b></div>
+        <div style="opacity:0.75;">last embed</div>
+        <div style="font-size:11px;"><b>${ago}</b></div>
+      </div>
+      <p style="margin:10px 0 0;opacity:0.6;font-size:10.5px;line-height:1.4;">
+        Refresh via <code style="background:rgba(0,0,0,0.25);padding:1px 4px;border-radius:3px;">drush world:embed</code>
+        (an admin re-embed button lands in Phase 3 v1).
+      </p>`;
+  }
+
+  /** Human-readable time-ago for a unix-seconds timestamp. */
+  private formatTimeAgo(ts: number): string {
+    const dt = Math.max(0, Math.floor(Date.now() / 1000 - ts));
+    if (dt < 60) return `${dt}s ago`;
+    if (dt < 3600) return `${Math.floor(dt / 60)}m ago`;
+    if (dt < 86400) return `${Math.floor(dt / 3600)}h ago`;
+    return `${Math.floor(dt / 86400)}d ago`;
   }
 
   private save(): void {
@@ -332,4 +403,14 @@ export class StageEditor {
       /* corrupted blob — ignore */
     }
   }
+}
+
+/** Minimal HTML escape so untrusted strings (model versions, atmospheres)
+ *  rendered into the panel innerHTML can't inject markup. */
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }

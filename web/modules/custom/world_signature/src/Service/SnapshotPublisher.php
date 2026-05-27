@@ -166,6 +166,12 @@ final class SnapshotPublisher {
     }
     $world['palette'] = $this->loadPalette($atmosphere);
     $world['layoutMode'] = $layoutMode;
+    // Phase 3 freshness signal (docs/TOOLBOX_AND_STAGE.md): the most
+    // recent `drush world:embed` records when it ran and which model;
+    // editors read it via the in-canvas Stage panel to see how stale
+    // their world's semantics are. Null when no embed has ever run.
+    $lastEmbed = $this->state->get('world_signature.last_embed');
+    $world['lastEmbed'] = is_array($lastEmbed) ? $lastEmbed : NULL;
 
     // v0.4 / ALPHA 1: live asset payload embedded alongside entities.
     // The sidecar /world/snapshot/assets endpoint serves the same
