@@ -13,7 +13,7 @@
 // Both produce a THREE.Mesh ready for the scene; properties don't
 // know which path is active.
 
-import * as THREE from "three";
+import * as THREE from "../../toolbox/three.js";
 
 export interface HtmlSurfaceOptions {
   /** Endpoint serving the HTML fragment, e.g. /world/card/node/1/default. */

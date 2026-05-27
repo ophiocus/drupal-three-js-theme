@@ -17,7 +17,7 @@
 // this module costs nothing until the first meta build (keeps
 // node-env unit tests that import builders from touching the DOM).
 
-import * as THREE from "three";
+import * as THREE from "../../toolbox/three.js";
 
 /**
  * Draw a UV-test checker: two neutral grays, a faint diagonal

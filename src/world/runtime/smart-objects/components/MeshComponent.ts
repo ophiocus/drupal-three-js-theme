@@ -8,7 +8,7 @@
 // the tree and frees them; nothing else should call dispose on
 // these objects.
 
-import * as THREE from "three";
+import * as THREE from "../../../../toolbox/three.js";
 import type { Component, SmartObject } from "../SmartObject.js";
 
 export interface MeshComponentOptions {

@@ -22,11 +22,11 @@
 //
 // See docs/v0.4/ROADMAP.md §A.3.
 
-import * as THREE from "three";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import * as THREE from "../../toolbox/three.js";
+import { GLTFLoader } from "../../toolbox/three.js";
 // SkeletonUtils exports each helper individually (no namespace); we
 // only need `clone` for skeleton-preserving deep copies of GLTF scenes.
-import { clone as skeletonClone } from "three/examples/jsm/utils/SkeletonUtils.js";
+import { clone as skeletonClone } from "../../toolbox/three.js";
 
 interface CacheEntry {
   scene: THREE.Group;

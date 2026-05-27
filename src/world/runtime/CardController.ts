@@ -25,7 +25,7 @@
 // management) — the bloom/collapse logic moved into the state
 // machine and the click router routes through transition().
 
-import * as THREE from "three";
+import * as THREE from "../../toolbox/three.js";
 import type { HtmlSurface, HtmlSurfaceOptions } from "./HtmlSurface.js";
 import type { SurfaceCache } from "./SurfaceCache.js";
 import type { SmartObject } from "./smart-objects/SmartObject.js";

@@ -4,7 +4,7 @@
 // the forest spirit's height) wrapped in a wireframe halo, floating.
 // Abstract procedural; a `psyche-orb` .glb can replace it later.
 
-import * as THREE from "three";
+import * as THREE from "../../../../toolbox/three.js";
 import type { Entity } from "../../../types.js";
 import { hashString } from "../../../layout.js";
 import { SmartObject } from "../../smart-objects/SmartObject.js";

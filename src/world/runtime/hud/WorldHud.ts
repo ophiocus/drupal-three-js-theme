@@ -22,7 +22,7 @@
 //
 // Per docs/v0.4/research/INFORMATION_LOD.md.
 
-import * as THREE from "three";
+import * as THREE from "../../../toolbox/three.js";
 
 export interface HudLabelOptions {
   /** World-space anchor — where this label "points at" in the scene. */

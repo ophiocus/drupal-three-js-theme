@@ -9,7 +9,7 @@
 //
 // See SMART_OBJECTS.md for the full design.
 
-import * as THREE from "three";
+import * as THREE from "../../../toolbox/three.js";
 import type { AssetDescriptor, CorpusSnapshot, Entity } from "../../types.js";
 import type { SurfaceCache } from "../SurfaceCache.js";
 import type { SmartObject } from "./SmartObject.js";

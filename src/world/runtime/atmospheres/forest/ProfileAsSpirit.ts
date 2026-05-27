@@ -19,7 +19,7 @@
 // stays atmosphere-coherent — a forest's profile fallback is
 // person-shaped, not a cube.
 
-import * as THREE from "three";
+import * as THREE from "../../../../toolbox/three.js";
 import type { Entity } from "../../../types.js";
 import { hashString } from "../../../layout.js";
 import { SmartObject } from "../../smart-objects/SmartObject.js";

@@ -23,7 +23,7 @@
 // per docs/atmospheres/forest/assets-needed.yml) arrive when the
 // world-building technical layer runs Stage 4.
 
-import * as THREE from "three";
+import * as THREE from "../../../../toolbox/three.js";
 import type { Entity } from "../../../types.js";
 import { hashString } from "../../../layout.js";
 import { SmartObject } from "../../smart-objects/SmartObject.js";

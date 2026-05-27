@@ -12,7 +12,7 @@
 //
 // See docs/v0.1/CAMERA_CONTROLLER.md for the full spec.
 
-import * as THREE from "three";
+import * as THREE from "../../toolbox/three.js";
 import type { CorpusSnapshot, Vantage } from "../types.js";
 
 export interface CameraControllerOptions {

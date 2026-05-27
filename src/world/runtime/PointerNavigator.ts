@@ -19,7 +19,7 @@
 // See docs/v0.1/CAMERA_CONTROLLER.md and the navigation proposal
 // for the gesture map.
 
-import * as THREE from "three";
+import * as THREE from "../../toolbox/three.js";
 import type { CardController } from "./CardController.js";
 import type { CameraController } from "./CameraController.js";
 import type { CorpusSnapshot } from "../types.js";

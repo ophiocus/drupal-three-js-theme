@@ -20,7 +20,7 @@
 // proportionally placed: pad just in front of the cube, surface
 // just above its top.
 
-import * as THREE from "three";
+import * as THREE from "../../../../toolbox/three.js";
 import type { Entity } from "../../../types.js";
 import { SmartObject } from "../SmartObject.js";
 import type { BuilderContext, SmartObjectBuilder } from "../Builder.js";

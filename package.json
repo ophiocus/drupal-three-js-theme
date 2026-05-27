@@ -8,8 +8,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "dev": "vite",
+    "prebuild": "node scripts/check-toolbox-boundary.mjs",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "check:toolbox": "node scripts/check-toolbox-boundary.mjs"
   },
   "devDependencies": {
     "jsdom": "^25.0.1",

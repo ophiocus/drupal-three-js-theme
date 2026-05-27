@@ -7,7 +7,7 @@
 // preserved. As HIC reaches stable across browsers, properties
 // transparently upgrade.
 
-import * as THREE from "three";
+import * as THREE from "../../toolbox/three.js";
 import {
   HtmlSurface,
   HtmlSurfaceOptions,

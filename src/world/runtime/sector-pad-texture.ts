@@ -15,7 +15,7 @@
 // palette overrides to tune what's visible. UE5-meta default
 // gets a pale-green soft clearing; forest gets lighter-olive.
 
-import * as THREE from "three";
+import * as THREE from "../../toolbox/three.js";
 
 let cached: THREE.CanvasTexture | null = null;
 

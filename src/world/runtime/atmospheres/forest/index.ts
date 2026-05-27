@@ -9,7 +9,7 @@
 // First-match-wins ordering means the atmosphere claims its
 // bundles; anything it doesn't claim falls through to defaults.
 
-import type * as THREE from "three";
+import type * as THREE from "../../../../toolbox/three.js";
 import type { CorpusSnapshot } from "../../../types.js";
 import type { SmartObjectRegistry } from "../../smart-objects/Builder.js";
 import { ArticleAsTree } from "./ArticleAsTree.js";

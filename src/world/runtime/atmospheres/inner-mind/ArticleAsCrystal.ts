@@ -5,7 +5,7 @@
 // Abstract procedural — a real `thought-crystal` .glb can slot in
 // later via ctx.tryLoadProp without changing this contract.
 
-import * as THREE from "three";
+import * as THREE from "../../../../toolbox/three.js";
 import type { Entity } from "../../../types.js";
 import { hashString } from "../../../layout.js";
 import { SmartObject } from "../../smart-objects/SmartObject.js";

@@ -29,7 +29,7 @@
 // material — so the entire entity glows together, not just the
 // individual sub-mesh under the pointer.
 
-import * as THREE from "three";
+import * as THREE from "../../../toolbox/three.js";
 
 /** Warm white — reads cleanly over the forest dusk palette. */
 const GLOW_COLOR = new THREE.Color(0xfff0c8);

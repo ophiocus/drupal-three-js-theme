@@ -2,7 +2,7 @@
 // blended so they bloom against the dark trip. The inner-mind
 // analogue of the forest's pollen, but vivid + per-point hued.
 
-import * as THREE from "three";
+import * as THREE from "../../../../toolbox/three.js";
 import type { CorpusSnapshot } from "../../../types.js";
 
 const COUNT = 140;

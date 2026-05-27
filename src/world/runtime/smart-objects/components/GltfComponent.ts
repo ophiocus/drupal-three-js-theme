@@ -10,7 +10,7 @@
 // field_asset_curated_pivot — "base" for upright props sits with
 // origin at bottom of mesh).
 
-import * as THREE from "three";
+import * as THREE from "../../../../toolbox/three.js";
 import type { Component, SmartObject } from "../SmartObject.js";
 
 export interface GltfComponentOptions {

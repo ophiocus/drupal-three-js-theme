@@ -3,7 +3,7 @@
 // browser support; only ever instantiated when the HIC path
 // is unavailable.
 
-import * as THREE from "three";
+import * as THREE from "../../toolbox/three.js";
 import {
   HtmlSurface,
   HtmlSurfaceOptions,

@@ -12,7 +12,7 @@
 // the same spots. Trees use their own hash space (entity id),
 // so collisions are rare and visually harmless at this density.
 
-import * as THREE from "three";
+import * as THREE from "../../../../toolbox/three.js";
 import type { CorpusSnapshot, Sector } from "../../../types.js";
 import { hashString } from "../../../layout.js";
 import { FLOOR_LAYERS } from "../../floor-layers.js";

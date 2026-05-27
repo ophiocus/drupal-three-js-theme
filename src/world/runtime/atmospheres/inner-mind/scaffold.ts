@@ -6,7 +6,7 @@
 // (trigger pad + HTML surface) so reading works identically to the
 // forest skin; only the geometry + palette differ.
 
-import * as THREE from "three";
+import * as THREE from "../../../../toolbox/three.js";
 import type { Entity } from "../../../types.js";
 import type { BuilderContext } from "../../smart-objects/Builder.js";
 import type { SmartObject } from "../../smart-objects/SmartObject.js";

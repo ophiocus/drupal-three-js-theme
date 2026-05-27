@@ -9,7 +9,7 @@
 // One per SmartObject that should be card-activatable.
 // Decorative SmartObjects (ground, posts) won't have one.
 
-import * as THREE from "three";
+import * as THREE from "../../../../toolbox/three.js";
 import type { Component, SmartObject } from "../SmartObject.js";
 
 export interface TriggerPadComponentOptions {

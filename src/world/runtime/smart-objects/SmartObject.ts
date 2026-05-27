@@ -9,7 +9,7 @@
 // matched against descriptor.bundle. See SMART_OBJECTS.md for
 // the full design.
 
-import * as THREE from "three";
+import * as THREE from "../../../toolbox/three.js";
 
 /**
  * Per-frame shared context. Components consume what they need;

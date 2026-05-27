@@ -14,7 +14,7 @@
 // dream-distant ring). Attaches to the disposable world-layer root; the
 // inner-mind env returns dispose() for the switcher teardown.
 
-import * as THREE from "three";
+import * as THREE from "../../../../toolbox/three.js";
 import type { CorpusSnapshot } from "../../../types.js";
 import { hashString } from "../../../layout.js";
 

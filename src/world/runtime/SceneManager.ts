@@ -8,7 +8,7 @@
 // ambient + directional light. Sprint 5 brings the card runtime,
 // trigger pads, sector light shifts, and engine-pause on FullView.
 
-import * as THREE from "three";
+import * as THREE from "../../toolbox/three.js";
 import type { CorpusSnapshot, Entity, Vec3 } from "../types.js";
 import { entityPosition } from "../layout.js";
 import { hasHtmlInCanvas, type HtmlSurface } from "./HtmlSurface.js";

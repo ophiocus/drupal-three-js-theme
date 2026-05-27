@@ -13,7 +13,7 @@
 // finished." When the world has no atmosphere, every entity is
 // honest graybox.
 
-import * as THREE from "three";
+import * as THREE from "../../../../toolbox/three.js";
 import type { Entity } from "../../../types.js";
 import { SmartObject } from "../SmartObject.js";
 import type { BuilderContext, SmartObjectBuilder } from "../Builder.js";

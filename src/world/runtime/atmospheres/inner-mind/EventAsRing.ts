@@ -4,7 +4,7 @@
 // the mind"), vivid + emissive, with a small bright core at center.
 // Abstract procedural; a `ripple-ring` .glb can replace it later.
 
-import * as THREE from "three";
+import * as THREE from "../../../../toolbox/three.js";
 import type { Entity } from "../../../types.js";
 import { hashString } from "../../../layout.js";
 import { SmartObject } from "../../smart-objects/SmartObject.js";

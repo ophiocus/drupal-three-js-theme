@@ -12,7 +12,7 @@
 // `world_signature.palette` config so editors can tune their world
 // without touching code.
 
-import * as THREE from "three";
+import * as THREE from "../../toolbox/three.js";
 import type { Sector } from "../types.js";
 
 /** Per-biome overlay. Each property mixes independently. */

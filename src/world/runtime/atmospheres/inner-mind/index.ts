@@ -10,7 +10,7 @@
 // Mirrors the forest atmosphere's contract: registerXAtmosphere
 // + setupXEnvironment, both called by SceneManager.
 
-import * as THREE from "three";
+import * as THREE from "../../../../toolbox/three.js";
 import type { CorpusSnapshot, Vec3 } from "../../../types.js";
 import type { SmartObjectRegistry } from "../../smart-objects/Builder.js";
 import type { AtmosphereUpdater } from "../forest/index.js";
