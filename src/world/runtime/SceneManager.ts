@@ -1180,6 +1180,15 @@ export class SceneManager {
                 camera: this.camera,
                 snapshot: this.snapshot,
                 activeAtmosphere: this.palette.activeAtmosphere ?? "none",
+                // Phase 3 v2.1: seed the tint pickers with the effective
+                // palette values (post-overlay). The server's scope-aware
+                // writer lands changes on the active atmosphere's overlay
+                // when one is active, base palette otherwise.
+                paletteTints: {
+                  background: this.palette.background,
+                  fogColor: this.palette.fog.color,
+                  groundColor: this.palette.ground.color,
+                },
                 // Phase 3 v1: after a successful re-embed, ask the
                 // scene manager to re-fetch the snapshot + rebuild —
                 // the new editor instance will read the fresh

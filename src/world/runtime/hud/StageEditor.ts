@@ -47,6 +47,17 @@ interface WorldFreshness {
   lastEmbedModel: string | null;
 }
 
+/** Phase 3 v2.1 — the effective palette tints the color pickers seed
+ *  themselves with. These are the *post-overlay* values from the
+ *  active atmosphere (or the base palette when active is `none`); the
+ *  scope-aware logic lives on the server. SceneManager reads them off
+ *  the palette object it already adapts from the snapshot. */
+export interface StageEditorTints {
+  background: string;
+  fogColor: string;
+  groundColor: string;
+}
+
 interface StageEditorOptions {
   zodiac: SurrealZodiac;
   canvas: HTMLCanvasElement;
@@ -56,6 +67,9 @@ interface StageEditorOptions {
   /** Active atmosphere key (snapshot's `world.palette.activeAtmosphere`
    *  isn't on the adapted snapshot type — SceneManager passes it through). */
   activeAtmosphere: string;
+  /** Phase 3 v2.1: initial color-picker values. Optional — when omitted,
+   *  the pickers are not rendered (older callers stay UI-compatible). */
+  paletteTints?: StageEditorTints;
   /** Phase 3 v1: invoked after the admin Re-embed POST succeeds, so
    *  the panel + scene re-read the fresh snapshot (SceneManager wires
    *  this to switchAtmosphere — re-fetch + rebuild). Optional so the
@@ -79,6 +93,11 @@ export class StageEditor {
   private savingConfig = false;
   /** Phase 3 v2: human-readable status flashed beside the dropdown. */
   private configStatus: string | null = null;
+  /** Phase 3 v2.1: effective tint values at panel mount. Null when the
+   *  caller didn't provide them — pickers stay hidden in that case. */
+  private readonly initialTints: StageEditorTints | null;
+  /** Phase 3 v2.1: tint picker state (what the user has dialed in). */
+  private pendingTints: StageEditorTints | null;
 
   private readonly toggleBtn: HTMLButtonElement;
   private readonly panel: HTMLDivElement;
@@ -101,6 +120,8 @@ export class StageEditor {
     this.activeAtmosphere = options.activeAtmosphere;
     this.onRefresh = options.onRefresh ?? null;
     this.pendingAtmosphere = options.activeAtmosphere;
+    this.initialTints = options.paletteTints ?? null;
+    this.pendingTints = options.paletteTints ? { ...options.paletteTints } : null;
 
     this.toggleBtn = this.buildToggleBtn();
     document.body.appendChild(this.toggleBtn);
@@ -346,8 +367,23 @@ export class StageEditor {
         this.renderPanel();
       });
     }
-    this.panel.querySelector('[data-act="save-atmosphere"]')?.addEventListener("click", () => {
-      void this.saveAtmosphereDefault();
+    this.panel.querySelector('[data-act="save-config"]')?.addEventListener("click", () => {
+      void this.saveConfig();
+    });
+    // Phase 3 v2.1 — tint pickers. Each input change updates the pending
+    // value and re-renders. (innerHTML wipes/rebinds listeners on each
+    // render — fine for this small surface; the alternative would be
+    // surgical DOM updates.)
+    (["background", "fogColor", "groundColor"] as const).forEach((key) => {
+      const sel = this.panel.querySelector(`[data-tint="${key}"]`) as HTMLInputElement | null;
+      if (sel) {
+        sel.addEventListener("input", () => {
+          if (!this.pendingTints) return;
+          this.pendingTints[key] = sel.value;
+          this.configStatus = null;
+          this.renderPanel();
+        });
+      }
     });
   }
 
@@ -364,13 +400,21 @@ export class StageEditor {
     const le = this.snapshot.world.lastEmbed ?? null;
     const ago = le?.at ? this.formatTimeAgo(le.at) : "—";
     const model = le?.modelVersion ?? "—";
-    const dirty = this.pendingAtmosphere !== this.activeAtmosphere;
+    const atmosphereDirty = this.pendingAtmosphere !== this.activeAtmosphere;
+    const tintsDirty = this.tintsDirty();
+    const dirty = atmosphereDirty || tintsDirty;
     const options = ATMOSPHERE_CHOICES.map((a) => {
       const selected = a === this.pendingAtmosphere ? " selected" : "";
       return `<option value="${escapeHtml(a)}"${selected}>${escapeHtml(a)}</option>`;
     }).join("");
     const statusLine = this.configStatus
       ? `<div style="margin-top:6px;font-size:10.5px;opacity:0.75;">${escapeHtml(this.configStatus)}</div>`
+      : "";
+    const tintsSection = this.pendingTints ? this.renderTintsSection() : "";
+    const tintScopeHint = this.pendingTints
+      ? (this.pendingAtmosphere === "none"
+          ? `<div style="margin-top:2px;opacity:0.55;font-size:10px;">tints → base palette</div>`
+          : `<div style="margin-top:2px;opacity:0.55;font-size:10px;">tints → ${escapeHtml(this.pendingAtmosphere)} overlay</div>`)
       : "";
     return `
       <b>World</b>
@@ -383,7 +427,7 @@ export class StageEditor {
                    font:600 12px/1.2 system-ui,-apple-system,sans-serif;">
             ${options}
           </select>
-          <button data-act="save-atmosphere"
+          <button data-act="save-config"
             ${(!dirty || this.savingConfig) ? "disabled" : ""}
             style="flex:0 0 auto;padding:6px 10px;border:0;border-radius:4px;
                    background:${dirty && !this.savingConfig ? "rgba(240,232,200,0.92)" : "rgba(255,255,255,0.08)"};
@@ -394,6 +438,8 @@ export class StageEditor {
             ${this.savingConfig ? "…" : "Save"}
           </button>
         </div>
+        ${tintsSection}
+        ${tintScopeHint}
         ${statusLine}
         <div style="opacity:0.75;margin-top:6px;">embedded</div>
         <div style="margin-bottom:6px;">
@@ -473,14 +519,57 @@ export class StageEditor {
     }
   }
 
-  /** Phase 3 v2 — PATCH /world/edit/config { active_atmosphere }, then
-   *  re-fetch via SceneManager so the new default takes effect everywhere
-   *  (HUD pill, snapshot, switcher options). The crossfade pattern is
-   *  reused: the rebuild in onRefresh re-instantiates StageEditor, so
-   *  this instance gets disposed mid-await. */
-  private async saveAtmosphereDefault(): Promise<void> {
+  /** Phase 3 v2.1 — Are the tint pickers dirty vs. the initial values? */
+  private tintsDirty(): boolean {
+    if (!this.pendingTints || !this.initialTints) return false;
+    return this.pendingTints.background !== this.initialTints.background
+      || this.pendingTints.fogColor !== this.initialTints.fogColor
+      || this.pendingTints.groundColor !== this.initialTints.groundColor;
+  }
+
+  /** Phase 3 v2.1 — render the 3 color picker inputs. */
+  private renderTintsSection(): string {
+    if (!this.pendingTints) return "";
+    const t = this.pendingTints;
+    const row = (label: string, dataKey: string, value: string) => `
+      <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
+        <span style="flex:1;opacity:0.75;font-size:11.5px;">${escapeHtml(label)}</span>
+        <input type="color" data-tint="${dataKey}" value="${escapeHtml(value)}"
+          style="width:38px;height:22px;border:1px solid rgba(255,255,255,0.18);
+                 border-radius:3px;background:transparent;padding:0;cursor:pointer;">
+        <code style="font-size:10.5px;opacity:0.6;letter-spacing:0.02em;">${escapeHtml(value)}</code>
+      </div>`;
+    return `
+      <div style="margin-top:8px;padding-top:6px;border-top:1px dashed rgba(255,255,255,0.08);">
+        ${row("background", "background", t.background)}
+        ${row("fog", "fogColor", t.fogColor)}
+        ${row("ground", "groundColor", t.groundColor)}
+      </div>`;
+  }
+
+  /** Phase 3 v2 (+ v2.1 tints) — PATCH /world/edit/config with the dirty
+   *  fields (active_atmosphere + tints), then re-fetch via SceneManager.
+   *  The rebuild in onRefresh re-instantiates StageEditor against the
+   *  fresh snapshot, so this instance gets disposed mid-await. */
+  private async saveConfig(): Promise<void> {
     if (this.savingConfig) return;
-    if (this.pendingAtmosphere === this.activeAtmosphere) return;
+    const patch: Record<string, string> = {};
+    if (this.pendingAtmosphere !== this.activeAtmosphere) {
+      patch.active_atmosphere = this.pendingAtmosphere;
+    }
+    if (this.pendingTints && this.initialTints) {
+      if (this.pendingTints.background !== this.initialTints.background) {
+        patch.background = this.pendingTints.background;
+      }
+      if (this.pendingTints.fogColor !== this.initialTints.fogColor) {
+        patch["fog.color"] = this.pendingTints.fogColor;
+      }
+      if (this.pendingTints.groundColor !== this.initialTints.groundColor) {
+        patch["ground.color"] = this.pendingTints.groundColor;
+      }
+    }
+    if (Object.keys(patch).length === 0) return;
+
     this.savingConfig = true;
     this.configStatus = null;
     this.renderPanel();
@@ -494,7 +583,7 @@ export class StageEditor {
           Accept: "application/json",
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ active_atmosphere: this.pendingAtmosphere }),
+        body: JSON.stringify(patch),
       });
       if (r.status === 401 || r.status === 403) {
         message = "auth failed — need 'edit world signature' permission";
@@ -505,17 +594,15 @@ export class StageEditor {
         const body = (await r.json()) as { updated?: string[] };
         const updated = body.updated ?? [];
         message = updated.length
-          ? `saved (${updated.join(", ")})`
+          ? `saved (${updated.length} key${updated.length === 1 ? "" : "s"})`
           : "no change";
         ok = true;
       }
     } catch (e) {
       message = e instanceof Error ? e.message : String(e);
     }
-    console.log(`[stage] save atmosphere default: ${ok ? "ok" : "fail"} — ${message}`);
+    console.log(`[stage] save config: ${ok ? "ok" : "fail"} — ${message}`, patch);
     if (ok && this.onRefresh) {
-      // Re-fetch + rebuild. This instance gets disposed; nothing
-      // further to render here.
       try { await this.onRefresh(); } catch { /* swallow */ }
       return;
     }
