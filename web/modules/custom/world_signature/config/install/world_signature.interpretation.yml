@@ -1,0 +1,38 @@
+# world_signature.interpretation
+#
+# Per-atmosphere interpretation profile (docs/INTERPRETATION_ENGINE.md).
+# Phase 3 v3 ships the inner-mind anchored-axes shape as editable config
+# so an editor can write the world's frame without touching code. The
+# values here are the prose the doc proposed; until the server-side
+# anchored projector lands (per §4 / §6 of the doc), they're shipped to
+# the renderer but not yet projected against. Editing them today persists
+# the authorial intent; activation is the next slice.
+#
+# Cache invariant: the snapshot carries `config:world_signature.interpretation`
+# (added in SnapshotPublisher), so editing this file via PATCH
+# /world/edit/interpretation busts the snapshot automatically.
+
+# Atmosphere → profile. Keyed by atmosphere name (matches the active set
+# in world_signature.palette). New atmospheres add a top-level key here
+# the same way they add an entry to atmosphere_overrides in the palette.
+profiles:
+
+  inner-mind:
+    # Today fixed; v3.1+ lets editors flip between mds | anchors | hybrid.
+    frame_mode: 'anchors'
+    # Today fixed; v3.1+ exposes 2D vs. 3D as a toggle.
+    dimensionality: 3
+    # The authored axes — three semantic pole-pairs the embedding gets
+    # projected onto. Order is meaningful: axis 0 → x, axis 1 → z,
+    # axis 2 → y (the inner-mind volume). Each axis carries a short
+    # name (used as a label) and two prose poles describing each end.
+    axes:
+      - name: 'recollection ↔ anticipation'
+        pole_a: 'memory, the past, what was'
+        pole_b: 'expectation, the future, what comes'
+      - name: 'self ↔ world'
+        pole_a: 'the inner self, identity, private feeling'
+        pole_b: 'the outer world, other people, society'
+      - name: 'order ↔ dissolution'
+        pole_a: 'structure, clarity, coherence, reason'
+        pole_b: 'chaos, dissolution, dream, the unconscious'

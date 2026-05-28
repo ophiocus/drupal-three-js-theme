@@ -11,6 +11,7 @@ use Drupal\world_signature\Service\AssetSnapshotBuilder;
 use Drupal\world_signature\Service\EmbedRunner;
 use Drupal\world_signature\Service\SnapshotPublisher;
 use Drupal\world_signature\Service\WorldConfigEditor;
+use Drupal\world_signature\Service\WorldInterpretationEditor;
 use Drupal\world_signature\Service\WorldSearchClient;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -46,6 +47,7 @@ final class WorldController extends ControllerBase {
     private readonly AssetSnapshotBuilder $assetBuilder,
     private readonly EmbedRunner $embedRunner,
     private readonly WorldConfigEditor $configEditor,
+    private readonly WorldInterpretationEditor $interpretationEditor,
   ) {}
 
   public static function create(ContainerInterface $container): self {
@@ -55,6 +57,7 @@ final class WorldController extends ControllerBase {
       $container->get('world_signature.asset_snapshot_builder'),
       $container->get('world_signature.embed_runner'),
       $container->get('world_signature.world_config_editor'),
+      $container->get('world_signature.world_interpretation_editor'),
     );
   }
 
@@ -245,6 +248,105 @@ final class WorldController extends ControllerBase {
       'status' => 'ok',
       'updated' => $result['updated'],
       'palette' => $result['palette'],
+    ]);
+  }
+
+  /**
+   * PATCH /world/edit/interpretation
+   *
+   * Phase 3 v3 (docs/INTERPRETATION_ENGINE.md §3): the in-canvas
+   * interpretation-rules patcher. Body shape:
+   *
+   *   { "atmosphere": "inner-mind",
+   *     "axes": { "0": { "name": "...", "pole_a": "...", "pole_b": "..." },
+   *               "1": { "pole_b": "..." }, ... } }
+   *
+   * `axes` is a sparse map keyed by string-int axis index (JSON
+   * objects can't have integer keys, so the wire format stores them
+   * as strings; the editor parses them back). Each entry is a
+   * partial axis patch — fields not present are left alone.
+   *
+   * Same `edit world signature` permission as the v1/v2 endpoints.
+   * The snapshot's `config:world_signature.interpretation` tag busts
+   * automatically when the config saves.
+   *
+   * Response:
+   *   200 { status: "ok", updated: {<axisIdx>: [fields...]}, axes: [...] }
+   *   400 { error, message }   — invalid patch
+   *   500 { error, message }   — unexpected
+   */
+  public function editInterpretationAction(Request $request): JsonResponse {
+    $body = (string) $request->getContent();
+    if ($body === '') {
+      return new JsonResponse([
+        'error' => 'empty_body',
+        'message' => 'Request body is empty; expected JSON object.',
+      ], 400);
+    }
+    try {
+      $payload = json_decode($body, TRUE, 16, JSON_THROW_ON_ERROR);
+    }
+    catch (\JsonException $e) {
+      return new JsonResponse([
+        'error' => 'invalid_json',
+        'message' => $e->getMessage(),
+      ], 400);
+    }
+    if (!is_array($payload)) {
+      return new JsonResponse([
+        'error' => 'invalid_payload',
+        'message' => 'Body must be a JSON object.',
+      ], 400);
+    }
+    $atmosphere = $payload['atmosphere'] ?? NULL;
+    $axesRaw = $payload['axes'] ?? NULL;
+    if (!is_string($atmosphere) || !is_array($axesRaw)) {
+      return new JsonResponse([
+        'error' => 'invalid_payload',
+        'message' => 'Body must include "atmosphere" (string) and "axes" (object).',
+      ], 400);
+    }
+
+    // The wire format keys axis patches as strings ("0","1",...);
+    // the service expects integer indices. Convert + reject non-numeric.
+    $axisPatches = [];
+    foreach ($axesRaw as $key => $value) {
+      if (!is_string($key) && !is_int($key)) {
+        return new JsonResponse([
+          'error' => 'invalid_payload',
+          'message' => 'axes keys must be integer-strings.',
+        ], 400);
+      }
+      $strKey = (string) $key;
+      if (!ctype_digit($strKey)) {
+        return new JsonResponse([
+          'error' => 'invalid_payload',
+          'message' => sprintf('Axis key "%s" is not a non-negative integer.', $strKey),
+        ], 400);
+      }
+      $axisPatches[(int) $strKey] = $value;
+    }
+
+    try {
+      $result = $this->interpretationEditor->apply($atmosphere, $axisPatches);
+    }
+    catch (\InvalidArgumentException $e) {
+      return new JsonResponse([
+        'error' => 'invalid_patch',
+        'message' => $e->getMessage(),
+      ], 400);
+    }
+    catch (\Throwable $e) {
+      return new JsonResponse([
+        'error' => 'interpretation_error',
+        'message' => $e->getMessage(),
+      ], 500);
+    }
+
+    return new JsonResponse([
+      'status' => 'ok',
+      'updated' => $result['updated'],
+      'axes' => $result['axes'],
     ]);
   }
 

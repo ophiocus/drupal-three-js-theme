@@ -87,6 +87,23 @@ export interface WorldConstants {
     dimensions: number;
     embedded: number;
   } | null;
+  /**
+   * Phase 3 v3 (docs/INTERPRETATION_ENGINE.md): per-atmosphere
+   * interpretation profile. Present when the active atmosphere has
+   * a profile (today: `inner-mind`); null when not (`none`, `forest`).
+   * The renderer doesn't *project* against poles yet (the anchored
+   * projector is the next slice); this block ships the authorial
+   * intent so the Stage editor can surface and edit it.
+   */
+  interpretation?: {
+    frameMode: string;       // 'mds' | 'anchors' | 'hybrid'
+    dimensionality: number;
+    axes: Array<{
+      name: string;
+      pole_a: string;
+      pole_b: string;
+    }>;
+  } | null;
 }
 
 /**

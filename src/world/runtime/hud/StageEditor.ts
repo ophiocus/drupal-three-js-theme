@@ -58,6 +58,15 @@ export interface StageEditorTints {
   groundColor: string;
 }
 
+/** Phase 3 v3 — one anchored axis as the panel edits it. Matches the
+ *  snapshot's `world.interpretation.axes[]` shape (server-side defined
+ *  in WorldInterpretationEditor). */
+interface InterpretationAxis {
+  name: string;
+  pole_a: string;
+  pole_b: string;
+}
+
 interface StageEditorOptions {
   zodiac: SurrealZodiac;
   canvas: HTMLCanvasElement;
@@ -98,6 +107,18 @@ export class StageEditor {
   private readonly initialTints: StageEditorTints | null;
   /** Phase 3 v2.1: tint picker state (what the user has dialed in). */
   private pendingTints: StageEditorTints | null;
+  /** Phase 3 v3: snapshot of the active atmosphere's interpretation axes at
+   *  mount (canonical for dirty-check). Null when the active atmosphere has
+   *  no profile (none, forest). */
+  private readonly initialAxes: ReadonlyArray<InterpretationAxis> | null;
+  /** Phase 3 v3: editable copy of the axes. */
+  private pendingAxes: InterpretationAxis[] | null;
+  /** Phase 3 v3: which axis is currently being edited in the panel. */
+  private selectedAxisIdx = 0;
+  /** Phase 3 v3: true while a PATCH /world/edit/interpretation is in flight. */
+  private savingInterpretation = false;
+  /** Phase 3 v3: human-readable status flashed beside the interpretation save. */
+  private interpretationStatus: string | null = null;
 
   private readonly toggleBtn: HTMLButtonElement;
   private readonly panel: HTMLDivElement;
@@ -122,6 +143,16 @@ export class StageEditor {
     this.pendingAtmosphere = options.activeAtmosphere;
     this.initialTints = options.paletteTints ?? null;
     this.pendingTints = options.paletteTints ? { ...options.paletteTints } : null;
+    // Phase 3 v3: read interpretation axes directly off the snapshot.
+    // Present only when the active atmosphere has a server-side profile.
+    const interp = this.snapshot.world.interpretation;
+    if (interp && Array.isArray(interp.axes) && interp.axes.length > 0) {
+      this.initialAxes = interp.axes.map((a) => ({ ...a }));
+      this.pendingAxes = interp.axes.map((a) => ({ ...a }));
+    } else {
+      this.initialAxes = null;
+      this.pendingAxes = null;
+    }
 
     this.toggleBtn = this.buildToggleBtn();
     document.body.appendChild(this.toggleBtn);
@@ -320,6 +351,7 @@ export class StageEditor {
   private renderPanel(): void {
     if (!this.editMode) return;
     const worldSection = this.renderWorldSection();
+    const interpretationSection = this.renderInterpretationSection();
     const signSection = this.selectedIdx === null
       ? `<div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08);">
            <b>Stage</b>
@@ -349,7 +381,7 @@ export class StageEditor {
           : ""}
         <button data-act="save" style="flex:1;padding:8px 12px;border:0;border-radius:4px;background:rgba(240,232,200,0.92);color:#1d2230;cursor:pointer;font:600 12px/1 system-ui,sans-serif;text-transform:uppercase;letter-spacing:0.06em;">Save</button>
       </div>`;
-    this.panel.innerHTML = worldSection + signSection + actions;
+    this.panel.innerHTML = worldSection + interpretationSection + signSection + actions;
     this.panel.querySelector('[data-act="save"]')?.addEventListener("click", () => this.save());
     this.panel.querySelector('[data-act="deselect"]')?.addEventListener("click", () => {
       this.clearSelection();
@@ -384,6 +416,40 @@ export class StageEditor {
           this.renderPanel();
         });
       }
+    });
+    // Phase 3 v3 — axis selector + per-field text inputs + save button.
+    const axisSel = this.panel.querySelector('[data-act="axis-select"]') as HTMLSelectElement | null;
+    if (axisSel) {
+      axisSel.addEventListener("change", () => {
+        this.selectedAxisIdx = Number(axisSel.value);
+        this.interpretationStatus = null;
+        this.renderPanel();
+      });
+    }
+    (["name", "pole_a", "pole_b"] as const).forEach((field) => {
+      const inp = this.panel.querySelector(`[data-axis-field="${field}"]`) as HTMLInputElement | HTMLTextAreaElement | null;
+      if (inp) {
+        inp.addEventListener("input", () => {
+          if (!this.pendingAxes) return;
+          const idx = this.selectedAxisIdx;
+          const cur = this.pendingAxes[idx];
+          if (!cur) return;
+          cur[field] = inp.value;
+          this.interpretationStatus = null;
+          // Avoid full re-render on every keystroke (text inputs lose
+          // focus). Only update the dirty-indicator class on the save
+          // button; defer the bigger re-render to blur.
+          const btn = this.panel.querySelector('[data-act="save-interp"]') as HTMLButtonElement | null;
+          if (btn) {
+            const dirty = this.interpretationDirty();
+            btn.disabled = !dirty || this.savingInterpretation;
+            btn.style.opacity = dirty && !this.savingInterpretation ? "1" : "0.5";
+          }
+        });
+      }
+    });
+    this.panel.querySelector('[data-act="save-interp"]')?.addEventListener("click", () => {
+      void this.saveInterpretation();
     });
   }
 
@@ -608,6 +674,144 @@ export class StageEditor {
     }
     this.savingConfig = false;
     this.configStatus = message;
+    this.renderPanel();
+  }
+
+  // ─── Phase 3 v3 — interpretation (anchor poles) ───────────────────────────
+
+  /** Render the panel section for editing the active atmosphere's
+   *  interpretation axes. Returns empty string when the active
+   *  atmosphere has no profile (none / forest) — the section silently
+   *  hides so the panel stays compact. */
+  private renderInterpretationSection(): string {
+    if (!this.pendingAxes || this.pendingAxes.length === 0) return "";
+    const dirty = this.interpretationDirty();
+    const idx = Math.min(this.selectedAxisIdx, this.pendingAxes.length - 1);
+    const axis = this.pendingAxes[idx]!;
+    const axisOpts = this.pendingAxes.map((a, i) => {
+      const selected = i === idx ? " selected" : "";
+      return `<option value="${i}"${selected}>${i + 1}. ${escapeHtml(a.name || "(unnamed)")}</option>`;
+    }).join("");
+    const statusLine = this.interpretationStatus
+      ? `<div style="margin-top:6px;font-size:10.5px;opacity:0.75;">${escapeHtml(this.interpretationStatus)}</div>`
+      : "";
+    const fieldRow = (label: string, field: "name" | "pole_a" | "pole_b", value: string, multiline: boolean) => `
+      <div style="margin-top:6px;">
+        <div style="opacity:0.6;font-size:10.5px;margin-bottom:2px;">${escapeHtml(label)}</div>
+        ${multiline
+          ? `<textarea data-axis-field="${field}" rows="2"
+              style="width:100%;box-sizing:border-box;padding:4px 6px;
+                     border:1px solid rgba(255,255,255,0.18);border-radius:4px;
+                     background:rgba(0,0,0,0.25);color:#fff;resize:vertical;
+                     font:400 11px/1.4 system-ui,-apple-system,sans-serif;">${escapeHtml(value)}</textarea>`
+          : `<input data-axis-field="${field}" type="text" value="${escapeHtml(value)}"
+              style="width:100%;box-sizing:border-box;padding:4px 6px;
+                     border:1px solid rgba(255,255,255,0.18);border-radius:4px;
+                     background:rgba(0,0,0,0.25);color:#fff;
+                     font:600 11.5px/1.2 system-ui,-apple-system,sans-serif;">`}
+      </div>`;
+    return `
+      <div style="margin-top:14px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.08);">
+        <b>Interpretation</b>
+        <div style="margin-top:6px;opacity:0.6;font-size:10.5px;line-height:1.4;">
+          Anchor axes — the prose that mints meaning. Edits persist
+          immediately on save; the new poles take effect on the next
+          re-embed (axis vectors are computed server-side).
+        </div>
+        <div style="margin-top:8px;display:flex;gap:6px;align-items:center;">
+          <span style="opacity:0.75;font-size:11.5px;">axis</span>
+          <select data-act="axis-select"
+            style="flex:1;padding:4px 6px;border:1px solid rgba(255,255,255,0.18);
+                   border-radius:4px;background:rgba(0,0,0,0.25);color:#fff;
+                   font:600 11.5px/1.2 system-ui,-apple-system,sans-serif;">
+            ${axisOpts}
+          </select>
+        </div>
+        ${fieldRow("name", "name", axis.name, false)}
+        ${fieldRow("pole a", "pole_a", axis.pole_a, true)}
+        ${fieldRow("pole b", "pole_b", axis.pole_b, true)}
+        <button data-act="save-interp"
+          ${(!dirty || this.savingInterpretation) ? "disabled" : ""}
+          style="margin-top:8px;width:100%;padding:6px 12px;border:0;border-radius:4px;
+                 background:rgba(240,232,200,0.92);color:#1d2230;
+                 cursor:${dirty && !this.savingInterpretation ? "pointer" : "not-allowed"};
+                 opacity:${dirty && !this.savingInterpretation ? "1" : "0.5"};
+                 font:600 11px/1 system-ui,sans-serif;text-transform:uppercase;
+                 letter-spacing:0.06em;">
+          ${this.savingInterpretation ? "Saving…" : "Save axes"}
+        </button>
+        ${statusLine}
+      </div>`;
+  }
+
+  /** Are the pending axes different from initial? */
+  private interpretationDirty(): boolean {
+    if (!this.pendingAxes || !this.initialAxes) return false;
+    if (this.pendingAxes.length !== this.initialAxes.length) return true;
+    for (let i = 0; i < this.pendingAxes.length; i++) {
+      const p = this.pendingAxes[i]!;
+      const o = this.initialAxes[i]!;
+      if (p.name !== o.name || p.pole_a !== o.pole_a || p.pole_b !== o.pole_b) return true;
+    }
+    return false;
+  }
+
+  /** PATCH /world/edit/interpretation with the dirty axis fields. */
+  private async saveInterpretation(): Promise<void> {
+    if (this.savingInterpretation) return;
+    if (!this.pendingAxes || !this.initialAxes) return;
+    // Build a sparse patch — only fields that actually changed.
+    const axes: Record<string, Partial<InterpretationAxis>> = {};
+    for (let i = 0; i < this.pendingAxes.length; i++) {
+      const p = this.pendingAxes[i]!;
+      const o = this.initialAxes[i]!;
+      const delta: Partial<InterpretationAxis> = {};
+      if (p.name !== o.name) delta.name = p.name;
+      if (p.pole_a !== o.pole_a) delta.pole_a = p.pole_a;
+      if (p.pole_b !== o.pole_b) delta.pole_b = p.pole_b;
+      if (Object.keys(delta).length > 0) axes[String(i)] = delta;
+    }
+    if (Object.keys(axes).length === 0) return;
+
+    this.savingInterpretation = true;
+    this.interpretationStatus = null;
+    this.renderPanel();
+    let ok = false;
+    let message = "";
+    try {
+      const r = await fetch("/world/edit/interpretation", {
+        method: "PATCH",
+        credentials: "same-origin",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ atmosphere: this.activeAtmosphere, axes }),
+      });
+      if (r.status === 401 || r.status === 403) {
+        message = "auth failed — need 'edit world signature' permission";
+      } else if (!r.ok) {
+        const body = await r.text().catch(() => "");
+        message = `HTTP ${r.status} ${body.slice(0, 80)}`;
+      } else {
+        const body = (await r.json()) as { updated?: Record<string, string[]> };
+        const updated = body.updated ?? {};
+        const count = Object.values(updated).reduce((n, fields) => n + fields.length, 0);
+        message = count > 0
+          ? `saved (${count} field${count === 1 ? "" : "s"}) — re-embed to activate`
+          : "no change";
+        ok = true;
+      }
+    } catch (e) {
+      message = e instanceof Error ? e.message : String(e);
+    }
+    console.log(`[stage] save interpretation: ${ok ? "ok" : "fail"} — ${message}`);
+    if (ok && this.onRefresh) {
+      try { await this.onRefresh(); } catch { /* swallow */ }
+      return;
+    }
+    this.savingInterpretation = false;
+    this.interpretationStatus = message;
     this.renderPanel();
   }
 

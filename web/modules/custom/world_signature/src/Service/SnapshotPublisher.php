@@ -166,6 +166,12 @@ final class SnapshotPublisher {
     }
     $world['palette'] = $this->loadPalette($atmosphere);
     $world['layoutMode'] = $layoutMode;
+    // Phase 3 v3 (docs/INTERPRETATION_ENGINE.md): ship the active
+    // atmosphere's interpretation profile so the Stage editor can
+    // surface it and so a future client-side anchored projector can
+    // read poles + axes from the snapshot instead of hardcoding them.
+    // NULL when the active atmosphere has no profile entry.
+    $world['interpretation'] = $this->loadInterpretation($atmosphere);
     // Phase 3 freshness signal (docs/TOOLBOX_AND_STAGE.md): the most
     // recent `drush world:embed` records when it ran and which model;
     // editors read it via the in-canvas Stage panel to see how stale
@@ -183,6 +189,8 @@ final class SnapshotPublisher {
     $cacheability->addCacheableDependency($assetResult['cacheability']);
     // Palette config tag — atmosphere overlay shifts invalidate.
     $cacheability->addCacheTags(['config:world_signature.palette']);
+    // Phase 3 v3 interpretation config tag — anchor pole edits invalidate.
+    $cacheability->addCacheTags(['config:world_signature.interpretation']);
     // World content — editing the active World node invalidates the snapshot.
     $cacheability->addCacheTags(['node_list:world']);
     // Phase 3 v1: state-driven freshness (world.lastEmbed) — State API
@@ -266,6 +274,53 @@ final class SnapshotPublisher {
    *      activeAtmosphere. atmosphere_overrides is config-only and
    *      never reaches the renderer.
    */
+  /**
+   * Phase 3 v3 — read the interpretation profile for the active
+   * atmosphere from `world_signature.interpretation` config. Returns
+   * NULL when the atmosphere has no profile (e.g. `none`, `forest`),
+   * which the client treats as "use the default behavior."
+   *
+   * Shape (today, see config/install/world_signature.interpretation.yml):
+   *   { frame_mode, dimensionality, axes: [{ name, pole_a, pole_b }] }
+   *
+   * The shipped block carries authorial intent — until the server-side
+   * anchored projector lands (INTERPRETATION_ENGINE.md §4 / §6), poles
+   * are not yet projected against. The Stage editor still benefits:
+   * editors can author + save poles now; activation follows.
+   */
+  private function loadInterpretation(?string $atmosphere): ?array {
+    if ($atmosphere === NULL || $atmosphere === '' || $atmosphere === 'none') {
+      return NULL;
+    }
+    $config = $this->configFactory->get('world_signature.interpretation');
+    $profiles = $config->get('profiles') ?? [];
+    if (!is_array($profiles) || !isset($profiles[$atmosphere])) {
+      return NULL;
+    }
+    $profile = $profiles[$atmosphere];
+    if (!is_array($profile)) {
+      return NULL;
+    }
+    // Defensive shape — the client should be able to assume axes is
+    // an array of {name, pole_a, pole_b} maps.
+    $axes = [];
+    foreach ($profile['axes'] ?? [] as $a) {
+      if (!is_array($a)) {
+        continue;
+      }
+      $axes[] = [
+        'name' => (string) ($a['name'] ?? ''),
+        'pole_a' => (string) ($a['pole_a'] ?? ''),
+        'pole_b' => (string) ($a['pole_b'] ?? ''),
+      ];
+    }
+    return [
+      'frameMode' => (string) ($profile['frame_mode'] ?? 'mds'),
+      'dimensionality' => (int) ($profile['dimensionality'] ?? 3),
+      'axes' => $axes,
+    ];
+  }
+
   private function loadPalette(?string $atmosphereOverride = NULL): array {
     $config = $this->configFactory->get('world_signature.palette');
     $palette = $config->getRawData() ?: [];

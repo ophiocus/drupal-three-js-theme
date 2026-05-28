@@ -117,6 +117,19 @@ services:
       - '@config.factory'
       - '@logger.channel.world_signature'
 
+  # ─── Phase 3 v3: in-canvas interpretation-rules writer ─────────
+  # WorldInterpretationEditor — anchor pole edits for a target
+  # atmosphere's interpretation profile (today: inner-mind's 3 axes).
+  # Separate from WorldConfigEditor because the patch shape is
+  # structured (axes array), not flat. Snapshot cache busts via the
+  # existing `config:world_signature.interpretation` tag.
+  # See docs/INTERPRETATION_ENGINE.md §3 / docs/TOOLBOX_AND_STAGE.md §4.
+  world_signature.world_interpretation_editor:
+    class: Drupal\world_signature\Service\WorldInterpretationEditor
+    arguments:
+      - '@config.factory'
+      - '@logger.channel.world_signature'
+
   # ─── Phase 3 v1: admin re-embed trigger ────────────────────────
   # EmbedRunner — single source of truth for "embed the whole corpus
   # and write the vectors back." Called by both `drush world:embed`
