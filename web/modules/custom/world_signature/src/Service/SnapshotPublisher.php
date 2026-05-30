@@ -179,6 +179,11 @@ final class SnapshotPublisher {
     // projector multiplies each entity embedding against these to
     // mint authored meaning (INTERPRETATION_ENGINE.md §3).
     $world['interpretationAxes'] = $this->loadInterpretationAxes($atmosphere);
+    // Phase 4 — per-atmosphere stage-fixture placements (zodiac
+    // signs and, later, scenery rings / monuments). NULL when no
+    // edits have been published yet for this atmosphere; the
+    // renderer falls back to its deterministic default placement.
+    $world['stage'] = $this->loadStage($atmosphere);
     // Phase 3 freshness signal (docs/TOOLBOX_AND_STAGE.md): the most
     // recent `drush world:embed` records when it ran and which model;
     // editors read it via the in-canvas Stage panel to see how stale
@@ -198,6 +203,8 @@ final class SnapshotPublisher {
     $cacheability->addCacheTags(['config:world_signature.palette']);
     // Phase 3 v3 interpretation config tag — anchor pole edits invalidate.
     $cacheability->addCacheTags(['config:world_signature.interpretation']);
+    // Phase 4 stage config tag — placement edits invalidate.
+    $cacheability->addCacheTags(['config:world_signature.stage']);
     // World content — editing the active World node invalidates the snapshot.
     $cacheability->addCacheTags(['node_list:world']);
     // Phase 3 v1: state-driven freshness (world.lastEmbed) — State API
@@ -377,6 +384,50 @@ final class SnapshotPublisher {
       'dimensions' => (int) ($bundle['dimensions'] ?? count($axes[0]['vector'])),
       'axes' => $axes,
     ];
+  }
+
+  /**
+   * Phase 4 — read the active atmosphere's published stage-fixture
+   * placements from `world_signature.stage`. Shape shipped to the
+   * client (under `world.stage`):
+   *
+   *   { layers: { zodiac: [{ angle, height, scale }], ... } }
+   *
+   * Empty layers are omitted; if no layer has been published yet
+   * the whole block is NULL — the renderer treats absence as
+   * "use the deterministic default placement."
+   */
+  private function loadStage(?string $atmosphere): ?array {
+    if ($atmosphere === NULL || $atmosphere === '' || $atmosphere === 'none') {
+      return NULL;
+    }
+    $all = $this->configFactory
+      ->get('world_signature.stage')
+      ->get('placements') ?? [];
+    if (!is_array($all) || !isset($all[$atmosphere]) || !is_array($all[$atmosphere])) {
+      return NULL;
+    }
+    $layers = [];
+    foreach ($all[$atmosphere] as $layer => $placements) {
+      if (!is_array($placements) || $placements === []) {
+        continue;
+      }
+      $clean = [];
+      foreach ($placements as $p) {
+        if (!is_array($p)) {
+          continue;
+        }
+        $clean[] = [
+          'angle' => (float) ($p['angle'] ?? 0),
+          'height' => (float) ($p['height'] ?? 0),
+          'scale' => (float) ($p['scale'] ?? 1),
+        ];
+      }
+      if ($clean !== []) {
+        $layers[(string) $layer] = $clean;
+      }
+    }
+    return $layers === [] ? NULL : ['layers' => $layers];
   }
 
   private function loadPalette(?string $atmosphereOverride = NULL): array {

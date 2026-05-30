@@ -121,6 +121,18 @@ export interface WorldConstants {
       vector: number[];
     }>;
   } | null;
+  /**
+   * Phase 4 — per-atmosphere published stage-fixture placements.
+   * Null when no edits have been published for the active
+   * atmosphere; renderer falls back to its deterministic default
+   * placement (e.g. zodiac.ts seeds from a hash). Today the only
+   * layer is `zodiac`; scenery rings / monuments are later slices.
+   */
+  stage?: {
+    layers: {
+      zodiac?: Array<{ angle: number; height: number; scale: number }>;
+    };
+  } | null;
 }
 
 /**

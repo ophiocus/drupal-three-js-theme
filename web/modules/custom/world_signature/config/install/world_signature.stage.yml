@@ -1,0 +1,23 @@
+# world_signature.stage
+#
+# Phase 4 (docs/TOOLBOX_AND_STAGE.md §2.1 layer 1) — per-atmosphere
+# stage-fixture placements. Today the only layer is the inner-mind's
+# zodiac (12 surreal structures); future layers (scenery rings,
+# monuments, ambient fixtures) add sibling keys.
+#
+# The Stage panel's placement editor (Phase 2 v0) used to write to
+# localStorage only — fine for one device, useless for a real editor.
+# This config is the canonical sink: WorldStageEditor + PATCH
+# /world/edit/stage write here; the snapshot ships the active
+# atmosphere's slice; clients hydrate from the snapshot on load and
+# fall back to localStorage only when the server hasn't seen edits yet.
+#
+# Cache invariant: the snapshot carries `config:world_signature.stage`
+# so edits bust the snapshot automatically.
+
+placements:
+  # Each atmosphere's slot is empty until the editor publishes its first
+  # save. The renderer treats absence as "use the default deterministic
+  # placement (zodiac.ts seeds from a hash)."
+  inner-mind:
+    zodiac: []

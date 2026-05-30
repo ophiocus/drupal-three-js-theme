@@ -98,6 +98,20 @@ world_signature.admin_edit_config:
   options:
     no_cache: 'TRUE'
 
+# Phase 4: stage-fixture patcher. Stage panel's placement Save sends
+# the full zodiac placement list here. Same `edit world signature`
+# permission. Snapshot busts via `config:world_signature.stage` tag.
+world_signature.admin_edit_stage:
+  path: '/world/edit/stage'
+  defaults:
+    _controller: '\Drupal\world_signature\Controller\WorldController::editStageAction'
+    _format: json
+  methods: [PATCH, POST]
+  requirements:
+    _permission: 'edit world signature'
+  options:
+    no_cache: 'TRUE'
+
 # Phase 3 v3: interpretation-rules patcher. Stage editor's
 # "Interpretation" section calls this with a structured JSON body
 # (atmosphere + axisPatches). Same `edit world signature` permission

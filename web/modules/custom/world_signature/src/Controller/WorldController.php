@@ -13,6 +13,7 @@ use Drupal\world_signature\Service\SnapshotPublisher;
 use Drupal\world_signature\Service\WorldConfigEditor;
 use Drupal\world_signature\Service\WorldInterpretationEditor;
 use Drupal\world_signature\Service\WorldSearchClient;
+use Drupal\world_signature\Service\WorldStageEditor;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -48,6 +49,7 @@ final class WorldController extends ControllerBase {
     private readonly EmbedRunner $embedRunner,
     private readonly WorldConfigEditor $configEditor,
     private readonly WorldInterpretationEditor $interpretationEditor,
+    private readonly WorldStageEditor $stageEditor,
   ) {}
 
   public static function create(ContainerInterface $container): self {
@@ -58,6 +60,7 @@ final class WorldController extends ControllerBase {
       $container->get('world_signature.embed_runner'),
       $container->get('world_signature.world_config_editor'),
       $container->get('world_signature.world_interpretation_editor'),
+      $container->get('world_signature.world_stage_editor'),
     );
   }
 
@@ -248,6 +251,75 @@ final class WorldController extends ControllerBase {
       'status' => 'ok',
       'updated' => $result['updated'],
       'palette' => $result['palette'],
+    ]);
+  }
+
+  /**
+   * PATCH /world/edit/stage
+   *
+   * Phase 4 (docs/TOOLBOX_AND_STAGE.md §2.1 layer 1) — the in-canvas
+   * stage-fixture patcher. Body:
+   *
+   *   { "atmosphere": "inner-mind",
+   *     "layer": "zodiac",
+   *     "placements": [{ "angle": 0.0, "height": 5.0, "scale": 1.2 }, ...] }
+   *
+   * Replace-all semantics: the placements array is the full new
+   * list. Same `edit world signature` permission. Snapshot busts
+   * automatically via the `config:world_signature.stage` cache tag.
+   */
+  public function editStageAction(Request $request): JsonResponse {
+    $body = (string) $request->getContent();
+    if ($body === '') {
+      return new JsonResponse([
+        'error' => 'empty_body',
+        'message' => 'Request body is empty; expected JSON object.',
+      ], 400);
+    }
+    try {
+      $payload = json_decode($body, TRUE, 16, JSON_THROW_ON_ERROR);
+    }
+    catch (\JsonException $e) {
+      return new JsonResponse([
+        'error' => 'invalid_json',
+        'message' => $e->getMessage(),
+      ], 400);
+    }
+    if (!is_array($payload)) {
+      return new JsonResponse([
+        'error' => 'invalid_payload',
+        'message' => 'Body must be a JSON object.',
+      ], 400);
+    }
+    $atmosphere = $payload['atmosphere'] ?? NULL;
+    $layer = $payload['layer'] ?? NULL;
+    $placements = $payload['placements'] ?? NULL;
+    if (!is_string($atmosphere) || !is_string($layer) || !is_array($placements)) {
+      return new JsonResponse([
+        'error' => 'invalid_payload',
+        'message' => 'Body must include "atmosphere" (string), "layer" (string), "placements" (array).',
+      ], 400);
+    }
+
+    try {
+      $result = $this->stageEditor->applyPlacements($atmosphere, $layer, array_values($placements));
+    }
+    catch (\InvalidArgumentException $e) {
+      return new JsonResponse([
+        'error' => 'invalid_patch',
+        'message' => $e->getMessage(),
+      ], 400);
+    }
+    catch (\Throwable $e) {
+      return new JsonResponse([
+        'error' => 'stage_error',
+        'message' => $e->getMessage(),
+      ], 500);
+    }
+    return new JsonResponse([
+      'status' => 'ok',
+      'updated' => $result['updated'],
+      'count' => $result['count'],
     ]);
   }
 

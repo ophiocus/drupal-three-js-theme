@@ -830,23 +830,59 @@ export class StageEditor {
       const p = this.zodiac.getPlacement(i);
       placements.push({ angle: p.angle, height: p.height, scale: p.scale });
     }
-    const blob = { version: 0, atmosphere: "inner-mind", zodiac: placements };
+    // Local-first: always cache to localStorage so a refresh from
+    // anonymous (or auth-failed) sessions still preserves the edit.
+    const blob = { version: 0, atmosphere: this.activeAtmosphere, zodiac: placements };
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(blob));
-    } catch {
-      /* private browsing / quota — preview still works */
-    }
-    console.log(
-      "[stage] saved (the JSON a future PATCH /world/edit/stage will accept):",
-      blob,
-    );
-    // Brief visual confirmation on the toggle.
+    } catch { /* quota / private browsing */ }
+    // Phase 4 — fire-and-forget PATCH /world/edit/stage. Authoritative
+    // when the user has the perm; on failure (403, network, etc.)
+    // localStorage is the silent fallback.
+    void this.publishPlacements(placements);
     const original = this.toggleBtn.textContent;
     this.toggleBtn.textContent = "SAVED ✓";
     setTimeout(() => { this.toggleBtn.textContent = original; }, 1200);
   }
 
+  private async publishPlacements(
+    placements: Array<Pick<ZodiacPlacement, "angle" | "height" | "scale">>,
+  ): Promise<void> {
+    try {
+      const r = await fetch("/world/edit/stage", {
+        method: "PATCH",
+        credentials: "same-origin",
+        headers: { Accept: "application/json", "Content-Type": "application/json" },
+        body: JSON.stringify({
+          atmosphere: this.activeAtmosphere,
+          layer: "zodiac",
+          placements,
+        }),
+      });
+      if (r.status === 401 || r.status === 403) {
+        console.log("[stage] publish placements: auth failed — kept in localStorage only");
+        return;
+      }
+      if (!r.ok) {
+        console.log(`[stage] publish placements: HTTP ${r.status}`);
+        return;
+      }
+      const body = (await r.json()) as { updated?: boolean; count?: number };
+      console.log(`[stage] placements published — updated=${body.updated} count=${body.count}`);
+    } catch (e) {
+      console.log("[stage] publish placements: network error —", e);
+    }
+  }
+
   private loadSaved(): void {
+    // Phase 4: prefer the snapshot's published placements (canonical,
+    // cross-device). Fall back to localStorage when the server has no
+    // edits yet for this atmosphere.
+    const published = this.snapshot.world.stage?.layers?.zodiac;
+    if (Array.isArray(published) && published.length > 0) {
+      this.applyPlacementArray(published);
+      return;
+    }
     let raw: string | null = null;
     try {
       raw = window.localStorage.getItem(STORAGE_KEY);
@@ -857,18 +893,25 @@ export class StageEditor {
     try {
       const blob = JSON.parse(raw) as { zodiac?: unknown };
       const placements = blob.zodiac;
-      if (!Array.isArray(placements)) return;
-      const n = Math.min(placements.length, this.zodiac.signCount);
-      for (let i = 0; i < n; i++) {
-        const p = placements[i] as { angle?: unknown; height?: unknown; scale?: unknown };
-        const partial: Partial<{ angle: number; height: number; scale: number }> = {};
-        if (typeof p.angle === "number") partial.angle = p.angle;
-        if (typeof p.height === "number") partial.height = p.height;
-        if (typeof p.scale === "number") partial.scale = p.scale;
-        this.zodiac.setPlacement(i, partial);
+      if (Array.isArray(placements)) {
+        this.applyPlacementArray(placements);
       }
     } catch {
       /* corrupted blob — ignore */
+    }
+  }
+
+  /** Shared between the snapshot-published path and the localStorage
+   *  fallback: copy a placements array onto the live zodiac. */
+  private applyPlacementArray(arr: unknown[]): void {
+    const n = Math.min(arr.length, this.zodiac.signCount);
+    for (let i = 0; i < n; i++) {
+      const p = arr[i] as { angle?: unknown; height?: unknown; scale?: unknown };
+      const partial: Partial<{ angle: number; height: number; scale: number }> = {};
+      if (typeof p.angle === "number") partial.angle = p.angle;
+      if (typeof p.height === "number") partial.height = p.height;
+      if (typeof p.scale === "number") partial.scale = p.scale;
+      this.zodiac.setPlacement(i, partial);
     }
   }
 }
