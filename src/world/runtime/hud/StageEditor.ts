@@ -519,13 +519,16 @@ export class StageEditor {
       </div>
       <button data-act="reembed" ${this.reEmbedding ? "disabled" : ""}
         style="margin-top:10px;width:100%;padding:8px 12px;border:0;border-radius:4px;
-               background:${this.reEmbedding ? "rgba(255,255,255,0.08)" : "rgba(160,210,255,0.85)"};
+               background:${this.reEmbedding
+                  ? "rgba(255,255,255,0.08)"
+                  : (this.polesStale() ? "rgba(255,170,80,0.95)" : "rgba(160,210,255,0.85)")};
                color:${this.reEmbedding ? "rgba(255,255,255,0.5)" : "#0e1a28"};
                cursor:${this.reEmbedding ? "wait" : "pointer"};
                font:600 11px/1 system-ui,-apple-system,sans-serif;
                text-transform:uppercase;letter-spacing:0.06em;
-               transition:background 200ms,color 200ms;">
-        ${this.reEmbedding ? "Embedding…" : "Re-embed corpus"}
+               box-shadow:${this.polesStale() && !this.reEmbedding ? "0 0 0 2px rgba(255,170,80,0.35)" : "none"};
+               transition:background 200ms,color 200ms,box-shadow 200ms;">
+        ${this.reEmbedding ? "Embedding…" : (this.polesStale() ? "Re-embed (poles stale)" : "Re-embed corpus")}
       </button>
       <p style="margin:6px 0 0;opacity:0.55;font-size:10.5px;line-height:1.4;">
         Runs <code style="background:rgba(0,0,0,0.25);padding:1px 4px;border-radius:3px;">world:embed</code>
@@ -679,6 +682,17 @@ export class StageEditor {
 
   // ─── Phase 3 v3 — interpretation (anchor poles) ───────────────────────────
 
+  /** Phase 3 v3 polish — are the published axes (interpretation prose)
+   *  newer than the embedded axis vectors? When true, a re-embed is
+   *  required for the new poles to actually project. */
+  private polesStale(): boolean {
+    const interp = this.snapshot.world.interpretation;
+    const axes = this.snapshot.world.interpretationAxes;
+    if (!interp || !interp.updatedAt) return false;
+    if (!axes) return interp.updatedAt > 0;   // poles authored, never embedded
+    return interp.updatedAt > axes.embeddedAt;
+  }
+
   /** Render the panel section for editing the active atmosphere's
    *  interpretation axes. Returns empty string when the active
    *  atmosphere has no profile (none / forest) — the section silently
@@ -710,6 +724,14 @@ export class StageEditor {
                      background:rgba(0,0,0,0.25);color:#fff;
                      font:600 11.5px/1.2 system-ui,-apple-system,sans-serif;">`}
       </div>`;
+    const staleBanner = this.polesStale()
+      ? `<div style="margin-top:6px;padding:5px 8px;border-radius:4px;
+                     background:rgba(255,180,80,0.18);
+                     border:1px solid rgba(255,180,80,0.35);
+                     color:rgba(255,210,140,0.95);font-size:10.5px;line-height:1.4;">
+           ⚠ poles edited since last embed — re-embed to activate.
+         </div>`
+      : "";
     return `
       <div style="margin-top:14px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.08);">
         <b>Interpretation</b>
@@ -718,6 +740,7 @@ export class StageEditor {
           immediately on save; the new poles take effect on the next
           re-embed (axis vectors are computed server-side).
         </div>
+        ${staleBanner}
         <div style="margin-top:8px;display:flex;gap:6px;align-items:center;">
           <span style="opacity:0.75;font-size:11.5px;">axis</span>
           <select data-act="axis-select"

@@ -332,6 +332,10 @@ final class SnapshotPublisher {
       'frameMode' => (string) ($profile['frame_mode'] ?? 'mds'),
       'dimensionality' => (int) ($profile['dimensionality'] ?? 3),
       'axes' => $axes,
+      // Phase 3 v3 polish — last edit timestamp for the staleness
+      // indicator. 0 when the profile hasn't been edited since
+      // install (the seed values).
+      'updatedAt' => (int) ($profile['updated_at'] ?? 0),
     ];
   }
 

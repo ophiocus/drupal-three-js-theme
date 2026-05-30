@@ -103,6 +103,11 @@ export interface WorldConstants {
       pole_a: string;
       pole_b: string;
     }>;
+    /** Phase 3 v3 polish — last time an editor changed any axis prose
+     *  (unix seconds). When this advances past
+     *  `interpretationAxes.embeddedAt`, the panel flags axes as stale
+     *  ("re-embed to activate"). 0 = never edited since install. */
+    updatedAt?: number;
   } | null;
   /**
    * Phase 3 v3 activation — pre-computed anchor-axis direction

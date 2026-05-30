@@ -1,0 +1,74 @@
+<?php
+
+/**
+ * @file
+ * Install / update hooks for the world_signature module.
+ *
+ * Drupal's `config/install/*.yml` only lands at module-install time.
+ * For sites that were running an earlier version when new config files
+ * shipped, an explicit hook_update_N seeds the defaults — otherwise
+ * SnapshotPublisher's reads silently see NULL and the new editor
+ * surfaces never activate. See docs/TOOLBOX_AND_STAGE.md §3 / §4 and
+ * docs/INTERPRETATION_ENGINE.md for what each config persists.
+ *
+ * Update-number convention (Drupal 11): the leading two digits track
+ * core (11xxx). Increment the trailing digits for each new update.
+ */
+
+declare(strict_types=1);
+
+/**
+ * Phase 3 v3 — seed world_signature.interpretation if missing.
+ *
+ * The Stage panel's Interpretation section reads this config; absent
+ * it, the panel silently hides the anchor-pole editor on every
+ * atmosphere and the EmbedRunner Pass 4 quietly skips pole embedding.
+ */
+function world_signature_update_11001(): string {
+  $config = \Drupal::configFactory()->getEditable('world_signature.interpretation');
+  if ($config->get('profiles') !== NULL) {
+    return 'world_signature.interpretation already exists — no change.';
+  }
+  $config->set('profiles', [
+    'inner-mind' => [
+      'frame_mode' => 'anchors',
+      'dimensionality' => 3,
+      'axes' => [
+        [
+          'name' => 'recollection ↔ anticipation',
+          'pole_a' => 'memory, the past, what was',
+          'pole_b' => 'expectation, the future, what comes',
+        ],
+        [
+          'name' => 'self ↔ world',
+          'pole_a' => 'the inner self, identity, private feeling',
+          'pole_b' => 'the outer world, other people, society',
+        ],
+        [
+          'name' => 'order ↔ dissolution',
+          'pole_a' => 'structure, clarity, coherence, reason',
+          'pole_b' => 'chaos, dissolution, dream, the unconscious',
+        ],
+      ],
+    ],
+  ])->save();
+  return 'Seeded world_signature.interpretation with the inner-mind profile.';
+}
+
+/**
+ * Phase 4 v0 — seed world_signature.stage if missing.
+ *
+ * The Stage editor's published placements live here. Absent the
+ * config, SnapshotPublisher::loadStage() shorts to NULL and the
+ * editor's PATCH /world/edit/stage still works (Drupal creates the
+ * key on first set) — but seeding it explicitly mirrors the
+ * `config/install` shape so site config exports stay coherent.
+ */
+function world_signature_update_11002(): string {
+  $config = \Drupal::configFactory()->getEditable('world_signature.stage');
+  if ($config->get('placements') !== NULL) {
+    return 'world_signature.stage already exists — no change.';
+  }
+  $config->set('placements', ['inner-mind' => ['zodiac' => []]])->save();
+  return 'Seeded world_signature.stage with empty inner-mind/zodiac layer.';
+}

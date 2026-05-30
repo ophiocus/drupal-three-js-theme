@@ -148,6 +148,11 @@ final class WorldInterpretationEditor {
 
     if ($updated !== []) {
       $profile['axes'] = array_values($axes);
+      // Phase 3 v3 polish — stamp the edit time so the snapshot can
+      // ship `interpretation.updatedAt` and the client can surface
+      // "poles stale, re-embed needed" when this advances past
+      // `interpretationAxes.embeddedAt`.
+      $profile['updated_at'] = time();
       $profiles[$atmosphere] = $profile;
       $config->set('profiles', $profiles);
       $config->save();
