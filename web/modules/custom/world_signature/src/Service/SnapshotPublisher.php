@@ -172,6 +172,13 @@ final class SnapshotPublisher {
     // read poles + axes from the snapshot instead of hardcoding them.
     // NULL when the active atmosphere has no profile entry.
     $world['interpretation'] = $this->loadInterpretation($atmosphere);
+    // Phase 3 v3 activation: per-atmosphere anchor-axis vectors as
+    // computed by the most recent embed pass (EmbedRunner Pass 4).
+    // NULL when no embed has produced axes yet, or when the active
+    // atmosphere has no anchors profile. The renderer's anchored
+    // projector multiplies each entity embedding against these to
+    // mint authored meaning (INTERPRETATION_ENGINE.md §3).
+    $world['interpretationAxes'] = $this->loadInterpretationAxes($atmosphere);
     // Phase 3 freshness signal (docs/TOOLBOX_AND_STAGE.md): the most
     // recent `drush world:embed` records when it ran and which model;
     // editors read it via the in-canvas Stage panel to see how stale
@@ -317,6 +324,57 @@ final class SnapshotPublisher {
     return [
       'frameMode' => (string) ($profile['frame_mode'] ?? 'mds'),
       'dimensionality' => (int) ($profile['dimensionality'] ?? 3),
+      'axes' => $axes,
+    ];
+  }
+
+  /**
+   * Phase 3 v3 activation — read the per-atmosphere anchor-axis
+   * vectors EmbedRunner stamps into State after embedding the
+   * authored poles. NULL when no axes are stamped for this
+   * atmosphere (no embed has run, or this atmosphere's profile
+   * isn't `anchors`).
+   *
+   * Shape returned to the client (under `world.interpretationAxes`):
+   *   {
+   *     modelVersion: string,
+   *     embeddedAt: int,
+   *     dimensions: int,
+   *     axes: [{ name: string, vector: float[] }]
+   *   }
+   *
+   * The freshness signal (`config:world_signature.interpretation`
+   * + `world_signature:embed` cache tags already attached to the
+   * snapshot) covers invalidation: editing the profile prose busts
+   * the snapshot but the *vectors* don't refresh until the editor
+   * triggers a re-embed.
+   */
+  private function loadInterpretationAxes(?string $atmosphere): ?array {
+    if ($atmosphere === NULL || $atmosphere === '' || $atmosphere === 'none') {
+      return NULL;
+    }
+    $all = $this->state->get('world_signature.interpretation_axes');
+    if (!is_array($all) || !isset($all[$atmosphere]) || !is_array($all[$atmosphere])) {
+      return NULL;
+    }
+    $bundle = $all[$atmosphere];
+    $axes = [];
+    foreach (($bundle['axes'] ?? []) as $a) {
+      if (!is_array($a) || !is_array($a['vector'] ?? NULL)) {
+        continue;
+      }
+      $axes[] = [
+        'name' => (string) ($a['name'] ?? ''),
+        'vector' => array_values(array_map('floatval', $a['vector'])),
+      ];
+    }
+    if ($axes === []) {
+      return NULL;
+    }
+    return [
+      'modelVersion' => (string) ($bundle['modelVersion'] ?? ''),
+      'embeddedAt' => (int) ($bundle['embeddedAt'] ?? 0),
+      'dimensions' => (int) ($bundle['dimensions'] ?? count($axes[0]['vector'])),
       'axes' => $axes,
     ];
   }

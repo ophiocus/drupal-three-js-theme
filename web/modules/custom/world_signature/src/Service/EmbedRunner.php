@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Drupal\world_signature\Service;
 
 use Drupal\Core\Cache\Cache;
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\State\StateInterface;
@@ -31,6 +32,11 @@ use Drupal\world_signature\Signature\SignatureSemantic;
  */
 final class EmbedRunner {
 
+  /** State key — per-atmosphere anchor-axis vectors stamped by the
+   *  Phase 3 v3 activation pass. Snapshot ships them under
+   *  `world.interpretationAxes`. */
+  public const string STATE_INTERPRETATION_AXES = 'world_signature.interpretation_axes';
+
   public function __construct(
     private readonly EntityTypeManagerInterface $entityTypeManager,
     private readonly EntityFactsReader $factsReader,
@@ -42,6 +48,7 @@ final class EmbedRunner {
     private readonly EmbeddingManager $embeddingManager,
     private readonly StateInterface $state,
     private readonly LoggerChannelInterface $logger,
+    private readonly ConfigFactoryInterface $configFactory,
   ) {}
 
   /**
@@ -145,6 +152,15 @@ final class EmbedRunner {
       }
     }
 
+    // Pass 4 (Phase 3 v3 activation, INTERPRETATION_ENGINE.md §3):
+    // for each atmosphere with an `anchors` frame mode, embed each
+    // axis's pole prose, compute the axis direction
+    // `normalize(emb_a - emb_b)`, orthogonalize the axis set
+    // (Gram–Schmidt), and persist per-atmosphere axis vectors so
+    // the snapshot can ship them and the client can project against
+    // authored meaning.
+    $axesByAtmosphere = $this->embedAnchorAxes($modelVersion, $embeddedAt);
+
     // Phase 3 freshness signal (the Stage panel reads this via the
     // snapshot's world.lastEmbed block).
     $this->state->set('world_signature.last_embed', [
@@ -153,8 +169,12 @@ final class EmbedRunner {
       'dimensions' => $dimensions,
       'embedded' => $written,
     ]);
+    if ($axesByAtmosphere !== []) {
+      $this->state->set(self::STATE_INTERPRETATION_AXES, $axesByAtmosphere);
+    }
     // Bust the snapshot's dynamic-page-cache entry so the next fetch
-    // serves the fresh lastEmbed (State has no cache tags of its own).
+    // serves the fresh lastEmbed + interpretation axes (State has no
+    // cache tags of its own).
     Cache::invalidateTags(['world_signature:embed']);
 
     return [
@@ -164,6 +184,169 @@ final class EmbedRunner {
       'dimensions' => $dimensions,
       'embeddedAt' => $embeddedAt,
     ];
+  }
+
+  /**
+   * For every atmosphere whose interpretation profile uses
+   * `anchors` (or `hybrid`), embed each axis's two prose poles,
+   * compute the axis direction, Gram–Schmidt orthogonalize.
+   *
+   * Returns a per-atmosphere bundle the snapshot ships under
+   * `world.interpretationAxes`. Empty array when no profile uses
+   * anchors (the inner-mind POC is the only one today).
+   *
+   * @return array<string, array{
+   *   modelVersion: string,
+   *   embeddedAt: int,
+   *   dimensions: int,
+   *   axes: array<int, array{name: string, vector: float[]}>,
+   * }>
+   */
+  private function embedAnchorAxes(string $modelVersion, int $embeddedAt): array {
+    $profiles = $this->configFactory
+      ->get('world_signature.interpretation')
+      ->get('profiles') ?? [];
+    if (!is_array($profiles) || $profiles === []) {
+      return [];
+    }
+
+    // Collect every pole prose across every anchors atmosphere into
+    // one batch so the embedding provider is called once. The keys
+    // namespace by atmosphere so the lookup is unambiguous.
+    $docs = [];
+    $axisMeta = [];
+    foreach ($profiles as $atmosphere => $profile) {
+      if (!is_array($profile)) {
+        continue;
+      }
+      $mode = (string) ($profile['frame_mode'] ?? 'mds');
+      if ($mode !== 'anchors' && $mode !== 'hybrid') {
+        continue;
+      }
+      $axes = $profile['axes'] ?? [];
+      if (!is_array($axes)) {
+        continue;
+      }
+      foreach ($axes as $idx => $axis) {
+        if (!is_array($axis)) {
+          continue;
+        }
+        $name = (string) ($axis['name'] ?? '');
+        $a = trim((string) ($axis['pole_a'] ?? ''));
+        $b = trim((string) ($axis['pole_b'] ?? ''));
+        if ($a === '' || $b === '') {
+          continue;
+        }
+        $keyA = sprintf('%s:%d:a', $atmosphere, $idx);
+        $keyB = sprintf('%s:%d:b', $atmosphere, $idx);
+        $docs[$keyA] = $a;
+        $docs[$keyB] = $b;
+        $axisMeta[$atmosphere][$idx] = ['name' => $name, 'keyA' => $keyA, 'keyB' => $keyB];
+      }
+    }
+
+    if ($docs === []) {
+      return [];
+    }
+
+    try {
+      $result = $this->embeddingManager->embedCorpus($docs);
+    }
+    catch (\Throwable $e) {
+      $this->logger->error('Anchor pole embedding failed: ' . $e->getMessage());
+      return [];
+    }
+    $vectors = $result['vectors'] ?? [];
+    if (!is_array($vectors)) {
+      return [];
+    }
+
+    $bundle = [];
+    foreach ($axisMeta as $atmosphere => $axes) {
+      $directions = [];
+      $names = [];
+      foreach ($axes as $axis) {
+        $a = $vectors[$axis['keyA']] ?? NULL;
+        $b = $vectors[$axis['keyB']] ?? NULL;
+        if (!is_array($a) || !is_array($b)) {
+          continue;
+        }
+        $direction = $this->normalize($this->subtract($a, $b));
+        if ($direction === NULL) {
+          continue;
+        }
+        $directions[] = $direction;
+        $names[] = $axis['name'];
+      }
+      if ($directions === []) {
+        continue;
+      }
+      // Gram–Schmidt: orthogonalize each successive axis against the
+      // accumulated basis so correlated poles don't collapse into
+      // one direction (INTERPRETATION_ENGINE.md §3 step 4).
+      $basis = [];
+      $finalAxes = [];
+      foreach ($directions as $i => $v) {
+        $r = $v;
+        foreach ($basis as $b) {
+          $r = $this->orthogonalize($r, $b);
+        }
+        $u = $this->normalize($r);
+        if ($u === NULL) {
+          continue;
+        }
+        $basis[] = $u;
+        $finalAxes[] = ['name' => $names[$i], 'vector' => $u];
+      }
+      if ($finalAxes === []) {
+        continue;
+      }
+      $bundle[$atmosphere] = [
+        'modelVersion' => $result['modelVersion'] ?? $modelVersion,
+        'embeddedAt' => $embeddedAt,
+        'dimensions' => (int) ($result['dimensions'] ?? count($finalAxes[0]['vector'])),
+        'axes' => $finalAxes,
+      ];
+    }
+
+    return $bundle;
+  }
+
+  /** Element-wise vector subtraction; returns [] if lengths mismatch. */
+  private function subtract(array $a, array $b): array {
+    $n = min(count($a), count($b));
+    $out = [];
+    for ($i = 0; $i < $n; $i++) {
+      $out[] = ((float) $a[$i]) - ((float) $b[$i]);
+    }
+    return $out;
+  }
+
+  /** Unit-normalize; NULL if zero-length. */
+  private function normalize(array $v): ?array {
+    $sumSq = 0.0;
+    foreach ($v as $x) {
+      $sumSq += $x * $x;
+    }
+    if ($sumSq < 1e-24) {
+      return NULL;
+    }
+    $norm = sqrt($sumSq);
+    return array_map(static fn(float $x) => $x / $norm, array_map('floatval', $v));
+  }
+
+  /** Remove component of $v along (unit) $basis. */
+  private function orthogonalize(array $v, array $basis): array {
+    $proj = 0.0;
+    $n = min(count($v), count($basis));
+    for ($i = 0; $i < $n; $i++) {
+      $proj += ((float) $v[$i]) * ((float) $basis[$i]);
+    }
+    $out = [];
+    for ($i = 0; $i < $n; $i++) {
+      $out[] = ((float) $v[$i]) - $proj * ((float) $basis[$i]);
+    }
+    return $out;
   }
 
   /**

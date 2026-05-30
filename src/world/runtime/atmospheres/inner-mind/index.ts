@@ -20,7 +20,7 @@ import { EventAsRing } from "./EventAsRing.js";
 import { AcidMotes } from "./motes.js";
 import { SurrealZodiac } from "./zodiac.js";
 import { FuzzyRegions } from "./regions.js";
-import { projectMds3D } from "./projection.js";
+import { projectAnchored, projectMds3D } from "./projection.js";
 
 export function registerInnerMindAtmosphere(registry: SmartObjectRegistry): void {
   registry.register(new ArticleAsCrystal());
@@ -48,10 +48,20 @@ export function computeLayout(snapshot: CorpusSnapshot): Map<string, Vec3> | nul
   }
   if (embeddings.size < 2) return null;
 
-  // Project into a ball ~half the world radius, then lift the whole
-  // cloud airborne so the free-orbit camera circles a floating system
-  // (not something half-buried in the ground plane).
-  const cloud = projectMds3D(embeddings, snapshot.world.radius * 0.55);
+  // Phase 3 v3 activation: when the server has shipped anchored
+  // axes (EmbedRunner Pass 4 wrote them and the snapshot exposes
+  // them under world.interpretationAxes), project against authored
+  // meaning. Otherwise fall back to MDS-3D (the "always-works"
+  // emergent frame). The empty-result guard catches degenerate axis
+  // sets (e.g. all-zero vectors); MDS-3D rescues there too.
+  const targetRadius = snapshot.world.radius * 0.55;
+  const anchors = snapshot.world.interpretationAxes;
+  let cloud = anchors && anchors.axes.length > 0
+    ? projectAnchored(embeddings, anchors.axes, targetRadius)
+    : new Map<string, Vec3>();
+  if (cloud.size === 0) {
+    cloud = projectMds3D(embeddings, targetRadius);
+  }
   const baseY = snapshot.world.overviewHeight * 0.6;
   const out = new Map<string, Vec3>();
   for (const [id, p] of cloud) {

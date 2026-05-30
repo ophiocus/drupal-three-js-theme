@@ -104,6 +104,23 @@ export interface WorldConstants {
       pole_b: string;
     }>;
   } | null;
+  /**
+   * Phase 3 v3 activation — pre-computed anchor-axis direction
+   * vectors, one per declared axis. The client projects each
+   * entity's embedding onto these via dot-products to mint
+   * authored meaning (INTERPRETATION_ENGINE.md §3). Null when no
+   * embed pass has produced axes yet, or the active atmosphere has
+   * no anchors profile.
+   */
+  interpretationAxes?: {
+    modelVersion: string;
+    embeddedAt: number;
+    dimensions: number;
+    axes: Array<{
+      name: string;
+      vector: number[];
+    }>;
+  } | null;
 }
 
 /**

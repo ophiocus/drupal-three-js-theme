@@ -148,6 +148,7 @@ services:
       - '@world_signature.embedding.manager'
       - '@state'
       - '@logger.channel.world_signature'
+      - '@config.factory'
 
   # ─── Asset ingestion: thin source-provider layer ───────────────
   # Each adapter resolves a source reference (URL or scheme:id) into

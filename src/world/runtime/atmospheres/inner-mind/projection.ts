@@ -22,6 +22,72 @@ import type { Vec3 } from "../../../types.js";
 const POWER_ITERATIONS = 128;
 
 /**
+ * Phase 3 v3 activation — anchored projection.
+ *
+ * Project each entity's embedding onto a set of pre-orthogonalized
+ * anchor axes (server-computed; shipped under
+ * `world.interpretationAxes`). Each axis gets one coordinate from a
+ * single dot product, so this is O(n·d·k) — cheap.
+ *
+ * Axis-to-Vec3 mapping mirrors `projectMds3D` so the inner-mind
+ * regions/zodiac feel consistent across the two frames:
+ *   axis 0 → x   (the "x-est" pole-pair)
+ *   axis 1 → z   (the "z-est")
+ *   axis 2 → y   (height — usually the smallest-variance axis when
+ *                anchors are loosely related)
+ *
+ * When fewer than the expected axes are present, the missing
+ * coordinate stays 0; the cloud collapses against that plane,
+ * which is the right visual cue for "this axis isn't authored."
+ *
+ * Returns an empty map when no axes have non-zero dimension; the
+ * caller falls back to projectMds3D.
+ */
+export function projectAnchored(
+  embeddings: Map<string, number[]>,
+  axes: ReadonlyArray<{ vector: number[] }>,
+  targetRadius: number,
+): Map<string, Vec3> {
+  const out = new Map<string, Vec3>();
+  if (embeddings.size === 0 || axes.length === 0) return out;
+
+  // Pick up to 3 axes — extras would need a higher-dimensional
+  // visualization that doesn't apply here.
+  const a0 = axes[0]?.vector ?? null;
+  const a1 = axes[1]?.vector ?? null;
+  const a2 = axes[2]?.vector ?? null;
+  if (!a0) return out;
+
+  const coords: Array<{ id: string; v: Vec3 }> = [];
+  let cx = 0, cy = 0, cz = 0;
+  for (const [id, emb] of embeddings) {
+    const x = dot(emb, a0);
+    const z = a1 ? dot(emb, a1) : 0;
+    const y = a2 ? dot(emb, a2) : 0;
+    coords.push({ id, v: { x, y, z } });
+    cx += x; cy += y; cz += z;
+  }
+  const n = coords.length;
+  cx /= n; cy /= n; cz /= n;
+
+  let maxR = 0;
+  for (const c of coords) {
+    const dx = c.v.x - cx, dy = c.v.y - cy, dz = c.v.z - cz;
+    const r = Math.sqrt(dx * dx + dy * dy + dz * dz);
+    if (r > maxR) maxR = r;
+  }
+  const scale = maxR > 1e-9 ? targetRadius / maxR : 1;
+  for (const c of coords) {
+    out.set(c.id, {
+      x: (c.v.x - cx) * scale,
+      y: (c.v.y - cy) * scale,
+      z: (c.v.z - cz) * scale,
+    });
+  }
+  return out;
+}
+
+/**
  * Project L2-normalized embeddings to a 3D cloud whose farthest point
  * sits ~`targetRadius` from its centroid, centred on the origin.
  */
