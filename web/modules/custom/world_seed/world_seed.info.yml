@@ -1,0 +1,24 @@
+name: 'World Seed'
+type: module
+description: |
+  Brings the site up to its canonical demo state. Installs an admin
+  user, the author writers (with bios + writing themes), the five
+  sector taxonomy terms, 100 coffee articles distributed across the
+  authors, 15 events, and 15 biographies (people content). Optionally
+  triggers a world:embed pass when DDEV's gateway is reachable.
+
+  Provisional module — `drush en world_seed` is the canonical
+  one-command bring-up. Re-running via `drush world:seed` is
+  idempotent (clears the previous seeded entities first).
+
+  See README.md for the Atlas Vector Search index spec
+  (world_signature.world_search_client::nearest depends on it).
+
+package: 'World'
+core_version_requirement: ^11
+dependencies:
+  - drupal:node
+  - drupal:taxonomy
+  - drupal:user
+  - drupal:text
+  - world_signature:world_signature

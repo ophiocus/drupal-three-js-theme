@@ -1,0 +1,27 @@
+<?php
+
+/**
+ * @file
+ * World Seed — bring-up provisioning. See README.md and the install
+ * hook for the full pipeline. Almost all logic lives in
+ * Drupal\world_seed\Service\Seeder.
+ */
+
+declare(strict_types=1);
+
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function world_seed_help(string $route_name, RouteMatchInterface $route_match): string {
+  if ($route_name !== 'help.page.world_seed') {
+    return '';
+  }
+  return '<p>' . t(
+    'World Seed installs the canonical demo corpus: admin user, author writers,
+    sector taxonomy, 100 coffee articles, 15 events, 15 biographies. Re-runnable
+    via <code>drush world:seed</code>. The first install also runs an embed pass
+    when the gateway is reachable.'
+  ) . '</p>';
+}

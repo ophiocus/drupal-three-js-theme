@@ -1,0 +1,21 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - text
+    - user
+id: user.field_user_themes
+field_name: field_user_themes
+entity_type: user
+type: string
+settings:
+  max_length: 80
+  case_sensitive: false
+  is_ascii: false
+module: core
+locked: false
+cardinality: 8
+translatable: false
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

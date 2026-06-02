@@ -1,0 +1,12 @@
+services:
+  # The single orchestrator. hook_install + the drush command both
+  # call ::run(); the work is idempotent (wipe + re-seed).
+  world_seed.seeder:
+    class: Drupal\world_seed\Service\Seeder
+    arguments:
+      - '@entity_type.manager'
+      - '@password_generator'
+      - '@module_handler'
+      - '@extension.path.resolver'
+      - '@file_system'
+      - '@logger.channel.world_signature'

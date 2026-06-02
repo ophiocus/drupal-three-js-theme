@@ -1,0 +1,76 @@
+<?php
+
+/**
+ * @file
+ * Install / uninstall hooks for the world_seed module.
+ *
+ * On install: seed admin + authors + sectors + 100 articles + 15
+ * events + 15 biographies. On uninstall: remove the seeded entities
+ * (scoped by seed marker) but NOT the manually-added content.
+ *
+ * The seeder is idempotent — running it twice produces the same end
+ * state. Failures during the embed pass are warnings, not errors:
+ * the gateway may be unreachable in a fresh DDEV stack.
+ */
+
+declare(strict_types=1);
+
+/**
+ * Implements hook_install().
+ */
+function world_seed_install(bool $is_syncing): void {
+  if ($is_syncing) {
+    // Config-sync install — content seeding belongs to a deliberate
+    // bring-up, not an arbitrary config import.
+    return;
+  }
+  $seeder = \Drupal::service('world_seed.seeder');
+  $result = $seeder->run();
+  \Drupal::messenger()->addStatus(t(
+    'World Seed: created @users authors, @articles articles, @events events, @profiles biographies. @password',
+    [
+      '@users' => $result['users'],
+      '@articles' => $result['articles'],
+      '@events' => $result['events'],
+      '@profiles' => $result['profiles'],
+      '@password' => $result['admin_password']
+        ? 'Admin password: ' . $result['admin_password']
+        : 'Admin user already existed (password unchanged).',
+    ],
+  ));
+  \Drupal::logger('world_seed')->info(sprintf(
+    'Seed complete: users=%d articles=%d events=%d profiles=%d',
+    $result['users'], $result['articles'], $result['events'], $result['profiles'],
+  ));
+
+  // Optional embed pass — gateway-dependent, so a failure is non-fatal.
+  try {
+    /** @var \Drupal\world_signature\Service\EmbedRunner $runner */
+    $runner = \Drupal::service('world_signature.embed_runner');
+    $embed = $runner->run();
+    \Drupal::messenger()->addStatus(t(
+      'Initial embed pass: @n entities embedded (model @model).',
+      ['@n' => $embed['embedded'], '@model' => $embed['modelVersion']],
+    ));
+  }
+  catch (\Throwable $e) {
+    \Drupal::messenger()->addWarning(t(
+      'Initial embed pass skipped: @msg. Run <code>drush world:embed</code> when the gateway is reachable.',
+      ['@msg' => $e->getMessage()],
+    ));
+  }
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function world_seed_uninstall(): void {
+  // Don't run on full-site teardown — uninstalling Drupal modules
+  // can fire this with the entity-type system already partway gone.
+  // The seeder's purge is for re-seeding cleanly; module uninstall
+  // is a separate, gentler intent.
+  \Drupal::logger('world_seed')->notice(
+    'world_seed uninstalled; seeded content left in place. Use ' .
+    'drush world:seed:purge to clear it explicitly.',
+  );
+}

@@ -320,6 +320,108 @@ final class WorldSearchClient {
   }
 
   /**
+   * Nearest-neighbour search via Atlas Vector Search ($vectorSearch
+   * aggregation stage, routed through RESTHeart's aggregation
+   * pass-through endpoint).
+   *
+   * Pre-requisite: an Atlas Vector Search index must exist on
+   * `descriptors.signature.semantic.embedding` with the dimensions
+   * matching the active embedding provider's output (256 for the
+   * dev TF-IDF; whatever WORLD_EMBED_DIMENSIONS evaluates to for the
+   * remote provider). See web/modules/custom/world_seed/README.md
+   * §"Atlas Vector Search index" for the exact spec.
+   *
+   * @param float[] $vector
+   *   The query vector (typically: an entity's own embedding, to
+   *   find "more like this" / a pole vector, to find entities
+   *   aligned with that pole / an ad-hoc query embedding).
+   * @param int $k
+   *   Number of neighbours to return. Capped at 200.
+   * @param array<string, mixed> $filter
+   *   Optional Mongo filter applied alongside vector ranking
+   *   (e.g. ['signature.structural.bundle' => 'article']).
+   *
+   * @return array<int, array{_id: string, score: float, descriptor: array<string, mixed>}>
+   *   Sorted by score descending. Empty array when the index is
+   *   missing or the gateway 4xx's the aggregation (failure mode:
+   *   logged, not thrown — callers can fall back to a non-vector
+   *   path).
+   */
+  public function nearest(array $vector, int $k = 12, array $filter = []): array {
+    if ($vector === [] || $k <= 0) {
+      return [];
+    }
+    $k = min(200, $k);
+    $stage = [
+      '$vectorSearch' => [
+        'index' => getenv('WORLD_VECTOR_INDEX') ?: 'world_embeddings',
+        'path' => 'signature.semantic.embedding',
+        'queryVector' => array_values(array_map('floatval', $vector)),
+        'numCandidates' => max(100, $k * 10),
+        'limit' => $k,
+      ],
+    ];
+    if ($filter !== []) {
+      $stage['$vectorSearch']['filter'] = $filter;
+    }
+    $pipeline = [
+      $stage,
+      ['$project' => [
+        '_id' => 1,
+        'score' => ['$meta' => 'vectorSearchScore'],
+        // Project everything else under a `descriptor` key so the
+        // caller sees a clean {_id, score, descriptor} shape.
+        'descriptor' => '$$ROOT',
+      ]],
+    ];
+    $url = $this->collectionUrl() . '/_aggrs/nearest';
+    try {
+      $response = $this->http->request('POST', $url, [
+        'auth' => [$this->authUser, $this->authPassword],
+        'headers' => [
+          'Accept' => 'application/json',
+          'Content-Type' => 'application/json',
+        ],
+        'json' => ['pipeline' => $pipeline],
+        'timeout' => 15,
+        'http_errors' => FALSE,
+      ]);
+    }
+    catch (GuzzleException $e) {
+      $this->logger->warning(
+        'Vector search transport error: @msg',
+        ['@msg' => $e->getMessage()],
+      );
+      return [];
+    }
+    $status = $response->getStatusCode();
+    if ($status < 200 || $status >= 300) {
+      $body = substr((string) $response->getBody(), 0, 200);
+      $this->logger->warning(
+        'Vector search HTTP @status: @body',
+        ['@status' => $status, '@body' => $body],
+      );
+      return [];
+    }
+    $hits = json_decode((string) $response->getBody(), TRUE) ?: [];
+    if (!is_array($hits)) {
+      return [];
+    }
+    $out = [];
+    foreach ($hits as $h) {
+      if (!is_array($h) || !isset($h['_id'])) {
+        continue;
+      }
+      $out[] = [
+        '_id' => (string) $h['_id'],
+        'score' => (float) ($h['score'] ?? 0.0),
+        'descriptor' => is_array($h['descriptor'] ?? NULL) ? $h['descriptor'] : [],
+      ];
+    }
+    return $out;
+  }
+
+  /**
    * Returns TRUE when the gateway responds to /ping. Used by the
    * verify scripts and by the WorldHealthResource (Sprint 4).
    */

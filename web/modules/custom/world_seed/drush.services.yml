@@ -1,0 +1,8 @@
+services:
+  world_seed.commands:
+    class: Drupal\world_seed\Drush\Commands\WorldSeedCommands
+    arguments:
+      - '@world_seed.seeder'
+      - '@world_signature.embed_runner'
+    tags:
+      - { name: drush.command }

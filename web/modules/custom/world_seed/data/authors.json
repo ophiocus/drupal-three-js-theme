@@ -1,0 +1,44 @@
+[
+  {
+    "handle": "mcervantes",
+    "name": "María Inés Cervantes",
+    "email": "m.cervantes@example.test",
+    "bio": "Science-trained journalist covering varietal breeding, fermentation chemistry, and the agronomy of high-altitude coffee. Ten years at AgroNotas before going freelance.",
+    "themes": ["agronomy", "varietals", "fermentation", "plant science"]
+  },
+  {
+    "handle": "jruvalcaba",
+    "name": "Javier Ruvalcaba",
+    "email": "j.ruvalcaba@example.test",
+    "bio": "Geographer turned origin reporter. Writes about volcanic soils, microclimates, and the slow geography of terroir. Based in Quetzaltenango, on the road most months of the year.",
+    "themes": ["origin", "geology", "climate", "terroir"]
+  },
+  {
+    "handle": "lbermudez",
+    "name": "Lucía Bermúdez",
+    "email": "l.bermudez@example.test",
+    "bio": "Trade economist by training, smallholder advocate by vocation. Covers cooperative finance, certification economics, and the price-fixing arithmetic that shapes producer livelihoods.",
+    "themes": ["economics", "cooperatives", "certification", "policy"]
+  },
+  {
+    "handle": "dpavon",
+    "name": "Diego Pavón",
+    "email": "d.pavon@example.test",
+    "bio": "Former mill operator. Writes the technical end of the chain: micro-mill builds, processing experiments, drying-bed engineering. Skeptic of marketing copy; partial to gravity-fed wet mills.",
+    "themes": ["processing", "micro-mill", "equipment", "technique"]
+  },
+  {
+    "handle": "ctorresvega",
+    "name": "Camila Torres-Vega",
+    "email": "c.torresvega@example.test",
+    "bio": "Q-grader and sensory writer. Covers cupping, scoring methodology, and the long argument over what specialty actually means. Runs a small roastery in Bogotá on the side.",
+    "themes": ["cupping", "sensory", "scoring", "brewing"]
+  },
+  {
+    "handle": "afonseca",
+    "name": "Andrés Fonseca",
+    "email": "a.fonseca@example.test",
+    "bio": "Historian of Latin American agriculture. Writes the long-arc pieces: how a region became what it is, who broke the trail, and what the next generation is inheriting.",
+    "themes": ["history", "culture", "longform", "industry"]
+  }
+]
