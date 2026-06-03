@@ -29,6 +29,7 @@ import { vantage } from "../vantage.js";
 import { WorldHud, type HudLabel } from "./hud/WorldHud.js";
 import { AtmosphereSwitcher } from "./hud/AtmosphereSwitcher.js";
 import { LanguageSwitcher, readStoredLanguage } from "./hud/LanguageSwitcher.js";
+import { t as i18n, type Lang } from "./hud/i18n.js";
 import { CrossfadeOverlay } from "./hud/CrossfadeOverlay.js";
 import { StageEditor } from "./hud/StageEditor.js";
 import { AtmosphereAudio } from "./AtmosphereAudio.js";
@@ -182,7 +183,7 @@ export class SceneManager {
   private languageSwitcher: LanguageSwitcher | null = null;
   /** ISO-639-1 code of the current snapshot language. Set from
    *  `?lang=` query, localStorage, or browser language. */
-  private currentLang: string = readStoredLanguage(["en", "es"]);
+  private currentLang: Lang = readStoredLanguage(["en", "es"]) as Lang;
   /**
    * Procedural per-atmosphere ambient audio. Created with the switcher;
    * silent until the user flips the sound toggle (autoplay etiquette).
@@ -642,10 +643,11 @@ export class SceneManager {
     this.audio = new AtmosphereAudio();
     this.atmosphereSwitcher = new AtmosphereSwitcher({
       atmospheres: [
-        { name: "forest", label: "Forest" },
-        { name: "inner-mind", label: "Inner mind" },
+        { name: "forest",     label: i18n(this.currentLang, "switcher.atmosphere.forest") },
+        { name: "inner-mind", label: i18n(this.currentLang, "switcher.atmosphere.inner-mind") },
       ],
       initial: active,
+      lang: this.currentLang,
       onSelect: (name) => {
         void this.switchAtmosphere(name);
       },
@@ -1230,6 +1232,7 @@ export class SceneManager {
                 // the new editor instance will read the fresh
                 // world.lastEmbed via the freshly-stamped snapshot.
                 onRefresh: () => this.switchAtmosphere(),
+                lang: this.currentLang,
               });
               this.atmosphereUpdaters.push(() => editor.update());
               this.atmosphereDisposers.push(() => editor.dispose());

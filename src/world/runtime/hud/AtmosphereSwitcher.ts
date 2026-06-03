@@ -12,6 +12,8 @@
 // chrome, not world content). setActive() re-highlights after each flip;
 // setBusy() disables the row while a switch is in flight.
 
+import { t, type Lang } from "./i18n.js";
+
 export interface AtmosphereOption {
   /** Snapshot key, e.g. "forest" | "inner-mind". */
   name: string;
@@ -31,6 +33,8 @@ export interface AtmosphereSwitcherOptions {
    * user gesture, it's a valid moment to start a Web Audio context.
    */
   sound?: { initialOn: boolean; onToggle: (on: boolean) => void };
+  /** UI language. Falls back to English when omitted. */
+  lang?: Lang;
 }
 
 export class AtmosphereSwitcher {
@@ -44,7 +48,7 @@ export class AtmosphereSwitcher {
     this.root = document.createElement("div");
     this.root.className = "world-atmosphere-switcher";
     this.root.setAttribute("role", "group");
-    this.root.setAttribute("aria-label", "World atmosphere");
+    this.root.setAttribute("aria-label", t(options.lang ?? "en", "switcher.atmosphere.aria"));
     this.root.style.cssText = [
       "position:fixed",
       "left:50%",
@@ -93,8 +97,8 @@ export class AtmosphereSwitcher {
       const sbtn = document.createElement("button");
       sbtn.type = "button";
       sbtn.textContent = "♪"; // musical note
-      sbtn.title = "Toggle ambient sound";
-      sbtn.setAttribute("aria-label", "Toggle ambient sound");
+      sbtn.title = t(options.lang ?? "en", "switcher.atmosphere.sound.title");
+      sbtn.setAttribute("aria-label", t(options.lang ?? "en", "switcher.atmosphere.sound.title"));
       sbtn.style.cssText = this.buttonCss(soundOn);
       sbtn.addEventListener("click", () => {
         soundOn = !soundOn;

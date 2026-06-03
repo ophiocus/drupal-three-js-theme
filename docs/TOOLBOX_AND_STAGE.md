@@ -1,9 +1,17 @@
 # Toolbox & Stage
 
-**Status:** architectural commitment + POC sequencing (2026-05-25)
+**Status:** Phases 1–4 shipped (2026-05-30); see `docs/CHANGELOG.md`
 **Relates to:** `docs/MILESTONES.md` (ALPHA 2, ALPHA 3, backburner "game engine
-core") · `docs/INTERPRETATION_ENGINE.md` · `docs/BOUNDARY.md` ·
-`docs/BATTLE_SCARS.md`
+core") · `docs/INTERPRETATION_ENGINE.md` · `docs/BEACONS.md` ·
+`docs/BOUNDARY.md` · `docs/BATTLE_SCARS.md`
+
+> Implementation status (May 2026): Phase 1 (toolbox boundary) +
+> Phase 2 (Stage GUI v0 placements) + Phase 3 v0–v3 (freshness panel,
+> re-embed trigger, default-atmosphere editor, palette tints, anchor
+> pole editor, anchored projector activation) + Phase 4 v0 (stage
+> placements persist to Drupal) all shipped. The data-polled beacons
+> work designed in `docs/BEACONS.md` is the next architectural
+> slice and lives outside this doc's four-phase sequencing.
 
 > Two layers, one rule. **Toolbox** wraps every primitive the renderer
 > needs (three.js + project-grade lifecycle on top). **Toolset** is

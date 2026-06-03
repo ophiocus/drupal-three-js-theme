@@ -8,6 +8,8 @@
 // of the translation overlay (per SnapshotPublisher::applyTranslationOverlay).
 // All this component does is choose which lang to ask for.
 
+import { t, type Lang } from "./i18n.js";
+
 export interface LanguageOption {
   /** ISO-639-1 code (en, es, ...). Sent to the server as ?lang=<code>. */
   code: string;
@@ -64,7 +66,7 @@ export class LanguageSwitcher {
     this.root = document.createElement("div");
     this.root.className = "world-language-switcher";
     this.root.setAttribute("role", "group");
-    this.root.setAttribute("aria-label", "Language");
+    this.root.setAttribute("aria-label", t(this.active as Lang, "switcher.language.aria"));
     // Sits to the LEFT of the atmosphere switcher in the same horizontal
     // strip — a sibling pill, not a stacked row. ~140px clearance from
     // the atmosphere switcher's centered position.

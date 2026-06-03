@@ -1,8 +1,22 @@
 # The interpretation engine
 
-**Status:** design + POC in progress (BETA 1 / BETA 2 bridge · 2026-05-24)
-**Relates to:** `docs/MILESTONES.md` BETA 2 · `world` content type · atmospheres ·
-`web/.../src/Embedding/` · `src/world/layout.ts`
+**Status:** anchored projector activated (2026-05-30); see
+`docs/CHANGELOG.md` for the v3 + activation shipping log
+**Relates to:** `docs/MILESTONES.md` BETA 2 · `docs/BEACONS.md`
+(data-polled gravity attractors, the discrete-point complement to
+the directional axes designed here) · `docs/TOOLBOX_AND_STAGE.md`
+(editor surface) · `world` content type · atmospheres ·
+`web/.../src/Embedding/` · `src/world/runtime/atmospheres/inner-mind/`
+
+> Implementation status (May 2026): MDS-3D projector + anchored
+> projector both shipped. EmbedRunner Pass 4 embeds atmosphere pole
+> prose and persists per-atmosphere axis vectors (`world_signature.
+> interpretation_axes` state); SnapshotPublisher ships them under
+> `world.interpretationAxes`; `inner-mind/projection.ts` carries both
+> `projectMds3D` and `projectAnchored`; computeLayout branches on
+> whether axes are present. The honest TF-IDF caveat (§3) still
+> applies — flipping `WORLD_EMBED_URL` to a neural provider is what
+> activates authored meaning in the cup, not in code.
 
 > One sentence: **embeddings are a shared geometry of similarity; each world
 > imposes a *frame* on that geometry to mint its own meaning.** The embedding

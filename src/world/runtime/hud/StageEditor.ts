@@ -23,6 +23,7 @@
 import * as THREE from "../../../toolbox/three.js";
 import type { CorpusSnapshot } from "../../types.js";
 import type { SurrealZodiac, ZodiacPlacement } from "../atmospheres/inner-mind/zodiac.js";
+import { type Lang, t } from "./i18n.js";
 
 const STORAGE_KEY = "world.stage.placements.v0";
 const ANGLE_SENSITIVITY = 0.005;   // rad per pixel of horizontal drag
@@ -84,6 +85,9 @@ interface StageEditorOptions {
    *  this to switchAtmosphere — re-fetch + rebuild). Optional so the
    *  editor still works in contexts without a refresh path. */
   onRefresh?: () => Promise<void>;
+  /** Overdrive polish: UI language. Falls back to English when omitted
+   *  so legacy callers keep working. */
+  lang?: Lang;
 }
 
 export class StageEditor {
@@ -93,6 +97,7 @@ export class StageEditor {
   private readonly snapshot: CorpusSnapshot;
   private readonly activeAtmosphere: string;
   private readonly onRefresh: (() => Promise<void>) | null;
+  private readonly lang: Lang;
   private reEmbedding = false;
   /** Phase 3 v2: which atmosphere the dropdown is currently *pointing at*.
    *  Initialized to the snapshot's effective atmosphere and updated on
@@ -140,6 +145,7 @@ export class StageEditor {
     this.snapshot = options.snapshot;
     this.activeAtmosphere = options.activeAtmosphere;
     this.onRefresh = options.onRefresh ?? null;
+    this.lang = options.lang ?? "en";
     this.pendingAtmosphere = options.activeAtmosphere;
     this.initialTints = options.paletteTints ?? null;
     this.pendingTints = options.paletteTints ? { ...options.paletteTints } : null;
@@ -204,8 +210,8 @@ export class StageEditor {
   private buildToggleBtn(): HTMLButtonElement {
     const b = document.createElement("button");
     b.type = "button";
-    b.textContent = "EDIT STAGE";
-    b.title = "Toggle the in-canvas stage editor";
+    b.textContent = t(this.lang, "stage.toggle.label");
+    b.title = t(this.lang, "stage.toggle.title");
     b.style.cssText = [
       "position:fixed", "top:18px", "right:18px", "z-index:200",
       "padding:6px 14px", "border:0", "border-radius:999px",
@@ -354,32 +360,31 @@ export class StageEditor {
     const interpretationSection = this.renderInterpretationSection();
     const signSection = this.selectedIdx === null
       ? `<div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08);">
-           <b>Stage</b>
+           <b>${escapeHtml(t(this.lang, "stage.sign.heading.empty"))}</b>
            <p style="margin:6px 0 0;opacity:0.75;font-size:12px;line-height:1.45;">
-             Click a numbered marker to select a sign.<br>
-             Drag: horizontal → angle, vertical → height.
+             ${t(this.lang, "stage.sign.empty.hint")}
            </p>
          </div>`
       : (() => {
           const p = this.zodiac.getPlacement(this.selectedIdx!);
           return `<div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08);">
-            <b>Sign ${this.selectedIdx! + 1}</b>
+            <b>${escapeHtml(t(this.lang, "stage.sign.heading", {n: this.selectedIdx! + 1}))}</b>
             <p style="margin:6px 0 0;opacity:0.75;font-size:11px;line-height:1.4;">
-              Drag: horizontal → angle, vertical → height.
+              ${escapeHtml(t(this.lang, "stage.sign.hint"))}
             </p>
             <div style="margin-top:10px;font-variant-numeric:tabular-nums;font-size:12px;line-height:1.6;">
-              <div>angle &nbsp;<b>${p.angle.toFixed(2)}</b> rad</div>
-              <div>height <b>${p.height.toFixed(1)}</b> units</div>
-              <div>scale &nbsp;<b>${p.scale.toFixed(1)}</b></div>
+              <div>${escapeHtml(t(this.lang, "stage.sign.angle"))} &nbsp;<b>${p.angle.toFixed(2)}</b> ${escapeHtml(t(this.lang, "stage.sign.angle.unit"))}</div>
+              <div>${escapeHtml(t(this.lang, "stage.sign.height"))} <b>${p.height.toFixed(1)}</b> ${escapeHtml(t(this.lang, "stage.sign.height.unit"))}</div>
+              <div>${escapeHtml(t(this.lang, "stage.sign.scale"))} &nbsp;<b>${p.scale.toFixed(1)}</b></div>
             </div>
           </div>`;
         })();
     const actions = `
       <div style="margin-top:14px;display:flex;gap:8px;">
         ${this.selectedIdx !== null
-          ? `<button data-act="deselect" style="flex:0 0 auto;padding:6px 10px;border:0;border-radius:4px;background:rgba(255,255,255,0.08);color:#fff;cursor:pointer;font:500 11px/1 system-ui,sans-serif;text-transform:uppercase;letter-spacing:0.04em;">Deselect</button>`
+          ? `<button data-act="deselect" style="flex:0 0 auto;padding:6px 10px;border:0;border-radius:4px;background:rgba(255,255,255,0.08);color:#fff;cursor:pointer;font:500 11px/1 system-ui,sans-serif;text-transform:uppercase;letter-spacing:0.04em;">${escapeHtml(t(this.lang, "stage.sign.deselect"))}</button>`
           : ""}
-        <button data-act="save" style="flex:1;padding:8px 12px;border:0;border-radius:4px;background:rgba(240,232,200,0.92);color:#1d2230;cursor:pointer;font:600 12px/1 system-ui,sans-serif;text-transform:uppercase;letter-spacing:0.06em;">Save</button>
+        <button data-act="save" style="flex:1;padding:8px 12px;border:0;border-radius:4px;background:rgba(240,232,200,0.92);color:#1d2230;cursor:pointer;font:600 12px/1 system-ui,sans-serif;text-transform:uppercase;letter-spacing:0.06em;">${escapeHtml(t(this.lang, "stage.sign.save"))}</button>
       </div>`;
     this.panel.innerHTML = worldSection + interpretationSection + signSection + actions;
     this.panel.querySelector('[data-act="save"]')?.addEventListener("click", () => this.save());
@@ -479,13 +484,13 @@ export class StageEditor {
     const tintsSection = this.pendingTints ? this.renderTintsSection() : "";
     const tintScopeHint = this.pendingTints
       ? (this.pendingAtmosphere === "none"
-          ? `<div style="margin-top:2px;opacity:0.55;font-size:10px;">tints → base palette</div>`
-          : `<div style="margin-top:2px;opacity:0.55;font-size:10px;">tints → ${escapeHtml(this.pendingAtmosphere)} overlay</div>`)
+          ? `<div style="margin-top:2px;opacity:0.55;font-size:10px;">${escapeHtml(t(this.lang, "stage.world.tints.scope.base"))}</div>`
+          : `<div style="margin-top:2px;opacity:0.55;font-size:10px;">${escapeHtml(t(this.lang, "stage.world.tints.scope.overlay", {atmosphere: this.pendingAtmosphere}))}</div>`)
       : "";
     return `
-      <b>World</b>
+      <b>${escapeHtml(t(this.lang, "stage.world.heading"))}</b>
       <div style="margin-top:8px;font-variant-numeric:tabular-nums;font-size:12px;line-height:1.55;">
-        <div style="opacity:0.75;">default atmosphere</div>
+        <div style="opacity:0.75;">${escapeHtml(t(this.lang, "stage.world.atmosphere.label"))}</div>
         <div style="margin-bottom:4px;display:flex;gap:6px;align-items:center;">
           <select data-act="atmosphere-select"
             style="flex:1;padding:4px 6px;border:1px solid rgba(255,255,255,0.18);
@@ -501,20 +506,20 @@ export class StageEditor {
                    cursor:${dirty && !this.savingConfig ? "pointer" : "not-allowed"};
                    font:600 10.5px/1 system-ui,sans-serif;text-transform:uppercase;
                    letter-spacing:0.06em;">
-            ${this.savingConfig ? "…" : "Save"}
+            ${this.savingConfig ? "…" : escapeHtml(t(this.lang, "stage.world.atmosphere.save"))}
           </button>
         </div>
         ${tintsSection}
         ${tintScopeHint}
         ${statusLine}
-        <div style="opacity:0.75;margin-top:6px;">embedded</div>
+        <div style="opacity:0.75;margin-top:6px;">${escapeHtml(t(this.lang, "stage.world.embedded.label"))}</div>
         <div style="margin-bottom:6px;">
           <b style="color:${allEmbedded ? "rgba(180,235,180,1)" : "rgba(255,200,120,1)"};">${embedded} / ${total}</b>
-          ${allEmbedded ? "" : `&nbsp;<span style="opacity:0.6;">stale</span>`}
+          ${allEmbedded ? "" : `&nbsp;<span style="opacity:0.6;">${escapeHtml(t(this.lang, "stage.world.embedded.stale"))}</span>`}
         </div>
-        <div style="opacity:0.75;">model</div>
+        <div style="opacity:0.75;">${escapeHtml(t(this.lang, "stage.world.model"))}</div>
         <div style="margin-bottom:6px;font-size:11px;"><b>${escapeHtml(model)}</b></div>
-        <div style="opacity:0.75;">last embed</div>
+        <div style="opacity:0.75;">${escapeHtml(t(this.lang, "stage.world.lastembed"))}</div>
         <div style="font-size:11px;"><b>${ago}</b></div>
       </div>
       <button data-act="reembed" ${this.reEmbedding ? "disabled" : ""}
@@ -528,12 +533,14 @@ export class StageEditor {
                text-transform:uppercase;letter-spacing:0.06em;
                box-shadow:${this.polesStale() && !this.reEmbedding ? "0 0 0 2px rgba(255,170,80,0.35)" : "none"};
                transition:background 200ms,color 200ms,box-shadow 200ms;">
-        ${this.reEmbedding ? "Embedding…" : (this.polesStale() ? "Re-embed (poles stale)" : "Re-embed corpus")}
+        ${this.reEmbedding
+            ? escapeHtml(t(this.lang, "stage.world.reembed.busy"))
+            : (this.polesStale()
+                ? escapeHtml(t(this.lang, "stage.world.reembed.stale"))
+                : escapeHtml(t(this.lang, "stage.world.reembed")))}
       </button>
       <p style="margin:6px 0 0;opacity:0.55;font-size:10.5px;line-height:1.4;">
-        Runs <code style="background:rgba(0,0,0,0.25);padding:1px 4px;border-radius:3px;">world:embed</code>
-        via the admin endpoint. Requires the <i>edit world signature</i>
-        permission. Embedding compute remains external per BOUNDARY.md.
+        ${escapeHtml(t(this.lang, "stage.world.reembed.help"))}
       </p>`;
   }
 
@@ -551,7 +558,7 @@ export class StageEditor {
         headers: { Accept: "application/json" },
       });
       if (r.status === 401 || r.status === 403) {
-        message = "auth failed — log in as an editor with the 'edit world signature' permission";
+        message = t(this.lang, "status.auth.failed");
       } else if (!r.ok) {
         const body = await r.text().catch(() => "");
         message = `HTTP ${r.status} ${body.slice(0, 80)}`;
@@ -599,7 +606,7 @@ export class StageEditor {
   /** Phase 3 v2.1 — render the 3 color picker inputs. */
   private renderTintsSection(): string {
     if (!this.pendingTints) return "";
-    const t = this.pendingTints;
+    const t_pending = this.pendingTints;
     const row = (label: string, dataKey: string, value: string) => `
       <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
         <span style="flex:1;opacity:0.75;font-size:11.5px;">${escapeHtml(label)}</span>
@@ -610,9 +617,9 @@ export class StageEditor {
       </div>`;
     return `
       <div style="margin-top:8px;padding-top:6px;border-top:1px dashed rgba(255,255,255,0.08);">
-        ${row("background", "background", t.background)}
-        ${row("fog", "fogColor", t.fogColor)}
-        ${row("ground", "groundColor", t.groundColor)}
+        ${row(t(this.lang, "stage.world.tints.background"), "background", t_pending.background)}
+        ${row(t(this.lang, "stage.world.tints.fog"),        "fogColor",   t_pending.fogColor)}
+        ${row(t(this.lang, "stage.world.tints.ground"),     "groundColor",t_pending.groundColor)}
       </div>`;
   }
 
@@ -655,7 +662,7 @@ export class StageEditor {
         body: JSON.stringify(patch),
       });
       if (r.status === 401 || r.status === 403) {
-        message = "auth failed — need 'edit world signature' permission";
+        message = t(this.lang, "status.auth.failed");
       } else if (!r.ok) {
         const body = await r.text().catch(() => "");
         message = `HTTP ${r.status} ${body.slice(0, 80)}`;
@@ -663,8 +670,11 @@ export class StageEditor {
         const body = (await r.json()) as { updated?: string[] };
         const updated = body.updated ?? [];
         message = updated.length
-          ? `saved (${updated.length} key${updated.length === 1 ? "" : "s"})`
-          : "no change";
+          ? t(this.lang, "status.save.ok", {
+              count: updated.length,
+              keys: t(this.lang, updated.length === 1 ? "status.save.ok.keys.singular" : "status.save.ok.keys.plural"),
+            })
+          : t(this.lang, "status.save.nochange");
         ok = true;
       }
     } catch (e) {
@@ -729,20 +739,18 @@ export class StageEditor {
                      background:rgba(255,180,80,0.18);
                      border:1px solid rgba(255,180,80,0.35);
                      color:rgba(255,210,140,0.95);font-size:10.5px;line-height:1.4;">
-           ⚠ poles edited since last embed — re-embed to activate.
+           ${escapeHtml(t(this.lang, "stage.interpretation.stale"))}
          </div>`
       : "";
     return `
       <div style="margin-top:14px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.08);">
-        <b>Interpretation</b>
+        <b>${escapeHtml(t(this.lang, "stage.interpretation.heading"))}</b>
         <div style="margin-top:6px;opacity:0.6;font-size:10.5px;line-height:1.4;">
-          Anchor axes — the prose that mints meaning. Edits persist
-          immediately on save; the new poles take effect on the next
-          re-embed (axis vectors are computed server-side).
+          ${escapeHtml(t(this.lang, "stage.interpretation.help"))}
         </div>
         ${staleBanner}
         <div style="margin-top:8px;display:flex;gap:6px;align-items:center;">
-          <span style="opacity:0.75;font-size:11.5px;">axis</span>
+          <span style="opacity:0.75;font-size:11.5px;">${escapeHtml(t(this.lang, "stage.interpretation.axis"))}</span>
           <select data-act="axis-select"
             style="flex:1;padding:4px 6px;border:1px solid rgba(255,255,255,0.18);
                    border-radius:4px;background:rgba(0,0,0,0.25);color:#fff;
@@ -750,9 +758,9 @@ export class StageEditor {
             ${axisOpts}
           </select>
         </div>
-        ${fieldRow("name", "name", axis.name, false)}
-        ${fieldRow("pole a", "pole_a", axis.pole_a, true)}
-        ${fieldRow("pole b", "pole_b", axis.pole_b, true)}
+        ${fieldRow(t(this.lang, "stage.interpretation.field.name"),   "name",   axis.name,   false)}
+        ${fieldRow(t(this.lang, "stage.interpretation.field.pole_a"), "pole_a", axis.pole_a, true)}
+        ${fieldRow(t(this.lang, "stage.interpretation.field.pole_b"), "pole_b", axis.pole_b, true)}
         <button data-act="save-interp"
           ${(!dirty || this.savingInterpretation) ? "disabled" : ""}
           style="margin-top:8px;width:100%;padding:6px 12px;border:0;border-radius:4px;
@@ -761,7 +769,9 @@ export class StageEditor {
                  opacity:${dirty && !this.savingInterpretation ? "1" : "0.5"};
                  font:600 11px/1 system-ui,sans-serif;text-transform:uppercase;
                  letter-spacing:0.06em;">
-          ${this.savingInterpretation ? "Saving…" : "Save axes"}
+          ${this.savingInterpretation
+              ? escapeHtml(t(this.lang, "stage.interpretation.save.busy"))
+              : escapeHtml(t(this.lang, "stage.interpretation.save"))}
         </button>
         ${statusLine}
       </div>`;
@@ -812,7 +822,7 @@ export class StageEditor {
         body: JSON.stringify({ atmosphere: this.activeAtmosphere, axes }),
       });
       if (r.status === 401 || r.status === 403) {
-        message = "auth failed — need 'edit world signature' permission";
+        message = t(this.lang, "status.auth.failed");
       } else if (!r.ok) {
         const body = await r.text().catch(() => "");
         message = `HTTP ${r.status} ${body.slice(0, 80)}`;
@@ -821,8 +831,11 @@ export class StageEditor {
         const updated = body.updated ?? {};
         const count = Object.values(updated).reduce((n, fields) => n + fields.length, 0);
         message = count > 0
-          ? `saved (${count} field${count === 1 ? "" : "s"}) — re-embed to activate`
-          : "no change";
+          ? t(this.lang, "status.save.activate", {
+              n: count,
+              fields: t(this.lang, count === 1 ? "status.save.fields.singular" : "status.save.fields.plural"),
+            })
+          : t(this.lang, "status.save.nochange");
         ok = true;
       }
     } catch (e) {
@@ -838,13 +851,14 @@ export class StageEditor {
     this.renderPanel();
   }
 
-  /** Human-readable time-ago for a unix-seconds timestamp. */
+  /** Human-readable time-ago for a unix-seconds timestamp,
+   *  language-aware via the i18n catalog. */
   private formatTimeAgo(ts: number): string {
     const dt = Math.max(0, Math.floor(Date.now() / 1000 - ts));
-    if (dt < 60) return `${dt}s ago`;
-    if (dt < 3600) return `${Math.floor(dt / 60)}m ago`;
-    if (dt < 86400) return `${Math.floor(dt / 3600)}h ago`;
-    return `${Math.floor(dt / 86400)}d ago`;
+    if (dt < 60)    return t(this.lang, "time.seconds", {n: dt});
+    if (dt < 3600)  return t(this.lang, "time.minutes", {n: Math.floor(dt / 60)});
+    if (dt < 86400) return t(this.lang, "time.hours",   {n: Math.floor(dt / 3600)});
+    return t(this.lang, "time.days", {n: Math.floor(dt / 86400)});
   }
 
   private save(): void {
@@ -864,7 +878,7 @@ export class StageEditor {
     // localStorage is the silent fallback.
     void this.publishPlacements(placements);
     const original = this.toggleBtn.textContent;
-    this.toggleBtn.textContent = "SAVED ✓";
+    this.toggleBtn.textContent = t(this.lang, "stage.save.flash");
     setTimeout(() => { this.toggleBtn.textContent = original; }, 1200);
   }
 
