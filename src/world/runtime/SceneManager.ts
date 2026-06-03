@@ -28,6 +28,7 @@ import { sectorPadDecal } from "./sector-pad-texture.js";
 import { vantage } from "../vantage.js";
 import { WorldHud, type HudLabel } from "./hud/WorldHud.js";
 import { AtmosphereSwitcher } from "./hud/AtmosphereSwitcher.js";
+import { LanguageSwitcher, readStoredLanguage } from "./hud/LanguageSwitcher.js";
 import { CrossfadeOverlay } from "./hud/CrossfadeOverlay.js";
 import { StageEditor } from "./hud/StageEditor.js";
 import { AtmosphereAudio } from "./AtmosphereAudio.js";
@@ -178,6 +179,10 @@ export class SceneManager {
    * never touch it).
    */
   private atmosphereSwitcher: AtmosphereSwitcher | null = null;
+  private languageSwitcher: LanguageSwitcher | null = null;
+  /** ISO-639-1 code of the current snapshot language. Set from
+   *  `?lang=` query, localStorage, or browser language. */
+  private currentLang: string = readStoredLanguage(["en", "es"]);
   /**
    * Procedural per-atmosphere ambient audio. Created with the switcher;
    * silent until the user flips the sound toggle (autoplay etiquette).
@@ -252,6 +257,7 @@ export class SceneManager {
       // Start the render loop only after the scene is fully built.
       this.refreshLoopState();
       this.ensureAtmosphereSwitcher();
+      this.ensureLanguageSwitcher();
       await loader.hide();
     } catch (err) {
       loader.setMessage("world failed to load");
@@ -276,7 +282,19 @@ export class SceneManager {
   ): Promise<void> {
     const init: RequestInit = { headers: { Accept: "application/json" } };
     if (noStore) init.cache = "no-store";
-    const response = await fetch(url, init);
+    // Inject `?lang=` so the server's SnapshotPublisher::applyTranslationOverlay
+    // swaps each descriptor's title/summary/body to the active language.
+    // 3D positions stay language-agnostic — same world, different labels.
+    const fetchUrl = (() => {
+      try {
+        const u = new URL(url, window.location.href);
+        u.searchParams.set("lang", this.currentLang);
+        return u.toString();
+      } catch {
+        return url;
+      }
+    })();
+    const response = await fetch(fetchUrl, init);
     if (!response.ok) {
       loader?.setMessage(`snapshot fetch failed: HTTP ${response.status}`);
       throw new Error(`snapshot fetch failed: HTTP ${response.status}`);
@@ -597,6 +615,24 @@ export class SceneManager {
    * skin calls switchAtmosphere(name), which previews it via the
    * read-only ?atmosphere= hint (no node write).
    */
+  /**
+   * Language switcher (sibling to the atmosphere pill, bottom-right).
+   * Clicking a language code reloads the page with `?lang=<code>` —
+   * the server's SnapshotPublisher reads the param and swaps each
+   * descriptor's title/summary/body to that language at response time.
+   * 3D positions stay constant — same world, different labels.
+   */
+  private ensureLanguageSwitcher(): void {
+    if (this.languageSwitcher) return;
+    this.languageSwitcher = new LanguageSwitcher({
+      languages: [
+        { code: "en", label: "EN" },
+        { code: "es", label: "ES" },
+      ],
+      initial: this.currentLang,
+    });
+  }
+
   private ensureAtmosphereSwitcher(): void {
     const active = this.palette.activeAtmosphere ?? "none";
     if (this.atmosphereSwitcher) {

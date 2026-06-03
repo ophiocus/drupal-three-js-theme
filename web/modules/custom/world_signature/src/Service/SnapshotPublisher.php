@@ -97,7 +97,7 @@ final class SnapshotPublisher {
    *   cacheability: \Drupal\Core\Cache\CacheableMetadata,
    * }
    */
-  public function buildSnapshot(?string $atmosphereOverride = NULL): array {
+  public function buildSnapshot(?string $atmosphereOverride = NULL, ?string $lang = NULL): array {
     $descriptors = $this->client->findAll();
 
     // ALPHA 1: the world's characteristics are declared as content.
@@ -131,6 +131,14 @@ final class SnapshotPublisher {
       // unless we're shipping it for client-side interpretation.
       if (!$shipEmbeddings && isset($d['signature']['semantic']['embedding'])) {
         unset($d['signature']['semantic']['embedding']);
+      }
+      // i18n: swap title/summary/bodyText to the requested language
+      // when the source node carries a translation. Embeddings stay
+      // language-agnostic (computed once from default-lang content)
+      // so the 3D layout is consistent across language switches —
+      // same world, different labels. See world_seed README §i18n.
+      if ($lang !== NULL && $lang !== 'en') {
+        $this->applyTranslationOverlay($d, (string) $id, $lang);
       }
       $entities[$id] = $d;
     }
@@ -432,6 +440,47 @@ final class SnapshotPublisher {
       }
     }
     return $layers === [] ? NULL : ['layers' => $layers];
+  }
+
+  /**
+   * Mutate the descriptor in place — swap title/summary/bodyText to
+   * the target language when the source node has a translation.
+   * Embeddings, signature, sector, etc. stay as-is. Silently noop
+   * when the descriptor id isn't node-shaped, or the node/translation
+   * doesn't exist.
+   */
+  private function applyTranslationOverlay(array &$descriptor, string $id, string $lang): void {
+    // Descriptor ids follow `node-<nid>` from DescriptorBuilder.
+    if (!preg_match('/^node-(\d+)$/', $id, $m)) {
+      return;
+    }
+    $nid = (int) $m[1];
+    try {
+      $node = $this->entityTypeManager->getStorage('node')->load($nid);
+    }
+    catch (\Throwable) {
+      return;
+    }
+    if ($node === NULL || !$node->isTranslatable() || !$node->hasTranslation($lang)) {
+      return;
+    }
+    $tr = $node->getTranslation($lang);
+    $title = (string) $tr->label();
+    $body = '';
+    if ($tr->hasField('body') && !$tr->get('body')->isEmpty()) {
+      $body = (string) $tr->get('body')->value;
+    }
+    if ($title !== '') {
+      $descriptor['title'] = $title;
+    }
+    if ($body !== '') {
+      $descriptor['bodyText'] = strip_tags($body);
+      // Quick summary: first 140 chars trimmed at word boundary.
+      $stripped = trim(preg_replace('/\s+/', ' ', strip_tags($body)) ?? '');
+      if ($stripped !== '') {
+        $descriptor['summary'] = mb_substr($stripped, 0, 140);
+      }
+    }
   }
 
   private function loadPalette(?string $atmosphereOverride = NULL): array {

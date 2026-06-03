@@ -62,12 +62,61 @@ export function computeLayout(snapshot: CorpusSnapshot): Map<string, Vec3> | nul
   if (cloud.size === 0) {
     cloud = projectMds3D(embeddings, targetRadius);
   }
+  // Temporal rule (overdrive metaverse-rules slice): pull *newer*
+  // entities toward the cloud's centroid and push *older* ones
+  // outward. Same world, different gravity — a piece of fresh
+  // reporting orbits closer to the camera's natural settle; an
+  // archival piece sits in the outer constellation. The shift is
+  // proportional, ±15% of the entity's initial radius, so the
+  // embedding-driven layout still dominates and the temporal
+  // signal is a second-order modulation.
+  applyTemporalShift(cloud, snapshot);
   const baseY = snapshot.world.overviewHeight * 0.6;
   const out = new Map<string, Vec3>();
   for (const [id, p] of cloud) {
     out.set(id, { x: p.x, y: p.y + baseY, z: p.z });
   }
   return out;
+}
+
+/** Per-entity radial shift toward (newer) or away from (older) the
+ *  cloud's centroid, normalised over the corpus's createdAt range.
+ *  Mutates the cloud in place. No-op when fewer than 2 entities have
+ *  a temporal signal, or all entities share a timestamp. */
+function applyTemporalShift(
+  cloud: Map<string, Vec3>,
+  snapshot: CorpusSnapshot,
+): void {
+  const n = cloud.size;
+  if (n < 2) return;
+  const ages = new Map<string, number>();
+  let oldest = Infinity, newest = -Infinity;
+  for (const id of cloud.keys()) {
+    const e = snapshot.entities[id];
+    const t = e?.signature?.temporal?.createdAt;
+    if (typeof t === "number" && t > 0) {
+      ages.set(id, t);
+      if (t < oldest) oldest = t;
+      if (t > newest) newest = t;
+    }
+  }
+  if (ages.size === 0 || oldest === newest) return;
+  const span = newest - oldest;
+  let cx = 0, cy = 0, cz = 0;
+  for (const p of cloud.values()) { cx += p.x; cy += p.y; cz += p.z; }
+  cx /= n; cy /= n; cz /= n;
+  const TEMPORAL_GAIN = 0.15;          // ±15% radial nudge
+  for (const [id, p] of cloud) {
+    const t = ages.get(id);
+    if (t === undefined) continue;
+    const ageNorm = (t - oldest) / span;                       // 0 = oldest, 1 = newest
+    const factor = 1 + TEMPORAL_GAIN * (1 - 2 * ageNorm);      // oldest → 1.15, newest → 0.85
+    cloud.set(id, {
+      x: cx + (p.x - cx) * factor,
+      y: cy + (p.y - cy) * factor,
+      z: cz + (p.z - cz) * factor,
+    });
+  }
 }
 
 /**

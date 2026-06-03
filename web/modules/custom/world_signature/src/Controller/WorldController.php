@@ -42,6 +42,10 @@ final class WorldController extends ControllerBase {
    */
   private const array ATMOSPHERE_HINTS = ['none', 'forest', 'inner-mind'];
 
+  /** Languages a `?lang=` hint may select. Mirrors the configured
+   *  Drupal languages; keep in sync when a new language is enabled. */
+  private const array LANGUAGE_HINTS = ['en', 'es'];
+
   public function __construct(
     private readonly WorldSearchClient $client,
     private readonly SnapshotPublisher $publisher,
@@ -103,8 +107,12 @@ final class WorldController extends ControllerBase {
     $override = (is_string($hint) && in_array($hint, self::ATMOSPHERE_HINTS, TRUE))
       ? $hint
       : NULL;
+    $langHint = $request->query->get('lang');
+    $lang = (is_string($langHint) && in_array($langHint, self::LANGUAGE_HINTS, TRUE))
+      ? $langHint
+      : NULL;
     try {
-      $result = $this->publisher->buildSnapshot($override);
+      $result = $this->publisher->buildSnapshot($override, $lang);
     }
     catch (\RuntimeException $e) {
       return new JsonResponse([
@@ -117,7 +125,7 @@ final class WorldController extends ControllerBase {
     // Vary the cache by the hint so a forest preview can't be served
     // from an inner-mind-cached entry (or vice versa).
     $hintMeta = new CacheableMetadata();
-    $hintMeta->addCacheContexts(['url.query_args:atmosphere']);
+    $hintMeta->addCacheContexts(['url.query_args:atmosphere', 'url.query_args:lang']);
     $response->addCacheableDependency($hintMeta);
     // Light client cache; the renderer fetches once per page load.
     $response->setMaxAge(60);

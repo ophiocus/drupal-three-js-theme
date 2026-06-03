@@ -64,20 +64,34 @@ final class Seeder {
     $dataDir = $modulePath . '/data';
 
     $admin = $this->ensureAdmin();
-    $authors = $this->seedAuthors($this->loadJson($dataDir . '/authors.json'));
+    // Spanish translations are loaded as parallel arrays (same index =
+    // same entity, ES title/body). When the file is absent the seeder
+    // falls back to English-only — never errors.
+    $authorsEs = $this->maybeLoadJson($dataDir . '/authors_es.json');
+    $articlesEs = $this->maybeLoadJson($dataDir . '/articles_es.json');
+    $eventsEs = $this->maybeLoadJson($dataDir . '/events_es.json');
+    $profilesEs = $this->maybeLoadJson($dataDir . '/profiles_es.json');
+
+    $authors = $this->seedAuthors(
+      $this->loadJson($dataDir . '/authors.json'),
+      $authorsEs,
+    );
     $sectors = $this->seedSectors($this->loadJson($dataDir . '/sectors.json'));
     $articleCount = $this->seedArticles(
       $this->loadJson($dataDir . '/articles.json'),
+      $articlesEs,
       $authors,
       $sectors,
     );
     $eventCount = $this->seedEvents(
       $this->loadJson($dataDir . '/events.json'),
+      $eventsEs,
       $admin['uid'],
       $sectors,
     );
     $profileCount = $this->seedProfiles(
       $this->loadJson($dataDir . '/profiles.json'),
+      $profilesEs,
       $admin['uid'],
       $sectors,
     );
@@ -144,11 +158,12 @@ final class Seeder {
     return ['uid' => (int) $admin->id(), 'password' => $password];
   }
 
-  /** Create author User entities, populate bio + themes. */
-  private function seedAuthors(array $records): array {
+  /** Create author User entities, populate bio + themes, with Spanish
+   *  bio translation when provided. */
+  private function seedAuthors(array $records, array $esRecords = []): array {
     $handleToUid = [];
     $uuids = [];
-    foreach ($records as $r) {
+    foreach ($records as $idx => $r) {
       $existing = user_load_by_name($r['handle']);
       if ($existing) {
         // Re-purpose the existing user (rare — purge should have cleaned).
@@ -176,11 +191,25 @@ final class Seeder {
       if ($user->hasField('field_user_themes')) {
         $user->set('field_user_themes', $r['themes']);
       }
-      // Store display name in the standard `realname` slot? Drupal
-      // core doesn't ship one; the cleanest seam is the user's
-      // settings entry. For now we tuck the display name into the
-      // user's signature so it's at least visible.
       $user->save();
+
+      // Spanish translation of the bio (themes don't translate — they're
+      // semantic tags). User entity must be translatable; if it isn't
+      // (no language module yet), the addTranslation call is silently
+      // skipped by Drupal.
+      $esBio = ($esRecords[$idx]['bio'] ?? '') ?: '';
+      if ($esBio !== '' && $user->isTranslatable() && !$user->hasTranslation('es')) {
+        try {
+          $tr = $user->addTranslation('es', $user->toArray());
+          if ($tr->hasField('field_user_bio')) {
+            $tr->set('field_user_bio', ['value' => $esBio, 'format' => 'basic_html']);
+          }
+          $tr->save();
+        }
+        catch (\Throwable $e) {
+          $this->logger->warning('User translation skipped for @h: @m', ['@h' => $r['handle'], '@m' => $e->getMessage()]);
+        }
+      }
       $handleToUid[$r['handle']] = (int) $user->id();
       $uuids[] = $user->uuid();
     }
@@ -216,9 +245,9 @@ final class Seeder {
   }
 
   /** Create article nodes, owned by their author handle, sector-tagged. */
-  private function seedArticles(array $records, array $authors, array $sectors): int {
+  private function seedArticles(array $records, array $esRecords, array $authors, array $sectors): int {
     $uuids = [];
-    foreach ($records as $r) {
+    foreach ($records as $idx => $r) {
       $uid = $authors[$r['author']] ?? 1;
       $tid = $sectors[$r['region']] ?? NULL;
       $node = Node::create([
@@ -233,6 +262,7 @@ final class Seeder {
         'field_world_sector' => $tid ? [['target_id' => $tid]] : [],
       ]);
       $node->save();
+      $this->maybeAddSpanish($node, $esRecords[$idx] ?? NULL);
       $uuids[] = $node->uuid();
     }
     $this->stampUuids('node', $uuids);
@@ -240,9 +270,9 @@ final class Seeder {
   }
 
   /** Create event nodes (system-authored). */
-  private function seedEvents(array $records, int $adminUid, array $sectors): int {
+  private function seedEvents(array $records, array $esRecords, int $adminUid, array $sectors): int {
     $uuids = $this->stampedUuids('node');
-    foreach ($records as $r) {
+    foreach ($records as $idx => $r) {
       $tid = $sectors[$r['region']] ?? NULL;
       $node = Node::create([
         'type' => 'event',
@@ -256,6 +286,7 @@ final class Seeder {
         'field_world_sector' => $tid ? [['target_id' => $tid]] : [],
       ]);
       $node->save();
+      $this->maybeAddSpanish($node, $esRecords[$idx] ?? NULL);
       $uuids[] = $node->uuid();
     }
     $this->stampUuids('node', $uuids);
@@ -263,9 +294,9 @@ final class Seeder {
   }
 
   /** Create profile nodes (biographies of real coffee people; system-authored). */
-  private function seedProfiles(array $records, int $adminUid, array $sectors): int {
+  private function seedProfiles(array $records, array $esRecords, int $adminUid, array $sectors): int {
     $uuids = $this->stampedUuids('node');
-    foreach ($records as $r) {
+    foreach ($records as $idx => $r) {
       $tid = $sectors[$r['region']] ?? NULL;
       $node = Node::create([
         'type' => 'profile',
@@ -279,13 +310,48 @@ final class Seeder {
         'field_world_sector' => $tid ? [['target_id' => $tid]] : [],
       ]);
       $node->save();
+      $this->maybeAddSpanish($node, $esRecords[$idx] ?? NULL);
       $uuids[] = $node->uuid();
     }
     $this->stampUuids('node', $uuids);
     return count($records);
   }
 
+  /**
+   * Add a Spanish translation to a freshly-saved node when the
+   * translation record is present. Silent on failure — content
+   * translation isn't a hard requirement for the seed to succeed,
+   * but when language modules are enabled we get the i18n cleanly.
+   */
+  private function maybeAddSpanish($node, ?array $es): void {
+    if (!is_array($es) || empty($es['title']) || empty($es['body'])) {
+      return;
+    }
+    if (!$node->isTranslatable() || $node->hasTranslation('es')) {
+      return;
+    }
+    try {
+      $tr = $node->addTranslation('es', $node->toArray());
+      $tr->set('title', $es['title']);
+      $tr->set('body', ['value' => $es['body'], 'format' => 'basic_html']);
+      $tr->save();
+    }
+    catch (\Throwable $e) {
+      $this->logger->warning('Node translation skipped for nid=@n: @m', [
+        '@n' => $node->id(), '@m' => $e->getMessage(),
+      ]);
+    }
+  }
+
   // ─── helpers ──────────────────────────────────────────────────────────────
+
+  /** Same as loadJson but returns [] when the file is missing. */
+  private function maybeLoadJson(string $path): array {
+    if (!is_readable($path)) {
+      return [];
+    }
+    return $this->loadJson($path);
+  }
 
   /** Load JSON file, decode, fail with a clear error. */
   private function loadJson(string $path): array {

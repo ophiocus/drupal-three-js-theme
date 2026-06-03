@@ -139,7 +139,14 @@ final class DescriptorBuilder {
     if ($body === '') {
       return $title;
     }
-    return $title . ".\n\n" . $body;
+    // Weighted title: repeat the title three times so the embedder
+    // gives the title's vocabulary three times the weight of any
+    // single body sentence. Titles tend to carry the editorial
+    // intent of the entity more sharply than body prose, and
+    // weighting them improves the signal-to-noise ratio of the
+    // resulting embedding noticeably for short-body corpora.
+    // (Cheap; the embedder runs once per node.)
+    return $title . ". " . $title . ". " . $title . ".\n\n" . $body;
   }
 
   /**
