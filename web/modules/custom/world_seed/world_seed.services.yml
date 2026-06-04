@@ -6,7 +6,5 @@ services:
     arguments:
       - '@entity_type.manager'
       - '@password_generator'
-      - '@module_handler'
       - '@extension.path.resolver'
-      - '@file_system'
       - '@logger.channel.world_signature'

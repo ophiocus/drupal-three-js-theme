@@ -4,6 +4,9 @@ dependencies:
   module:
     - text
     - user
+  enforced:
+    module:
+      - world_seed
 id: user.field_user_themes
 field_name: field_user_themes
 entity_type: user

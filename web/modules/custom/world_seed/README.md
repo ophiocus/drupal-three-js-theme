@@ -1,7 +1,30 @@
 # world_seed
 
-The site's canonical bring-up module. Installing it lands the demo
-corpus exactly as the rest of the project documents it.
+The site's canonical bring-up. **One command**, repeatable, no
+post-install ceremony:
+
+```bash
+ddev drush en world_seed -y
+```
+
+That's it. After that command settles, the world is in its canonical
+demo state: admin user (uid=1), six authors with bios + writing
+themes, five sector taxonomy terms, 100 articles, 15 events, 15
+biographies, plus Spanish translations of all content and an embed
+pass for the corpus. If the gateway is unreachable the embed step is
+skipped with a notice and `drush world:embed` picks it up later.
+
+## Re-running
+
+```bash
+# Re-seed in place (purges only marker-stamped seeded entities,
+# leaves manually-authored content alone):
+ddev drush world:seed
+
+# Full reset (uninstall removes the seeded fields via enforced
+# dependencies; reinstall lands them again clean):
+ddev drush pmu world_seed -y && ddev drush en world_seed -y
+```
 
 ## What ships
 
