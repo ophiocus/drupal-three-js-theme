@@ -9,6 +9,7 @@
 // All this component does is choose which lang to ask for.
 
 import { t, type Lang } from "./i18n.js";
+import { getCurrentLang, setCurrentLang, SUPPORTED_LANGUAGES } from "./lang.js";
 
 export interface LanguageOption {
   /** ISO-639-1 code (en, es, ...). Sent to the server as ?lang=<code>. */
@@ -26,34 +27,9 @@ export interface LanguageSwitcherOptions {
   onSelect?: (code: string) => void;
 }
 
-const STORAGE_KEY = "world.lang";
-
-/** Read the user's stored language preference, falling back through
- *  URL `?lang=` → localStorage → browser language → `fallback`. URL
- *  wins so deep-links survive a stored preference. Consumed by
- *  SceneManager to decide the initial `?lang=` for the snapshot. */
-export function readStoredLanguage(supported: ReadonlyArray<string>, fallback = "en"): string {
-  // 1. URL query — deep links win.
-  try {
-    const url = new URL(window.location.href);
-    const fromUrl = url.searchParams.get("lang");
-    if (fromUrl && supported.includes(fromUrl)) {
-      // Persist what the deep link asked for so subsequent navigations
-      // keep the language without needing the param.
-      try { window.localStorage.setItem(STORAGE_KEY, fromUrl); } catch { /* swallow */ }
-      return fromUrl;
-    }
-  } catch { /* malformed URL — fall through */ }
-  // 2. Stored preference.
-  try {
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (stored && supported.includes(stored)) return stored;
-  } catch { /* private browsing — fall through */ }
-  // 3. Browser hint: navigator.language is "es-CO", "en-US", etc.
-  const browser = (navigator.language ?? "").slice(0, 2).toLowerCase();
-  if (browser && supported.includes(browser)) return browser;
-  return fallback;
-}
+/** Re-export `getCurrentLang` from the canonical lang module so
+ *  existing call sites that imported it from here keep working. */
+export { getCurrentLang as readStoredLanguage } from "./lang.js";
 
 export class LanguageSwitcher {
   private readonly root: HTMLDivElement;
@@ -122,18 +98,16 @@ export class LanguageSwitcher {
 
   private select(code: string): void {
     this.setActive(code);
-    try {
-      window.localStorage.setItem(STORAGE_KEY, code);
-    } catch { /* swallow */ }
+    setCurrentLang(code as Lang);
     if (this.options.onSelect) {
       this.options.onSelect(code);
       return;
     }
-    // Default: reload with the new lang preserved. Atmosphere preview
-    // hint (if any) survives — we only replace the `lang` param.
-    const url = new URL(window.location.href);
-    url.searchParams.set("lang", code);
-    window.location.href = url.toString();
+    // Default: reload so SceneManager re-fetches the snapshot in the
+    // new language. Don't bake `?lang=` into the URL — localStorage
+    // is the persistent truth now, and a URL param would re-seed on
+    // every reload, defeating the persistence guarantee.
+    window.location.reload();
   }
 
   private buttonCss(isActive: boolean): string {

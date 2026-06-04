@@ -28,7 +28,8 @@ import { sectorPadDecal } from "./sector-pad-texture.js";
 import { vantage } from "../vantage.js";
 import { WorldHud, type HudLabel } from "./hud/WorldHud.js";
 import { AtmosphereSwitcher } from "./hud/AtmosphereSwitcher.js";
-import { LanguageSwitcher, readStoredLanguage } from "./hud/LanguageSwitcher.js";
+import { LanguageSwitcher } from "./hud/LanguageSwitcher.js";
+import { consumeUrlLang, getCurrentLang, withLangQuery } from "./hud/lang.js";
 import { t as i18n, type Lang } from "./hud/i18n.js";
 import { CrossfadeOverlay } from "./hud/CrossfadeOverlay.js";
 import { StageEditor } from "./hud/StageEditor.js";
@@ -181,9 +182,12 @@ export class SceneManager {
    */
   private atmosphereSwitcher: AtmosphereSwitcher | null = null;
   private languageSwitcher: LanguageSwitcher | null = null;
-  /** ISO-639-1 code of the current snapshot language. Set from
-   *  `?lang=` query, localStorage, or browser language. */
-  private currentLang: Lang = readStoredLanguage(["en", "es"]) as Lang;
+  /** ISO-639-1 code of the current snapshot language. The active
+   *  language lives in localStorage — see src/world/runtime/hud/lang.ts.
+   *  consumeUrlLang() runs first so a deep-link `?lang=` seeds the
+   *  store (and is then stripped from the URL); getCurrentLang() is
+   *  the canonical read everywhere else. */
+  private currentLang: Lang = (() => { consumeUrlLang(); return getCurrentLang(); })();
   /**
    * Procedural per-atmosphere ambient audio. Created with the switcher;
    * silent until the user flips the sound toggle (autoplay etiquette).
@@ -283,19 +287,11 @@ export class SceneManager {
   ): Promise<void> {
     const init: RequestInit = { headers: { Accept: "application/json" } };
     if (noStore) init.cache = "no-store";
-    // Inject `?lang=` so the server's SnapshotPublisher::applyTranslationOverlay
-    // swaps each descriptor's title/summary/body to the active language.
-    // 3D positions stay language-agnostic — same world, different labels.
-    const fetchUrl = (() => {
-      try {
-        const u = new URL(url, window.location.href);
-        u.searchParams.set("lang", this.currentLang);
-        return u.toString();
-      } catch {
-        return url;
-      }
-    })();
-    const response = await fetch(fetchUrl, init);
+    // Tell the server which language to overlay descriptor
+    // title/summary/body to. 3D positions stay language-agnostic —
+    // same world, different labels. Single source of truth via
+    // withLangQuery() → getCurrentLang() → localStorage.
+    const response = await fetch(withLangQuery(url), init);
     if (!response.ok) {
       loader?.setMessage(`snapshot fetch failed: HTTP ${response.status}`);
       throw new Error(`snapshot fetch failed: HTTP ${response.status}`);

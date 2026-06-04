@@ -29,6 +29,7 @@ import * as THREE from "../../toolbox/three.js";
 import type { HtmlSurface, HtmlSurfaceOptions } from "./HtmlSurface.js";
 import type { SurfaceCache } from "./SurfaceCache.js";
 import type { SmartObject } from "./smart-objects/SmartObject.js";
+import { withLangQuery } from "./hud/lang.js";
 import { HtmlSurfaceComponent } from "./smart-objects/components/HtmlSurfaceComponent.js";
 import { TriggerPadComponent } from "./smart-objects/components/TriggerPadComponent.js";
 
@@ -872,35 +873,9 @@ class CardOverlay {
 }
 
 async function fetchCardHtml(url: string): Promise<string> {
-  const r = await fetch(withCurrentLang(url), { headers: { Accept: "text/html" } });
+  const r = await fetch(withLangQuery(url), { headers: { Accept: "text/html" } });
   if (!r.ok) throw new Error(`HTTP ${r.status}`);
   return r.text();
-}
-
-/**
- * Append the current `?lang=` to a card-endpoint URL. The active
- * language is the same one the SnapshotPublisher used to overlay
- * descriptor titles/summaries: URL query first (deep links win),
- * then localStorage, then 'en'. Without this the canvas would show
- * Spanish labels while clicking opens English cards.
- */
-function withCurrentLang(url: string): string {
-  try {
-    const lang = (() => {
-      const u = new URL(window.location.href);
-      const fromUrl = u.searchParams.get("lang");
-      if (fromUrl) return fromUrl;
-      try { return window.localStorage.getItem("world.lang") ?? ""; }
-      catch { return ""; }
-    })();
-    if (!lang) return url;
-    const out = new URL(url, window.location.href);
-    out.searchParams.set("lang", lang);
-    // Return path+query if the input was relative; full URL otherwise.
-    return url.startsWith("/") ? out.pathname + out.search : out.toString();
-  } catch {
-    return url;
-  }
 }
 
 // HtmlSurfaceOptions re-export so the SceneManager doesn't need a
