@@ -459,8 +459,17 @@ final class WorldController extends ControllerBase {
    * Drupal-rendered HTML for the requested entity in the requested
    * view mode. The FullView card mounts this into the DOM overlay.
    * Respects entity access — unpublished/restricted entities 404.
+   *
+   * Honors `?lang=<code>` exactly like /world/snapshot/full: when the
+   * entity has a translation for the requested language the view
+   * builder is asked to render that translation, with the renderer's
+   * language context flipped so theme templates pick up the right
+   * locale for any field formatters that themselves localize (date
+   * formats, plural rules, etc.). Without this fix the label
+   * projection on the canvas would be Spanish (from the snapshot
+   * overlay) but the card opened on click would render English.
    */
-  public function card(string $entity_type, string $id, string $view_mode): Response {
+  public function card(string $entity_type, string $id, string $view_mode, Request $request): Response {
     try {
       $storage = $this->entityTypeManager()->getStorage($entity_type);
     }
@@ -473,6 +482,19 @@ final class WorldController extends ControllerBase {
       throw new NotFoundHttpException(sprintf('No %s/%s.', $entity_type, $id));
     }
 
+    // i18n: pick the translation matching ?lang= when present, falling
+    // back to the entity's default langcode on any miss. The validation
+    // mirrors the snapshot endpoint's LANGUAGE_HINTS to avoid arbitrary
+    // strings reaching the language manager.
+    $langHint = $request->query->get('lang');
+    $lang = (is_string($langHint) && in_array($langHint, self::LANGUAGE_HINTS, TRUE))
+      ? $langHint
+      : NULL;
+    if ($lang !== NULL && $entity instanceof \Drupal\Core\Entity\TranslatableInterface
+        && $entity->hasTranslation($lang)) {
+      $entity = $entity->getTranslation($lang);
+    }
+
     try {
       $view_builder = $this->entityTypeManager()->getViewBuilder($entity_type);
     }
@@ -482,11 +504,14 @@ final class WorldController extends ControllerBase {
       );
     }
 
-    $build = $view_builder->view($entity, $view_mode);
+    $renderLang = $lang ?? $entity->language()->getId();
+    $build = $view_builder->view($entity, $view_mode, $renderLang);
     $html = (string) \Drupal::service('renderer')->renderRoot($build);
 
     $response = new Response($html, 200, ['Content-Type' => 'text/html; charset=utf-8']);
-    // Cards are publishable content; allow short caching.
+    // Cards are publishable content; allow short caching. Vary by
+    // the lang query so the cache splits cleanly between languages.
+    $response->setVary('Accept-Language');
     $response->setMaxAge(300);
     return $response;
   }

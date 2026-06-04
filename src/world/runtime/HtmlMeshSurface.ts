@@ -74,9 +74,26 @@ export class HtmlMeshSurface extends HtmlSurface {
 }
 
 async function fetchFragment(url: string): Promise<string> {
-  const r = await fetch(url, { headers: { Accept: "text/html" } });
+  const r = await fetch(withCurrentLang(url), { headers: { Accept: "text/html" } });
   if (!r.ok) {
     throw new Error(`HtmlMeshSurface fetch ${url} failed: HTTP ${r.status}`);
   }
   return r.text();
+}
+
+/** Append `?lang=` to a card-endpoint URL so the mesh surface paints
+ *  the translated content. Mirrors the helper in CardController. */
+function withCurrentLang(url: string): string {
+  try {
+    const u = new URL(window.location.href);
+    const fromUrl = u.searchParams.get("lang");
+    const lang = fromUrl
+      || (() => { try { return window.localStorage.getItem("world.lang") ?? ""; } catch { return ""; } })();
+    if (!lang) return url;
+    const out = new URL(url, window.location.href);
+    out.searchParams.set("lang", lang);
+    return url.startsWith("/") ? out.pathname + out.search : out.toString();
+  } catch {
+    return url;
+  }
 }
