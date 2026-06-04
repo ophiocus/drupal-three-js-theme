@@ -76,7 +76,11 @@ final class Seeder {
       $this->loadJson($dataDir . '/authors.json'),
       $authorsEs,
     );
-    $sectors = $this->seedSectors($this->loadJson($dataDir . '/sectors.json'));
+    $sectorsEs = $this->maybeLoadJson($dataDir . '/sectors_es.json');
+    $sectors = $this->seedSectors(
+      $this->loadJson($dataDir . '/sectors.json'),
+      $sectorsEs,
+    );
     $articleCount = $this->seedArticles(
       $this->loadJson($dataDir . '/articles.json'),
       $articlesEs,
@@ -217,8 +221,9 @@ final class Seeder {
     return $handleToUid;
   }
 
-  /** Create sector terms in the topics vocabulary. */
-  private function seedSectors(array $records): array {
+  /** Create sector terms in the topics vocabulary, with Spanish
+   *  translations when available + the taxonomy is translatable. */
+  private function seedSectors(array $records, array $esRecords = []): array {
     // Topics vocab is shipped by world_signature; create if missing.
     $vocab = Vocabulary::load('topics');
     if (!$vocab) {
@@ -229,6 +234,14 @@ final class Seeder {
       ]);
       $vocab->save();
     }
+    // Build a slug → es-name map so a missing or reordered ES file
+    // still matches by slug (not by index).
+    $esBySlug = [];
+    foreach ($esRecords as $er) {
+      if (isset($er['slug'], $er['name'])) {
+        $esBySlug[$er['slug']] = (string) $er['name'];
+      }
+    }
     $slugToTid = [];
     $uuids = [];
     foreach ($records as $r) {
@@ -237,6 +250,22 @@ final class Seeder {
         'name' => $r['name'],
       ]);
       $term->save();
+      // Spanish translation of the term name. If the taxonomy isn't
+      // translatable (config/optional didn't land for some reason),
+      // addTranslation throws and we skip silently.
+      $esName = $esBySlug[$r['slug']] ?? '';
+      if ($esName !== '' && $term->isTranslatable() && !$term->hasTranslation('es')) {
+        try {
+          $tr = $term->addTranslation('es', $term->toArray());
+          $tr->set('name', $esName);
+          $tr->save();
+        }
+        catch (\Throwable $e) {
+          $this->logger->warning('Term translation skipped for @s: @m', [
+            '@s' => $r['slug'], '@m' => $e->getMessage(),
+          ]);
+        }
+      }
       $slugToTid[$r['slug']] = (int) $term->id();
       $uuids[] = $term->uuid();
     }
