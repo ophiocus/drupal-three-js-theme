@@ -195,11 +195,24 @@ final class Seeder {
         $esBySlug[$er['slug']] = (string) $er['name'];
       }
     }
+    $termStorage = $this->entityTypeManager->getStorage('taxonomy_term');
     $slugToTid = [];
     $uuids = [];
     foreach ($records as $r) {
-      $term = Term::create(['vid' => 'topics', 'name' => $r['name']]);
-      $term->save();
+      // Reuse an existing term with the same name if one is already
+      // present in the topics vocab — different bring-up paths
+      // (this module, the legacy scaffold script, manual editorial
+      // creation) can all reasonably have minted "Antigua, Guatemala"
+      // once already. Without this guard the renderer would draw a
+      // duplicate sector ring slice per duplicate term.
+      $existing = $termStorage->loadByProperties([
+        'vid' => 'topics',
+        'name' => $r['name'],
+      ]);
+      $term = $existing ? reset($existing) : Term::create(['vid' => 'topics', 'name' => $r['name']]);
+      if (!$existing) {
+        $term->save();
+      }
       $this->addEsTranslation(
         $term,
         bio: $esBySlug[$r['slug']] ?? '',
