@@ -1,106 +1,902 @@
 [
-  {"author": "mcervantes",  "region": "antigua", "title": "Why Antigua's volcanic soil shows up in the cup", "body": "Acatenango and Fuego dust their slopes with mineral-rich ash every few years. The soils that result drain fast, hold cation exchange capacity well above lowland averages, and keep coffee trees stressed enough to produce dense, complex seeds. Antigua cups land medium-bodied with chocolate, hazelnut, and a bright but never sharp acidity — a profile that isn't an accident."},
-  {"author": "mcervantes",  "region": "antigua", "title": "The Pacas × Maragogipe cross arrives in Acatenango", "body": "Pacamara — the El Salvador-bred cross that pulled large Maragogipe beans into Pacas's compact tree — has been creeping into Antigua's experimental plots for five seasons. Producers report a wider flavor window and yields about 15% below classic Bourbon. The plant's habit shows: open canopy, oversized cherries, and a stubborn refusal to ripen in lock-step."},
-  {"author": "mcervantes",  "region": "antigua", "title": "Pink Bourbon in Antigua: three farms, three results", "body": "Pink Bourbon's reputation arrived from Tolima with a promise of floral cups at any altitude. In Antigua, three farms ran trial plots through 2024–2026: one cupped at 88.4, one at 85.1, one didn't make 84. The lesson, producers say, isn't about the varietal — it's about microclimate at the 1,600–1,700 m band."},
-  {"author": "jruvalcaba", "region": "antigua", "title": "Acatenango's eruption cycle and the mineralogy of next year's cherry", "body": "Acatenango erupted in October 2024. The ash plume drifted east-southeast for nine hours, depositing 0.3–1.1 cm of fresh tephra across the Antigua coffee belt. The mineralogy was unusually silica-rich. Producers won't see the cup-side effect until the 2026 harvest — but soil samples from the impacted slopes already read higher in soluble silicate than the regional baseline."},
-  {"author": "jruvalcaba", "region": "antigua", "title": "Why Antigua's nights got colder this decade", "body": "Antigua's mean minimum night temperature dropped 0.7°C between 2015 and 2025 — a counter-intuitive cooling that runs against the regional warming trend. The cause is local: shifting cloud-cover patterns over Acatenango have stripped the nighttime radiative blanket. Cooler nights slow cherry maturation; slow cherries mean denser beans. The cup-quality bump is real, and it's terroir-driven, not technique-driven."},
-  {"author": "jruvalcaba", "region": "antigua", "title": "The 1,800 m line and what crosses it", "body": "Below 1,500 m the Antigua coffee belt grows in volcanic loam over a thin caliche cap. Between 1,500 and 1,800 m the soil deepens, the cherry slows. Above 1,800 m the rain shifts to shorter, sharper events and frost becomes a non-zero risk. The producers pushing experimental varietals onto the 1,800+ slopes are buying scarcity, but paying for it in yield."},
-  {"author": "dpavon",    "region": "antigua", "title": "Antigua's slow embrace of carbonic-style fermentation", "body": "Aida Batlle's El Salvador experiments with carbonic maceration are eight years old. The technique — sealed cherries under CO₂ for 72 to 120 hours before depulping — has crossed the Guatemalan border this season at three Antigua beneficios. The cup retains Antigua's structural acidity while gaining a fermented-fruit top note that recalls natural-process Ethiopia."},
-  {"author": "dpavon",    "region": "antigua", "title": "Inside Beneficio Bella Vista's lactic protocol", "body": "Bella Vista's 2026 experimental lot ran 96 hours in sealed bins inoculated with a Lactobacillus starter culture cultured from their own cascara. The protocol pushes pH from 5.1 to 3.8 over the first 48 hours, then stabilizes. The resulting cup reads as honey-sweet with a creamy mouthfeel and a long, malic-acid finish that didn't exist in the same lot run washed."},
-  {"author": "dpavon",    "region": "antigua", "title": "Wet mill vs. fully washed: the language nobody agrees on", "body": "'Washed' means different things in different beneficios. In Antigua, what's marketed as 'fully washed' usually means 18–36 hours of dry fermentation followed by full water-channel washing. What the rest of Latin America calls 'fully washed' often skips the dry phase entirely. The terminology drift makes cupping notes hard to compare across origins."},
-  {"author": "ctorresvega","region": "antigua", "title": "Cupping the 2025 Antigua arrivals — what changed", "body": "The 2025 Antigua arrivals averaged 86.4 across the Producers Association's preliminary cuppings — a half-point above the five-year average. The notable shift wasn't the average but the spread: the top decile crossed 89, a band Antigua hasn't reliably hit since 2017. Three beneficios accounted for most of the high lots."},
-  {"author": "ctorresvega","region": "antigua", "title": "When 'chocolate' stopped meaning chocolate in a cupping form", "body": "'Chocolate' used to mean Dutch-process cocoa: dry, dark, slightly bitter. Through the 2010s, the descriptor drifted — toward milk chocolate, then toward chocolate-covered hazelnut, then into anything with a brown, sweet, low-acid base. The Antigua reference cup is the prototypical 'chocolate' coffee, which means the reference is doing more semantic work than the word."},
-  {"author": "ctorresvega","region": "antigua", "title": "The Q-grader exam from the wrong side of the table", "body": "Sitting the Q exam isn't a sensory test; it's a calibration test. The challenge isn't tasting acidity — it's tasting acidity the way SCA examiners tasted it twenty years ago. Antigua producers who pass tell the same story: the cups are easier than the protocol. The protocol is what breaks people."},
-  {"author": "afonseca",   "region": "antigua", "title": "How Antigua lost half its hectares between 1990 and 2010", "body": "Coffee hectarage in the Antigua valley fell from roughly 8,200 ha in 1990 to 4,100 ha by 2010. Urban growth around Antigua town took the lower terraces; coffee leaf rust outbreaks in 2012 and 2018 took the older Bourbon stands. What remains is denser, higher, more technically managed — and concentrated in the hands of fewer producers."},
-  {"author": "afonseca",   "region": "antigua", "title": "The colonial roots of the Antigua wet mill", "body": "The Antigua wet mill traces directly to mid-19th-century Spanish-Caribbean technique, brought via German planters who arrived in the 1870s. The water-channel washing system was an adaptation to Antigua's seasonal stream flows. What's surprising is how little the architecture has changed — the 1880s wet mills still in service look much like the 2020s ones, just with concrete instead of brick."},
-  {"author": "afonseca",   "region": "antigua", "title": "Three generations on the Acatenango slopes", "body": "Doña Rosa Méndez's grandfather cleared the upper terrace at Finca El Carmen in 1948. Her father added the wet mill in 1976. She added shade restoration and the second drying patio in the early 2010s. Each generation made the farm more legible to the next era's market — and more dependent on it."},
-  {"author": "lbermudez",  "region": "antigua", "title": "The fair-trade price floor and what Antigua actually receives", "body": "The Fair Trade USA floor for washed Arabica sits at $1.80/lb FOB. Antigua's washed arrivals routinely sell to specialty buyers at $4–7/lb — a multiple above the floor. The floor matters more in years when the C-market collapses; in normal years, specialty premium does the work, and certification mainly buys shelf access."},
-  {"author": "lbermudez",  "region": "antigua", "title": "Direct trade in Antigua: who really benefits", "body": "Direct trade gets framed as the producer-friendly alternative to commodity export. In practice, in Antigua, the relationships skew toward the top quartile of producers — those with reliable cup scores, English-speaking marketing capacity, and the cashflow to wait six months for payment. For the rest, the local exporter is still the more practical interface."},
-  {"author": "lbermudez",  "region": "antigua", "title": "Cooperative dissolution in Sacatepéquez — what went wrong", "body": "Three Sacatepéquez cooperatives wound down between 2022 and 2025. The proximate causes differ — debt restructuring, board conflict, member exodus — but the underlying pattern is the same: smallholders found direct buyers willing to pay specialty prices, the cooperative's price-pooling logic stopped pencilling out, and the institutional capacity left with the founding members."},
-  {"author": "mcervantes",  "region": "antigua", "title": "Coffee leaf rust returns to Antigua — the agronomy of containment", "body": "Hemileia vastatrix outbreaks have hit Antigua in 2012, 2018, and now again in early 2026. The 2026 strain shows reduced sensitivity to copper-based fungicides, the workhorse of conventional containment. Cenicafé-Guatemala's containment guidance has shifted toward integrated management: resistant varietals, shade management, and trichoderma-based biocontrol."},
-  {"author": "dpavon",    "region": "antigua", "title": "The dry beneficio question — is patio-drying still defensible?", "body": "Mechanical guardiola dryers are faster, more uniform, and friendlier to labor budgets. Patio drying is slower, weather-dependent, and reads as artisanal. Are patio cups measurably better? The cupping evidence is mixed — when both methods are well-executed, the spread is small. The argument is increasingly economic, not sensory."},
-
-  {"author": "mcervantes",  "region": "cauca", "title": "Castillo: Cenicafé's hardy resistance variety, two decades in", "body": "Castillo was released in 2005 as Cenicafé's answer to coffee leaf rust. Twenty years on, the cup-quality argument has cooled. Castillo's Q scores cluster around 82–84 — competent but rarely outstanding. The varietal's real legacy is what it averted: a rust epidemic in the early 2010s that would have hollowed out smallholder Cauca."},
-  {"author": "mcervantes",  "region": "cauca", "title": "The Geisha controversy in Cauca: did it travel well?", "body": "Geisha planted in Cauca in 2017–2019 returned mixed cups: bright, sometimes floral, but rarely with the lifted jasmine top note that defines Panamanian lots. The leaf shape is right, the fruit habit is right. What's missing — most agronomists agree — is the specific 1,650–1,800 m volcanic-soil combination that Boquete delivers."},
-  {"author": "mcervantes",  "region": "cauca", "title": "Pink Bourbon's slow migration from Tolima to Cauca", "body": "Pink Bourbon originated in Tolima around 2010 — a spontaneous mutation that produced rose-pink cherries and unusual cup character. By 2026 it's in commercial volumes in three Cauca municipalities. The transplant has retained its character: floral, tea-like, with a stone-fruit acidity that distinguishes it from yellow- or red-cherry Bourbons."},
-  {"author": "jruvalcaba", "region": "cauca", "title": "Why Cauca's microclimates resist the warming trend", "body": "Cauca's coffee belt sits on the western Andes, in the rain shadow of the Pacific cordillera. The dual mountain shielding produces sharply variable microclimates — and many of them resist the regional warming trend by virtue of altitude buffer. Cauca smallholders report flowering windows within three days of their 2010 averages, against a regional drift of two weeks."},
-  {"author": "jruvalcaba", "region": "cauca", "title": "The Patia drought and the Andes that buffered it", "body": "The 2024 Patia valley drought brought weekly news cycles about Andean coffee at risk. The reality at altitude was less dramatic. Coffee farms above 1,500 m saw flowering delays of four to seven days, not the catastrophic crop loss the lowland headlines implied. The Andes did what the Andes do — they decoupled altitude bands from each other."},
-  {"author": "jruvalcaba", "region": "cauca", "title": "Volcanic vs. metamorphic: Cauca's two soil families", "body": "Cauca coffee grows on two distinct soil substrates. North of Popayán, volcanic loam from the Sotará and Puracé systems dominates. South toward Patia, metamorphic slate-derived soils take over. Producers don't agree on which produces better cups — but they do agree the cups are recognizably different, and the difference shows up reliably in blind tastings."},
-  {"author": "dpavon",    "region": "cauca", "title": "Anaerobic fermentation in Inzá: a producer's notes", "body": "Inzá producer Luis Méndez has run anaerobic fermentation on his Castillo lots for three seasons. His protocol: depulped cherry into sealed plastic drums, 96 hours at ambient temperature (12–17°C this high), then water washing. The cup gains a fruit-forward top note. Trade-off: a tighter window between underdeveloped and overfermented."},
-  {"author": "dpavon",    "region": "cauca", "title": "The 84-hour natural — process notes from Finca Las Margaritas", "body": "Las Margaritas's experimental natural-process lots run 84 hours on raised beds in covered drying tunnels. The lots are turned every 90 minutes for the first 12 hours, then every three hours. The result reads close to an Ethiopian natural — berry-forward, syrupy, with the cellular pH dropping just far enough to develop without going into vinegar."},
-  {"author": "dpavon",    "region": "cauca", "title": "Why Cauca producers are returning to honey process", "body": "Honey process — depulped cherry dried with the mucilage intact — was a 2010s trend in Cauca that lost ground to anaerobics by 2020. It's returning. The reason isn't sensory; it's economic. Honey is forgiving, repeatable, and cheap to implement. The cups land predictable. For mid-tier specialty buyers, predictable beats experimental."},
-  {"author": "ctorresvega","region": "cauca", "title": "Cauca cupping notes 2026 — clearer, brighter, less consistent", "body": "Cauca's 2026 arrivals cup with more obvious origin character than 2024 or 2025 — but the lot-to-lot variability has widened. The top quartile reads notably brighter (citric acidity, longer finish). The bottom quartile reads thinner and less integrated. The middle is fine. Agronomists point to flowering timing variance as the underlying cause."},
-  {"author": "ctorresvega","region": "cauca", "title": "On 'fruity' as a cupping descriptor — a conversation", "body": "Three Q-graders sat down to argue about 'fruity'. One uses it for stone fruit and citrus only. One uses it for any non-cherry fruit. One uses it for anything outside the chocolate-nut axis. Cauca cups force the question: a Castillo grown at 1,700 m can read fruity to one grader and balanced to another. The descriptor is doing too much work."},
-  {"author": "afonseca",   "region": "cauca", "title": "Cauca's indigenous coffee networks — Misak, Nasa, and others", "body": "Cauca's coffee economy is overlaid with indigenous territorial organization: the Nasa, Misak, Yanaconas, and Coconuco communities each run distinct coffee networks. Some integrate with the FNC; some don't. The community-organized lots have unusual market access — direct relationships with European and East Asian roasters that bypass the conventional export structure."},
-  {"author": "afonseca",   "region": "cauca", "title": "From narcotrafficking to fair trade — Cauca's hard pivot", "body": "Cauca's mid-altitude valleys spent the 1990s and early 2000s as coca corridors. The pivot to specialty coffee was top-down at first — government substitution programs — then bottom-up as smallholders saw the price spread. By 2026 the coca lands have largely converted. The institutional residue (security forces, militia presence) takes longer to clear."},
-  {"author": "lbermudez",  "region": "cauca", "title": "The Cauca Federation's 2026 reform — what changes", "body": "The Federación Nacional de Cafeteros's 2026 internal reforms restructured the export-quota allocation system, shifting more autonomy to municipal-level coffee committees. Cauca smallholders are split. The reform's defenders argue local decisions about pricing and routing will reach producers faster; the skeptics worry about consolidating power at the municipality level."},
-  {"author": "lbermudez",  "region": "cauca", "title": "Direct trade to Tokyo — Cauca's 2025 export pattern", "body": "Tokyo-bound direct-trade lots from Cauca rose 41% by volume between 2023 and 2025, against a 12% total Cauca export increase. Japanese roasters have built relationships with five specific Cauca cooperatives — concentrated, technical, and willing to pay quality premiums that the European market rarely matches. The pattern is structural, not a price-cycle artifact."},
-  {"author": "lbermudez",  "region": "cauca", "title": "Why Cauca's cooperatives outperform the Federation", "body": "On revenue per producer, the FNC's Cauca members average lower than the independent municipal cooperatives. The reason isn't institutional malice; it's scale-mismatch. The FNC's services were designed for a 1960s-era commodity coffee economy. Cauca's specialty pivot favors smaller, faster, more cup-aware buying structures. The cooperatives fit; the Federation didn't change fast enough."},
-  {"author": "mcervantes",  "region": "cauca", "title": "Sidra in Cauca: a varietal with a contested origin", "body": "Sidra arrived in Cauca via Ecuador in the late 2010s, marketed as a hybrid of Bourbon and Typica. The botanical origin is contested — some claim a natural cross from the Pichincha experimental station; others identify it as a Red Bourbon selection mis-rebranded. The cup is consistent: clean, citric, with a tea-like body. The story is the variable."},
-  {"author": "dpavon",    "region": "cauca", "title": "The micro-mill explosion in Cauca, by the numbers", "body": "Active micro-mills in Cauca grew from 47 in 2018 to 219 in 2026 — a 4.6× increase. The pattern follows Tarrazú's 2005–2015 trajectory closely. Per-producer capital cost averages $14k–22k USD. Payback windows in specialty-grade markets run 3–5 years. The flip from cooperative wet milling to individual micro-milling is happening fast and unevenly."},
-  {"author": "jruvalcaba", "region": "cauca", "title": "Climate impact on Cauca's flowering windows", "body": "Across the past decade, Cauca's main flowering window has shifted later by about nine days at altitude — and the secondary flowering has gotten more reliable. The pattern is unusual: warming usually compresses flowering. Cauca's seems to be expanding it. Cenicafé attributes this to humidity changes more than temperature changes."},
-  {"author": "ctorresvega","region": "cauca", "title": "Auction cupping at Cauca Best of Origin 2026", "body": "The 2026 Cauca Best of Origin's top lot cupped 89.7 — a Castillo from a 1,820 m plot run as a 72-hour anaerobic. Twenty-three lots crossed 87. The cupping panel of six included two Japanese buyers and a Norwegian roaster, all of whom had been on the ground for the harvest. Auction prices averaged $14.20/lb."},
-
-  {"author": "mcervantes",  "region": "boquete", "title": "Geisha origin story: from Ethiopia to Hacienda La Esmeralda", "body": "The Geisha varietal's path from Ethiopia's Gesha forest to Boquete is well-documented but still mythologized. CATIE introduced seedlings to Costa Rica in the 1950s; they spread northward as rust-resistant rootstock. La Esmeralda planted them as windbreaks. When Daniel Peterson's 2004 separation lot scored over 90, the price of one plant rewrote what specialty coffee was."},
-  {"author": "mcervantes",  "region": "boquete", "title": "Boquete's experimental varietals — Sidra, Centroamericano, Gesha 1931", "body": "Beyond Geisha, Boquete's experimental plots now include Sidra (Ecuadorean Bourbon-Typica), Centroamericano (the CATIE F1 hybrid), and Gesha 1931 (a Panama Geisha selection). Each carries its own marketing language. The cup-quality evidence at high altitude is genuinely interesting for Centroamericano; the others mostly trade on Geisha's halo."},
-  {"author": "mcervantes",  "region": "boquete", "title": "Why Geisha doesn't taste like Geisha everywhere", "body": "Geisha planted in Colombia, Mexico, El Salvador, and Honduras has produced cups that the global market keeps calling 'Geisha' but that cup very differently. The Boquete Geisha profile — high florals, jasmine, bergamot — emerges reliably above 1,650 m on volcanic soil. Below that, or on different geology, the floral character flattens. The varietal isn't enough; the place matters."},
-  {"author": "jruvalcaba", "region": "boquete", "title": "The Volcán Barú rain shadow and what Boquete's farms know", "body": "Volcán Barú's rain shadow gives Boquete's western coffee belt about 30% less rainfall than the eastern belt at the same altitude. That dryness, plus higher solar incidence, plus colder nights, produces the slowed cherry maturation that translates into Boquete's signature cup density. The atlas-coffee atlas could be rewritten as a guide to which side of which volcano produces what."},
-  {"author": "jruvalcaba", "region": "boquete", "title": "Boquete's altitude bands, mapped", "body": "Boquete's coffee belt runs 1,200 m to 1,950 m. The 1,400 m band still produces commercial-grade washed Catuaí. The 1,650+ m band is where Geisha pencils out at auction prices. Above 1,850 m, frost risk and tree-stress mortality become real constraints. Each 200 m of altitude shifts the cup profile and the agronomics meaningfully."},
-  {"author": "jruvalcaba", "region": "boquete", "title": "Why the eastern Chiriquí valleys are cooler than the western", "body": "The eastern Chiriquí valleys — Tierras Altas, Volcancito — sit on the Caribbean side of the continental divide. Moister, more cloud-covered, and on average 1.5–2°C cooler at the same elevation than western valleys like Palmira. Specialty producers have gravitated east as a result; commercial volume stays west, where logistics are easier."},
-  {"author": "dpavon",    "region": "boquete", "title": "Carbonic maceration at Lamastus Family Estates — what they share", "body": "Lamastus runs carbonic maceration on a subset of their Geisha lots — exact temperatures and durations remain a trade secret, but the family has publicly shared the broad outline: cherries depulped, then sealed under CO₂ for 60 to 100 hours depending on the lot. The cup gains complexity at the cost of some of Geisha's clean varietal character."},
-  {"author": "dpavon",    "region": "boquete", "title": "The Boquete dry processing playbook", "body": "Natural processing in Boquete uses raised African beds under shade structures. Cherries spend 18 to 28 days on the bed, turned six to eight times daily for the first week. The relatively cool, dry Boquete climate slows the fermentation curve — the same protocol in a hotter origin would produce a very different cup. Boquete naturals read cleaner than most."},
-  {"author": "dpavon",    "region": "boquete", "title": "Black honey, red honey, white honey — what the colors mean", "body": "Honey terminology is mucilage-percentage code. White honey leaves about 25% mucilage on the parchment. Yellow leaves around 50%. Red leaves 70–80%. Black honey leaves close to 100% — essentially full natural without the cherry pulp. The naming is informal but stable enough that Boquete producers and importers use it as shorthand without much confusion."},
-  {"author": "ctorresvega","region": "boquete", "title": "Cupping the 2025 Best of Panama auction — three takeaways", "body": "The 2025 Best of Panama's geisha-natural category topped at $5,001.50/lb green. The cupping panel's notes converged on three things: lemongrass top notes were stronger than in 2024, bergamot showed up more reliably, and the historical 'Boquete chocolate' bottom-end character was visibly retreating. Buyers paid for the floral lift, not the chocolate base."},
-  {"author": "ctorresvega","region": "boquete", "title": "On floral as a Geisha descriptor — a conversation", "body": "'Floral' covers everything from jasmine to honeysuckle to lavender to chamomile. Boquete Geishas tend to land on jasmine and bergamot. When the panel writes 'floral' on a Boquete cup, they almost always mean jasmine-bergamot. When they write it on a Colombian Geisha, the meaning slips toward chamomile. The descriptor is regional shorthand."},
-  {"author": "ctorresvega","region": "boquete", "title": "Why some Geishas cup over 95 and others under 90", "body": "Geisha lots that cup 95+ share three things: high-altitude shaded growing, single-day cherry selection, and meticulous processing. The 88–90 lots usually compromise on one of these — mixed-day picking, faster drying, or a partial-shade plot. The varietal doesn't guarantee anything. It just raises the ceiling if the rest of the system is in tune."},
-  {"author": "afonseca",   "region": "boquete", "title": "The Hacienda La Esmeralda story — twenty years on", "body": "Twenty years after La Esmeralda's 2004 Geisha announcement, the family operation has rewritten what a Latin American specialty coffee farm looks like. Three generations of Petersons now manage 250 hectares. The market they created — single-farm, single-varietal, single-day auctions — has reshaped the global specialty premium structure."},
-  {"author": "afonseca",   "region": "boquete", "title": "Boquete's coffee tourism and what it broke", "body": "Boquete's transformation into a specialty coffee destination has brought infrastructure, visibility, and a remarkable surge in local property values. The cost has been distribution: smallholder producers in adjacent valleys without tourism exposure now compete with farms that have year-round retail buyers walking through. Visibility consolidates value."},
-  {"author": "afonseca",   "region": "boquete", "title": "Generational handover at Finca Hartmann", "body": "Allan Hartmann ran the Hartmann farm for forty years. His daughter Camila took operational leadership in 2024. The transition has been deliberate — Camila trained in agronomy in Costa Rica, then in cupping at the SCA — but the inherited tension between conservation acreage and production acreage will define what kind of farm Hartmann becomes for the next generation."},
-  {"author": "lbermudez",  "region": "boquete", "title": "The $10,000/lb auction lot — economics of scarcity", "body": "When a Boquete Geisha clears $10,000/lb at auction, the headline gets written about coffee. The reality is closer to: 100–300 lb of green coffee gets bought by a roaster as a marketing asset. The lots are micro by volume, macro by margin. They don't change the underlying smallholder economics; they shape the ceiling that nothing else clears."},
-  {"author": "lbermudez",  "region": "boquete", "title": "Boquete's labor market and the harvest crunch", "body": "Boquete's coffee harvest depends on indigenous Ngäbe-Buglé workers who travel from the comarca for the December–March picking window. Wages have risen sharply since 2020 — labor scarcity, plus tourism's effect on local cost of living. Producers say the labor crunch will dictate where the next decade of varietal selection lands: higher yield, lower picker-hours per kilo."},
-  {"author": "lbermudez",  "region": "boquete", "title": "Direct trade from Boquete — who's exporting where", "body": "Direct-trade Boquete coffee in 2025 went predominantly to: Tokyo (38% by value), New York (21%), Oslo (12%), Melbourne (8%), with the remainder spread across roasters in 14 countries. The concentration is on roasters with marketing-side resources to communicate single-origin provenance — a different filter than commodity export selects for."},
-  {"author": "mcervantes",  "region": "boquete", "title": "Centroamericano's slow uptake in Panama", "body": "Centroamericano — the CATIE-developed F1 hybrid combining Rume Sudan rust resistance with Sarchimor productivity — has been available in Boquete since 2018. Adoption has been slower than Costa Rica or Honduras. The reason is partly marketing — F1 hybrid lacks Geisha's halo — and partly conservatism: producers don't experiment when the existing varietals are clearing auction prices."},
-  {"author": "dpavon",    "region": "boquete", "title": "Patio-drying high-altitude Geisha — the parameters", "body": "Patio-drying Geisha at 1,700+ m demands constant attention. The drying window is 14–22 days depending on weather. Cherries get raked into thin layers every 60–90 minutes during sunlight hours, raked into rows at sundown to slow rehydration, then re-spread at dawn. Done correctly, patio-dried Geisha cups slightly heavier than mechanically dried."},
-
-  {"author": "mcervantes",  "region": "sierra-madre", "title": "Why the Sierra Madre cooperatives prefer Marsellesa", "body": "Marsellesa, the disease-resistant Sarchimor descendant, dominates Sierra Madre cooperative plantings. The reasoning is mostly defensive: leaf rust hit Chiapas hard in 2013–2015, and Marsellesa shrugged it off where Bourbon collapsed. Cup quality lands in the 82–85 band — adequate for cooperative pooling, not aspirational. The trade-off is conscious."},
-  {"author": "mcervantes",  "region": "sierra-madre", "title": "Disease-resistant varietals in Chiapas — fifteen years of trials", "body": "INIFAP's Tacaná experimental station has run varietal trials in Chiapas since 2011. Marsellesa, Costa Rica 95, Oro Azteca, and several Robusta-Arabica F1 hybrids have all been tested under highland conditions. The data are still emerging on long-term productivity, but rust resistance has held in five of six varieties through three outbreak cycles."},
-  {"author": "mcervantes",  "region": "sierra-madre", "title": "Pacamara in Sierra Madre: three farms experimenting", "body": "Pacamara plantings in Sierra Madre remain small — three farms with commercial-scale plots above 1,500 m, all initiated 2020–2022. The agronomic challenges are the same as elsewhere: open canopy, oversized cherries, uneven ripening. The cup-quality payoff has been real on two of three farms; the third is reconsidering varietal choice."},
-  {"author": "jruvalcaba", "region": "sierra-madre", "title": "The Sierra Madre cloud forest belt — what altitude buys you", "body": "Sierra Madre's coffee belt sits at the lower edge of the cloud forest band, between roughly 1,000 m and 1,800 m. Cloud cover for 60–80% of daylight hours through the growing season cools the cherry, slows the maturation curve, and produces denser beans. The cloud belt is also where the watershed services live — coffee shade and biodiversity overlap to a degree few other origins match."},
-  {"author": "jruvalcaba", "region": "sierra-madre", "title": "Chiapas's two harvests: highland and lowland, decoupling", "body": "Chiapas's lowland coffee belt (below 800 m) traditionally harvested two to three weeks earlier than the highland belt. Through the 2010s the gap was a stable five-week shift. Since 2020 the gap has widened to seven or eight weeks — climate-driven highland delays, plus the lowland belt picking earlier to dodge rainy-season disease pressure. The labor logistics are getting awkward."},
-  {"author": "jruvalcaba", "region": "sierra-madre", "title": "Why the Tacaná volcano matters to Sierra Madre coffee", "body": "Tacaná, on the Mexico-Guatemala border, last erupted in 1986 — minor, but enough to refresh the surrounding soils with tephra. The volcanic-soil belt around Tacaná produces Sierra Madre's most distinctive cups: noticeably higher mineral expression, better acidity structure, and a longer finish than the metamorphic-soil farms further north."},
-  {"author": "dpavon",    "region": "sierra-madre", "title": "Anaerobic process arrives in Maya Vinic", "body": "Maya Vinic — the long-established Tzotzil-Tzeltal cooperative in Chiapas — ran its first anaerobic-fermentation experiments in 2024. Three lots, sealed barrels, 72 hours at the cool ambient temperatures of the highland wet mill. The results cupped above the cooperative's washed average for the same plots. The leadership is cautious about scaling — anaerobic process is unforgiving in cooperative-pooled processing."},
-  {"author": "dpavon",    "region": "sierra-madre", "title": "The Sierra Madre wet mill — co-op edition", "body": "Cooperative wet mills in Sierra Madre pool fermentation across multiple smallholder deliveries. The economics work; the quality control is harder. A single underripe delivery can mark the day's batch. Quality-conscious cooperatives now use color-sorting at intake, density grading at fermentation, and dry-mill cupping before lot consolidation — three checkpoints the standard FairTrade-certified mill doesn't always run."},
-  {"author": "dpavon",    "region": "sierra-madre", "title": "Drying patio engineering in highland Chiapas", "body": "Highland Chiapas drying patios contend with afternoon mountain showers from May through September. The engineering response — covered patios with roll-down rain shields, plus African-bed elevation off the patio surface — has matured through the 2010s. The current standard at the cooperatives is a 40 m² covered patio per ton of green output."},
-  {"author": "ctorresvega","region": "sierra-madre", "title": "Cupping Sierra Madre 2026 — broad strokes", "body": "Sierra Madre 2026 arrivals cup with notable improvement at the top end. The cooperative-pooled lots average 83.6 — a half-point above 2024. The micro-mill single-farm lots that have emerged in the past three years cup higher, with several crossing 87. The two-tier emergence is real, and it's reshaping how Sierra Madre coffee gets sold internationally."},
-  {"author": "ctorresvega","region": "sierra-madre", "title": "On 'earthy' in highland Mexican coffees", "body": "'Earthy' as a cupping descriptor used to be code for defects: musty drying, baggy storage. In recent years it has gained legitimate ground for cleanly processed coffees with a wet-leaf, forest-floor character. Sierra Madre highland Marsellesa lands cleanly in this space — and the panel's vocabulary is finally catching up."},
-  {"author": "ctorresvega","region": "sierra-madre", "title": "The Sierra Madre micro-mill cupping league — a year in", "body": "An informal cupping league among Sierra Madre micro-mill operators ran twelve monthly sessions in 2025. The structure: each participant submits one lot, others cup blind, scores get pooled, the top lot of the year gets a marketing co-op slot at New York Coffee Week. The league raised cupping discipline across the participating mills measurably."},
-  {"author": "afonseca",   "region": "sierra-madre", "title": "Maya Vinic: thirty years of organized indigenous coffee", "body": "Maya Vinic was founded in 1999 by Tzotzil and Tzeltal coffee producers in the aftermath of the Acteal massacre. Thirty years on, the cooperative operates seven wet mills, exports under its own brand to twelve countries, and has become a reference point for indigenous-led coffee organizing in Latin America. Its institutional resilience is its most underrated achievement."},
-  {"author": "afonseca",   "region": "sierra-madre", "title": "The Zapatista influence on Chiapas coffee cooperatives", "body": "The Zapatista uprising's autonomous municipalities in Chiapas built parallel coffee cooperatives outside the conventional certification structures. Their cooperative model — community-governed, anti-export-broker — has aged interestingly. Some collapsed under market pressure; the survivors built direct relationships with European solidarity-economy roasters that pre-pay for entire seasons."},
-  {"author": "afonseca",   "region": "sierra-madre", "title": "Sierra Madre's cooperative landscape, charted", "body": "Sierra Madre supports roughly fourteen large coffee cooperatives, organized around language community, municipal boundary, or religious affiliation. The largest pool over 3,000 producers each. The middle band — eight cooperatives between 400 and 1,500 producers — is where the institutional innovation has been concentrated, and where the next decade's structural shifts will play out."},
-  {"author": "lbermudez",  "region": "sierra-madre", "title": "Maya Vinic's pricing model — what's different", "body": "Maya Vinic prices on a model independent of the C-market floor or the standard fair-trade premium. Producers receive a published per-quintal price tied to cup-quality scoring at intake, plus a profit-sharing distribution at season close. The model demands cup-grading capacity the conventional cooperatives don't have — and it has held producer retention rates above 90% for a decade."},
-  {"author": "lbermudez",  "region": "sierra-madre", "title": "Fair-trade certification in Chiapas — what works", "body": "Fair-trade certification in Chiapas has produced a layered outcome. The price floor and democratic-governance requirements have held; the long-promised premium has been inconsistent. The cooperatives that built complementary direct-trade relationships on top of fair-trade access have done well. The cooperatives that relied on certification alone are slowly hollowing out."},
-  {"author": "lbermudez",  "region": "sierra-madre", "title": "Cooperative-to-cooperative trade: a Chiapas-Cauca pipeline", "body": "Maya Vinic and Tierradentro (Cauca) ran a 2024 pilot exchange: Maya Vinic shipped Chiapas honey-process Bourbon to roaster partners of Tierradentro in Norway; Tierradentro shipped washed Castillo to Maya Vinic's German partners. Volumes were small, margins were thin, but the model — peer-to-peer cooperative trade with reciprocal market access — is being studied."},
-  {"author": "mcervantes",  "region": "sierra-madre", "title": "Coffee leaf rust resistance — Sierra Madre's field trials", "body": "Sierra Madre cooperatives ran coordinated leaf-rust resistance trials through 2022–2025 across thirteen experimental plots. The verdict: Marsellesa held, Costa Rica 95 held, Oro Azteca held in lowland plots but showed slower vigor at altitude. Sarchimor showed reduced resistance against the 2023 strain. The varietal recommendation matrix gets updated annually."},
-  {"author": "dpavon",    "region": "sierra-madre", "title": "Tacaná-grown Geisha — a Sierra Madre experiment", "body": "Three farms on Tacaná's Mexican slope have planted Geisha plots in the 1,650–1,800 m band since 2021. Cup results so far: clean, floral, distinctly Geisha — but the floral character cups lighter than Panama Geisha at the same altitude. The hypothesis is soil-related — the Tacaná tephra is mineralogically different from Boquete's Barú substrate."},
-
-  {"author": "mcervantes",  "region": "tarrazu", "title": "Tarrazú's varietal portfolio — Caturra, Catuaí, and the new wave", "body": "Tarrazú remains dominated by Caturra and Catuaí — the high-yielding compact varietals that shaped Costa Rican specialty for thirty years. The new wave (Bourbon Sidra, Pink Bourbon, Centroamericano) sits in experimental plots, not commercial volume. The reason isn't conservatism — Caturra/Catuaí still pencil out at specialty prices, and the agronomy is well-understood."},
-  {"author": "mcervantes",  "region": "tarrazu", "title": "Why Tarrazú producers are skeptical of Geisha", "body": "Geisha trials in Tarrazú returned middling results: clean cups but missing the floral lift that defines Panamanian Geisha. Producers conclude the varietal needs the specific Boquete soil-altitude-microclimate combination to express. Tarrazú instead leans into what it does well — washed Caturra and Catuaí at extreme altitude — rather than chase a varietal that doesn't translate."},
-  {"author": "mcervantes",  "region": "tarrazu", "title": "Honey process in Tarrazú — the high-altitude case", "body": "Tarrazú's altitude (1,500–1,900 m on the working farms) makes honey process particularly interesting: the cool drying climate slows fermentation enough to capture honey's syrupy sweetness without the over-fermented muddiness that plagues lower-altitude honey-process attempts. Tarrazú yellow-honey lots have become a reference point for the technique."},
-  {"author": "jruvalcaba", "region": "tarrazu", "title": "Tarrazú's altitude advantage, quantified", "body": "Tarrazú's commercial coffee belt sits at 1,500–1,900 m — among the highest commercial Arabica belts in the world. Every 100 m of altitude correlates with about 0.4 cupping points on Cup of Excellence panels, controlling for varietal and processing. Tarrazú's altitude is structural: the geology of the Talamanca range pushes the entire coffee economy up the slope."},
-  {"author": "jruvalcaba", "region": "tarrazu", "title": "Costa Rica's two coffee climates — Tarrazú vs. Tres Ríos", "body": "Tres Ríos coffee — east of San José, lower altitude — produces a fundamentally different cup from Tarrazú's southern coffee. Where Tarrazú lands with clean acidity and brown-sugar sweetness, Tres Ríos cups silkier, with more floral overtones and a shorter finish. The two are 70 km apart and produce coffee that reads from different continents."},
-  {"author": "jruvalcaba", "region": "tarrazu", "title": "Why Tarrazú nights got warmer this decade", "body": "Tarrazú's mean minimum temperature rose 0.8°C from 2015 to 2025. The cause isn't macro-warming alone; deforestation in the upper Talamanca basin has reduced nighttime cold-air drainage. Coffee at altitude tolerates the trend so far, but flowering windows are compressing — and that compression is starting to show in the cupping bell curve."},
-  {"author": "dpavon",    "region": "tarrazu", "title": "The Tarrazú micro-mill revolution — twenty years in", "body": "Costa Rica's 2005 banking liberalization let smallholder coffee producers finance their own wet mills. Tarrazú led the trend. Twenty years later, the micro-mill count exceeds 220 — up from fewer than a dozen in 2004. The cooperative beneficios still exist but no longer dominate. The cup-quality consequence has been a marked tightening of the upper specialty band."},
-  {"author": "dpavon",    "region": "tarrazu", "title": "Beneficio Las Lajas — process notes from a pioneer", "body": "Las Lajas, the Chacón family's Naranjo beneficio, pioneered honey and natural processing in Costa Rica in the early 2000s. Their published process notes — drying schedules, layer thicknesses, turning intervals — became the de facto reference for the entire micro-mill generation. The family still publishes annual updates from each season's experimental lots."},
-  {"author": "dpavon",    "region": "tarrazu", "title": "Why Tarrazú's micro-mills cluster where they do", "body": "Tarrazú micro-mills cluster around the Llano Bonito and San Marcos catchments — proximity to a reliable source of fermentation-grade water, plus road access to the export logistics in Pérez Zeledón. The clustering isn't economic accident; it's hydro-geographic constraint. The mills that built outside these catchments mostly faded by the early 2020s."},
-  {"author": "ctorresvega","region": "tarrazu", "title": "Cupping Tarrazú 2026 — the high lots", "body": "Tarrazú's 2026 high lots — 1,800+ m, single-varietal Caturra and Catuaí from the named micro-mills — cup with unusual consistency. The 87–89 band that was thin in 2023 is densely populated in 2026. Brown sugar, citric acid structure, longer finishes. The micro-mill cohort that started 2015–2018 has matured into reliable producers."},
-  {"author": "ctorresvega","region": "tarrazu", "title": "On 'brown sugar' as a Tarrazú descriptor", "body": "'Brown sugar' has become Tarrazú's defining cupping descriptor — used by enough panels and enough roasters that the term now functions as origin shorthand. The honest interpretation: high-altitude Tarrazú coffees express muscovado-style caramelized-molasses sweetness in the mid-palate. It's not artistic license; it's a consistent sensory anchor."},
-  {"author": "ctorresvega","region": "tarrazu", "title": "Costa Rica's Cup of Excellence — what 2026 revealed", "body": "Costa Rica's 2026 Cup of Excellence saw Tarrazú lots take seven of the top ten positions — a near-monopoly that hadn't happened since the program's first decade. The judges' notes converged on a theme: clean processing, varietal integrity, terroir expression. The Brunca and West Valley lots that competed strongly through the 2010s have lost ground to Tarrazú's micro-mill cohort."},
-  {"author": "afonseca",   "region": "tarrazu", "title": "Tarrazú's transformation from commodity to specialty", "body": "In 2000 Tarrazú coffee mostly entered the global commodity stream as Costa Rica SHB. By 2025 the same growing region exports more than 60% of its crop as named-origin specialty — with traceability down to the lot level. The transition happened in two generations and rewrote what a Costa Rican coffee farmer's income looked like. The story is exemplary, and not easily transferable."},
-  {"author": "afonseca",   "region": "tarrazu", "title": "The ICAFE legacy — sixty years of Costa Rican coffee policy", "body": "ICAFE — the Instituto del Café de Costa Rica, founded 1948 — built the institutional infrastructure that made Costa Rican coffee a brand. Quality control, export inspection, statistical reporting, varietal extension. The agency's role is contested now: its commodity-era playbook doesn't fit the specialty era as well. The 2026 reforms are an attempt to bridge."},
-  {"author": "afonseca",   "region": "tarrazu", "title": "From cooperative to direct trade — Tarrazú's generational shift", "body": "Tarrazú's older producers grew up in a cooperative economy where the beneficio took the crop and the producer got the average. The current generation — many of whom run their own micro-mills — sells direct to specialty importers and roasters. The generational gap is sharp, and the family-level negotiations about which model the farm follows have shaped Tarrazú's institutional landscape."},
-  {"author": "lbermudez",  "region": "tarrazu", "title": "Tarrazú's labor economics — Nicaraguan migration and the harvest", "body": "Tarrazú's harvest depends on seasonal Nicaraguan migrant labor — historically 60–80% of the picking workforce. Border policy shifts in 2024 reduced the labor pool measurably; producers report higher wages and longer harvest windows. The trend isn't a one-year story. The Tarrazú labor model that worked for thirty years is restructuring under pressure that won't reverse."},
-  {"author": "lbermudez",  "region": "tarrazu", "title": "Direct trade from Tarrazú — concentration vs. distribution", "body": "Direct-trade Tarrazú coffee in 2025 went predominantly to fewer than fifty global buyers, with the top ten accounting for more than 60% of named-origin volume. The concentration limits price discovery for producers without those relationships. The distribution question — how to broaden the buyer base without diluting the premium — is the central conversation in Tarrazú's export sector."},
-  {"author": "lbermudez",  "region": "tarrazu", "title": "What ICAFE's 2026 reforms mean for smallholders", "body": "ICAFE's 2026 reforms restructure the agency's role: less regulatory, more services-focused. Smallholder cooperatives applaud the shift but worry about cost recovery. The reforms eliminate several blanket subsidies in favor of targeted support; the targeting criteria are still being negotiated. For the smallest producers, the next 18 months will determine whether the reforms help or hurt."},
-  {"author": "mcervantes",  "region": "tarrazu", "title": "Centroamericano in Tarrazú — five years of trial", "body": "Tarrazú's CATIE Centroamericano trials, ongoing since 2020, show what the F1 hybrid does at extreme altitude: high yields, strong rust resistance, cup quality clustering at 84–86. Producers like the productivity; they're cooler on the cup character, which they describe as 'clean but unmemorable.' The varietal will probably stay a yield play, not a specialty showpiece."},
-  {"author": "dpavon",    "region": "tarrazu", "title": "Black honey in Tarrazú — a process deep-dive", "body": "Black honey — leaving close to full mucilage on the parchment through drying — is the most demanding honey process. Tarrazú's high-altitude cool drying makes it tractable. Beneficio Don Mayo's black honey protocol: depulped cherry on raised beds in low-humidity covered patios for 22 to 28 days, turned every two hours during daylight. The cups land syrupy, complex, fruit-forward."}
+  {
+    "author": "mcervantes",
+    "region": "antigua",
+    "title": "Why Antigua's volcanic soil shows up in the cup",
+    "body": "Acatenango and Fuego dust their slopes with mineral-rich ash every few years. The soils that result drain fast, hold cation exchange capacity well above lowland averages, and keep coffee trees stressed enough to produce dense, complex seeds. Antigua cups land medium-bodied with chocolate, hazelnut, and a bright but never sharp acidity — a profile that isn't an accident."
+  },
+  {
+    "author": "mcervantes",
+    "region": "antigua",
+    "title": "The Pacas × Maragogipe cross arrives in Acatenango",
+    "body": "Pacamara — the El Salvador-bred cross that pulled large Maragogipe beans into Pacas's compact tree — has been creeping into Antigua's experimental plots for five seasons. Producers report a wider flavor window and yields about 15% below classic Bourbon. The plant's habit shows: open canopy, oversized cherries, and a stubborn refusal to ripen in lock-step."
+  },
+  {
+    "author": "mcervantes",
+    "region": "antigua",
+    "title": "Pink Bourbon in Antigua: three farms, three results",
+    "body": "Pink Bourbon's reputation arrived from Tolima with a promise of floral cups at any altitude. In Antigua, three farms ran trial plots through 2024–2026: one cupped at 88.4, one at 85.1, one didn't make 84. The lesson, producers say, isn't about the varietal — it's about microclimate at the 1,600–1,700 m band."
+  },
+  {
+    "author": "jruvalcaba",
+    "region": "antigua",
+    "title": "Acatenango's eruption cycle and the mineralogy of next year's cherry",
+    "body": "Acatenango erupted in October 2024. The ash plume drifted east-southeast for nine hours, depositing 0.3–1.1 cm of fresh tephra across the Antigua coffee belt. The mineralogy was unusually silica-rich. Producers won't see the cup-side effect until the 2026 harvest — but soil samples from the impacted slopes already read higher in soluble silicate than the regional baseline."
+  },
+  {
+    "author": "jruvalcaba",
+    "region": "antigua",
+    "title": "Why Antigua's nights got colder this decade",
+    "body": "Antigua's mean minimum night temperature dropped 0.7°C between 2015 and 2025 — a counter-intuitive cooling that runs against the regional warming trend. The cause is local: shifting cloud-cover patterns over Acatenango have stripped the nighttime radiative blanket. Cooler nights slow cherry maturation; slow cherries mean denser beans. The cup-quality bump is real, and it's terroir-driven, not technique-driven."
+  },
+  {
+    "author": "jruvalcaba",
+    "region": "antigua",
+    "title": "The 1,800 m line and what crosses it",
+    "body": "Below 1,500 m the Antigua coffee belt grows in volcanic loam over a thin caliche cap. Between 1,500 and 1,800 m the soil deepens, the cherry slows. Above 1,800 m the rain shifts to shorter, sharper events and frost becomes a non-zero risk. The producers pushing experimental varietals onto the 1,800+ slopes are buying scarcity, but paying for it in yield."
+  },
+  {
+    "author": "dpavon",
+    "region": "antigua",
+    "title": "Antigua's slow embrace of carbonic-style fermentation",
+    "body": "Aida Batlle's El Salvador experiments with carbonic maceration are eight years old. The technique — sealed cherries under CO₂ for 72 to 120 hours before depulping — has crossed the Guatemalan border this season at three Antigua beneficios. The cup retains Antigua's structural acidity while gaining a fermented-fruit top note that recalls natural-process Ethiopia."
+  },
+  {
+    "author": "dpavon",
+    "region": "antigua",
+    "title": "Inside Beneficio Bella Vista's lactic protocol",
+    "body": "Bella Vista's 2026 experimental lot ran 96 hours in sealed bins inoculated with a Lactobacillus starter culture cultured from their own cascara. The protocol pushes pH from 5.1 to 3.8 over the first 48 hours, then stabilizes. The resulting cup reads as honey-sweet with a creamy mouthfeel and a long, malic-acid finish that didn't exist in the same lot run washed."
+  },
+  {
+    "author": "dpavon",
+    "region": "antigua",
+    "title": "Wet mill vs. fully washed: the language nobody agrees on",
+    "body": "'Washed' means different things in different beneficios. In Antigua, what's marketed as 'fully washed' usually means 18–36 hours of dry fermentation followed by full water-channel washing. What the rest of Latin America calls 'fully washed' often skips the dry phase entirely. The terminology drift makes cupping notes hard to compare across origins."
+  },
+  {
+    "author": "ctorresvega",
+    "region": "antigua",
+    "title": "Cupping the 2025 Antigua arrivals — what changed",
+    "body": "The 2025 Antigua arrivals averaged 86.4 across the Producers Association's preliminary cuppings — a half-point above the five-year average. The notable shift wasn't the average but the spread: the top decile crossed 89, a band Antigua hasn't reliably hit since 2017. Three beneficios accounted for most of the high lots."
+  },
+  {
+    "author": "ctorresvega",
+    "region": "antigua",
+    "title": "When 'chocolate' stopped meaning chocolate in a cupping form",
+    "body": "'Chocolate' used to mean Dutch-process cocoa: dry, dark, slightly bitter. Through the 2010s, the descriptor drifted — toward milk chocolate, then toward chocolate-covered hazelnut, then into anything with a brown, sweet, low-acid base. The Antigua reference cup is the prototypical 'chocolate' coffee, which means the reference is doing more semantic work than the word."
+  },
+  {
+    "author": "ctorresvega",
+    "region": "antigua",
+    "title": "The Q-grader exam from the wrong side of the table",
+    "body": "Sitting the Q exam isn't a sensory test; it's a calibration test. The challenge isn't tasting acidity — it's tasting acidity the way SCA examiners tasted it twenty years ago. Antigua producers who pass tell the same story: the cups are easier than the protocol. The protocol is what breaks people."
+  },
+  {
+    "author": "afonseca",
+    "region": "antigua",
+    "title": "How Antigua lost half its hectares between 1990 and 2010",
+    "body": "Coffee hectarage in the Antigua valley fell from roughly 8,200 ha in 1990 to 4,100 ha by 2010. Urban growth around Antigua town took the lower terraces; coffee leaf rust outbreaks in 2012 and 2018 took the older Bourbon stands. What remains is denser, higher, more technically managed — and concentrated in the hands of fewer producers."
+  },
+  {
+    "author": "afonseca",
+    "region": "antigua",
+    "title": "The colonial roots of the Antigua wet mill",
+    "body": "The Antigua wet mill traces directly to mid-19th-century Spanish-Caribbean technique, brought via German planters who arrived in the 1870s. The water-channel washing system was an adaptation to Antigua's seasonal stream flows. What's surprising is how little the architecture has changed — the 1880s wet mills still in service look much like the 2020s ones, just with concrete instead of brick."
+  },
+  {
+    "author": "afonseca",
+    "region": "antigua",
+    "title": "Three generations on the Acatenango slopes",
+    "body": "Doña Rosa Méndez's grandfather cleared the upper terrace at Finca El Carmen in 1948. Her father added the wet mill in 1976. She added shade restoration and the second drying patio in the early 2010s. Each generation made the farm more legible to the next era's market — and more dependent on it."
+  },
+  {
+    "author": "lbermudez",
+    "region": "antigua",
+    "title": "The fair-trade price floor and what Antigua actually receives",
+    "body": "The Fair Trade USA floor for washed Arabica sits at $1.80/lb FOB. Antigua's washed arrivals routinely sell to specialty buyers at $4–7/lb — a multiple above the floor. The floor matters more in years when the C-market collapses; in normal years, specialty premium does the work, and certification mainly buys shelf access."
+  },
+  {
+    "author": "lbermudez",
+    "region": "antigua",
+    "title": "Direct trade in Antigua: who really benefits",
+    "body": "Direct trade gets framed as the producer-friendly alternative to commodity export. In practice, in Antigua, the relationships skew toward the top quartile of producers — those with reliable cup scores, English-speaking marketing capacity, and the cashflow to wait six months for payment. For the rest, the local exporter is still the more practical interface."
+  },
+  {
+    "author": "lbermudez",
+    "region": "antigua",
+    "title": "Cooperative dissolution in Sacatepéquez — what went wrong",
+    "body": "Three Sacatepéquez cooperatives wound down between 2022 and 2025. The proximate causes differ — debt restructuring, board conflict, member exodus — but the underlying pattern is the same: smallholders found direct buyers willing to pay specialty prices, the cooperative's price-pooling logic stopped pencilling out, and the institutional capacity left with the founding members."
+  },
+  {
+    "author": "mcervantes",
+    "region": "antigua",
+    "title": "Coffee leaf rust returns to Antigua — the agronomy of containment",
+    "body": "Hemileia vastatrix outbreaks have hit Antigua in 2012, 2018, and now again in early 2026. The 2026 strain shows reduced sensitivity to copper-based fungicides, the workhorse of conventional containment. Cenicafé-Guatemala's containment guidance has shifted toward integrated management: resistant varietals, shade management, and trichoderma-based biocontrol."
+  },
+  {
+    "author": "dpavon",
+    "region": "antigua",
+    "title": "The dry beneficio question — is patio-drying still defensible?",
+    "body": "Mechanical guardiola dryers are faster, more uniform, and friendlier to labor budgets. Patio drying is slower, weather-dependent, and reads as artisanal. Are patio cups measurably better? The cupping evidence is mixed — when both methods are well-executed, the spread is small. The argument is increasingly economic, not sensory."
+  },
+  {
+    "author": "mcervantes",
+    "region": "cauca",
+    "title": "Castillo: Cenicafé's hardy resistance variety, two decades in",
+    "body": "Castillo was released in 2005 as Cenicafé's answer to coffee leaf rust. Twenty years on, the cup-quality argument has cooled. Castillo's Q scores cluster around 82–84 — competent but rarely outstanding. The varietal's real legacy is what it averted: a rust epidemic in the early 2010s that would have hollowed out smallholder Cauca."
+  },
+  {
+    "author": "mcervantes",
+    "region": "cauca",
+    "title": "The Geisha controversy in Cauca: did it travel well?",
+    "body": "Geisha planted in Cauca in 2017–2019 returned mixed cups: bright, sometimes floral, but rarely with the lifted jasmine top note that defines Panamanian lots. The leaf shape is right, the fruit habit is right. What's missing — most agronomists agree — is the specific 1,650–1,800 m volcanic-soil combination that Boquete delivers."
+  },
+  {
+    "author": "mcervantes",
+    "region": "cauca",
+    "title": "Pink Bourbon's slow migration from Tolima to Cauca",
+    "body": "Pink Bourbon originated in Tolima around 2010 — a spontaneous mutation that produced rose-pink cherries and unusual cup character. By 2026 it's in commercial volumes in three Cauca municipalities. The transplant has retained its character: floral, tea-like, with a stone-fruit acidity that distinguishes it from yellow- or red-cherry Bourbons."
+  },
+  {
+    "author": "jruvalcaba",
+    "region": "cauca",
+    "title": "Why Cauca's microclimates resist the warming trend",
+    "body": "Cauca's coffee belt sits on the western Andes, in the rain shadow of the Pacific cordillera. The dual mountain shielding produces sharply variable microclimates — and many of them resist the regional warming trend by virtue of altitude buffer. Cauca smallholders report flowering windows within three days of their 2010 averages, against a regional drift of two weeks."
+  },
+  {
+    "author": "jruvalcaba",
+    "region": "cauca",
+    "title": "The Patia drought and the Andes that buffered it",
+    "body": "The 2024 Patia valley drought brought weekly news cycles about Andean coffee at risk. The reality at altitude was less dramatic. Coffee farms above 1,500 m saw flowering delays of four to seven days, not the catastrophic crop loss the lowland headlines implied. The Andes did what the Andes do — they decoupled altitude bands from each other."
+  },
+  {
+    "author": "jruvalcaba",
+    "region": "cauca",
+    "title": "Volcanic vs. metamorphic: Cauca's two soil families",
+    "body": "Cauca coffee grows on two distinct soil substrates. North of Popayán, volcanic loam from the Sotará and Puracé systems dominates. South toward Patia, metamorphic slate-derived soils take over. Producers don't agree on which produces better cups — but they do agree the cups are recognizably different, and the difference shows up reliably in blind tastings."
+  },
+  {
+    "author": "dpavon",
+    "region": "cauca",
+    "title": "Anaerobic fermentation in Inzá: a producer's notes",
+    "body": "Inzá producer Luis Méndez has run anaerobic fermentation on his Castillo lots for three seasons. His protocol: depulped cherry into sealed plastic drums, 96 hours at ambient temperature (12–17°C this high), then water washing. The cup gains a fruit-forward top note. Trade-off: a tighter window between underdeveloped and overfermented."
+  },
+  {
+    "author": "dpavon",
+    "region": "cauca",
+    "title": "The 84-hour natural — process notes from Finca Las Margaritas",
+    "body": "Las Margaritas's experimental natural-process lots run 84 hours on raised beds in covered drying tunnels. The lots are turned every 90 minutes for the first 12 hours, then every three hours. The result reads close to an Ethiopian natural — berry-forward, syrupy, with the cellular pH dropping just far enough to develop without going into vinegar."
+  },
+  {
+    "author": "dpavon",
+    "region": "cauca",
+    "title": "Why Cauca producers are returning to honey process",
+    "body": "Honey process — depulped cherry dried with the mucilage intact — was a 2010s trend in Cauca that lost ground to anaerobics by 2020. It's returning. The reason isn't sensory; it's economic. Honey is forgiving, repeatable, and cheap to implement. The cups land predictable. For mid-tier specialty buyers, predictable beats experimental."
+  },
+  {
+    "author": "ctorresvega",
+    "region": "cauca",
+    "title": "Cauca cupping notes 2026 — clearer, brighter, less consistent",
+    "body": "Cauca's 2026 arrivals cup with more obvious origin character than 2024 or 2025 — but the lot-to-lot variability has widened. The top quartile reads notably brighter (citric acidity, longer finish). The bottom quartile reads thinner and less integrated. The middle is fine. Agronomists point to flowering timing variance as the underlying cause."
+  },
+  {
+    "author": "ctorresvega",
+    "region": "cauca",
+    "title": "On 'fruity' as a cupping descriptor — a conversation",
+    "body": "Three Q-graders sat down to argue about 'fruity'. One uses it for stone fruit and citrus only. One uses it for any non-cherry fruit. One uses it for anything outside the chocolate-nut axis. Cauca cups force the question: a Castillo grown at 1,700 m can read fruity to one grader and balanced to another. The descriptor is doing too much work."
+  },
+  {
+    "author": "afonseca",
+    "region": "cauca",
+    "title": "Cauca's indigenous coffee networks — Misak, Nasa, and others",
+    "body": "Cauca's coffee economy is overlaid with indigenous territorial organization: the Nasa, Misak, Yanaconas, and Coconuco communities each run distinct coffee networks. Some integrate with the FNC; some don't. The community-organized lots have unusual market access — direct relationships with European and East Asian roasters that bypass the conventional export structure."
+  },
+  {
+    "author": "afonseca",
+    "region": "cauca",
+    "title": "From narcotrafficking to fair trade — Cauca's hard pivot",
+    "body": "Cauca's mid-altitude valleys spent the 1990s and early 2000s as coca corridors. The pivot to specialty coffee was top-down at first — government substitution programs — then bottom-up as smallholders saw the price spread. By 2026 the coca lands have largely converted. The institutional residue (security forces, militia presence) takes longer to clear."
+  },
+  {
+    "author": "lbermudez",
+    "region": "cauca",
+    "title": "The Cauca Federation's 2026 reform — what changes",
+    "body": "The Federación Nacional de Cafeteros's 2026 internal reforms restructured the export-quota allocation system, shifting more autonomy to municipal-level coffee committees. Cauca smallholders are split. The reform's defenders argue local decisions about pricing and routing will reach producers faster; the skeptics worry about consolidating power at the municipality level."
+  },
+  {
+    "author": "lbermudez",
+    "region": "cauca",
+    "title": "Direct trade to Tokyo — Cauca's 2025 export pattern",
+    "body": "Tokyo-bound direct-trade lots from Cauca rose 41% by volume between 2023 and 2025, against a 12% total Cauca export increase. Japanese roasters have built relationships with five specific Cauca cooperatives — concentrated, technical, and willing to pay quality premiums that the European market rarely matches. The pattern is structural, not a price-cycle artifact."
+  },
+  {
+    "author": "lbermudez",
+    "region": "cauca",
+    "title": "Why Cauca's cooperatives outperform the Federation",
+    "body": "On revenue per producer, the FNC's Cauca members average lower than the independent municipal cooperatives. The reason isn't institutional malice; it's scale-mismatch. The FNC's services were designed for a 1960s-era commodity coffee economy. Cauca's specialty pivot favors smaller, faster, more cup-aware buying structures. The cooperatives fit; the Federation didn't change fast enough."
+  },
+  {
+    "author": "mcervantes",
+    "region": "cauca",
+    "title": "Sidra in Cauca: a varietal with a contested origin",
+    "body": "Sidra arrived in Cauca via Ecuador in the late 2010s, marketed as a hybrid of Bourbon and Typica. The botanical origin is contested — some claim a natural cross from the Pichincha experimental station; others identify it as a Red Bourbon selection mis-rebranded. The cup is consistent: clean, citric, with a tea-like body. The story is the variable."
+  },
+  {
+    "author": "dpavon",
+    "region": "cauca",
+    "title": "The micro-mill explosion in Cauca, by the numbers",
+    "body": "Active micro-mills in Cauca grew from 47 in 2018 to 219 in 2026 — a 4.6× increase. The pattern follows Tarrazú's 2005–2015 trajectory closely. Per-producer capital cost averages $14k–22k USD. Payback windows in specialty-grade markets run 3–5 years. The flip from cooperative wet milling to individual micro-milling is happening fast and unevenly."
+  },
+  {
+    "author": "jruvalcaba",
+    "region": "cauca",
+    "title": "Climate impact on Cauca's flowering windows",
+    "body": "Across the past decade, Cauca's main flowering window has shifted later by about nine days at altitude — and the secondary flowering has gotten more reliable. The pattern is unusual: warming usually compresses flowering. Cauca's seems to be expanding it. Cenicafé attributes this to humidity changes more than temperature changes."
+  },
+  {
+    "author": "ctorresvega",
+    "region": "cauca",
+    "title": "Auction cupping at Cauca Best of Origin 2026",
+    "body": "The 2026 Cauca Best of Origin's top lot cupped 89.7 — a Castillo from a 1,820 m plot run as a 72-hour anaerobic. Twenty-three lots crossed 87. The cupping panel of six included two Japanese buyers and a Norwegian roaster, all of whom had been on the ground for the harvest. Auction prices averaged $14.20/lb."
+  },
+  {
+    "author": "mcervantes",
+    "region": "boquete",
+    "title": "Geisha origin story: from Ethiopia to Hacienda La Esmeralda",
+    "body": "The Geisha varietal's path from Ethiopia's Gesha forest to Boquete is well-documented but still mythologized. CATIE introduced seedlings to Costa Rica in the 1950s; they spread northward as rust-resistant rootstock. La Esmeralda planted them as windbreaks. When Daniel Peterson's 2004 separation lot scored over 90, the price of one plant rewrote what specialty coffee was."
+  },
+  {
+    "author": "mcervantes",
+    "region": "boquete",
+    "title": "Boquete's experimental varietals — Sidra, Centroamericano, Gesha 1931",
+    "body": "Beyond Geisha, Boquete's experimental plots now include Sidra (Ecuadorean Bourbon-Typica), Centroamericano (the CATIE F1 hybrid), and Gesha 1931 (a Panama Geisha selection). Each carries its own marketing language. The cup-quality evidence at high altitude is genuinely interesting for Centroamericano; the others mostly trade on Geisha's halo."
+  },
+  {
+    "author": "mcervantes",
+    "region": "boquete",
+    "title": "Why Geisha doesn't taste like Geisha everywhere",
+    "body": "Geisha planted in Colombia, Mexico, El Salvador, and Honduras has produced cups that the global market keeps calling 'Geisha' but that cup very differently. The Boquete Geisha profile — high florals, jasmine, bergamot — emerges reliably above 1,650 m on volcanic soil. Below that, or on different geology, the floral character flattens. The varietal isn't enough; the place matters."
+  },
+  {
+    "author": "jruvalcaba",
+    "region": "boquete",
+    "title": "The Volcán Barú rain shadow and what Boquete's farms know",
+    "body": "Volcán Barú's rain shadow gives Boquete's western coffee belt about 30% less rainfall than the eastern belt at the same altitude. That dryness, plus higher solar incidence, plus colder nights, produces the slowed cherry maturation that translates into Boquete's signature cup density. The atlas-coffee atlas could be rewritten as a guide to which side of which volcano produces what."
+  },
+  {
+    "author": "jruvalcaba",
+    "region": "boquete",
+    "title": "Boquete's altitude bands, mapped",
+    "body": "Boquete's coffee belt runs 1,200 m to 1,950 m. The 1,400 m band still produces commercial-grade washed Catuaí. The 1,650+ m band is where Geisha pencils out at auction prices. Above 1,850 m, frost risk and tree-stress mortality become real constraints. Each 200 m of altitude shifts the cup profile and the agronomics meaningfully."
+  },
+  {
+    "author": "jruvalcaba",
+    "region": "boquete",
+    "title": "Why the eastern Chiriquí valleys are cooler than the western",
+    "body": "The eastern Chiriquí valleys — Tierras Altas, Volcancito — sit on the Caribbean side of the continental divide. Moister, more cloud-covered, and on average 1.5–2°C cooler at the same elevation than western valleys like Palmira. Specialty producers have gravitated east as a result; commercial volume stays west, where logistics are easier."
+  },
+  {
+    "author": "dpavon",
+    "region": "boquete",
+    "title": "Carbonic maceration at Lamastus Family Estates — what they share",
+    "body": "Lamastus runs carbonic maceration on a subset of their Geisha lots — exact temperatures and durations remain a trade secret, but the family has publicly shared the broad outline: cherries depulped, then sealed under CO₂ for 60 to 100 hours depending on the lot. The cup gains complexity at the cost of some of Geisha's clean varietal character."
+  },
+  {
+    "author": "dpavon",
+    "region": "boquete",
+    "title": "The Boquete dry processing playbook",
+    "body": "Natural processing in Boquete uses raised African beds under shade structures. Cherries spend 18 to 28 days on the bed, turned six to eight times daily for the first week. The relatively cool, dry Boquete climate slows the fermentation curve — the same protocol in a hotter origin would produce a very different cup. Boquete naturals read cleaner than most."
+  },
+  {
+    "author": "dpavon",
+    "region": "boquete",
+    "title": "Black honey, red honey, white honey — what the colors mean",
+    "body": "Honey terminology is mucilage-percentage code. White honey leaves about 25% mucilage on the parchment. Yellow leaves around 50%. Red leaves 70–80%. Black honey leaves close to 100% — essentially full natural without the cherry pulp. The naming is informal but stable enough that Boquete producers and importers use it as shorthand without much confusion."
+  },
+  {
+    "author": "ctorresvega",
+    "region": "boquete",
+    "title": "Cupping the 2025 Best of Panama auction — three takeaways",
+    "body": "The 2025 Best of Panama's geisha-natural category topped at $5,001.50/lb green. The cupping panel's notes converged on three things: lemongrass top notes were stronger than in 2024, bergamot showed up more reliably, and the historical 'Boquete chocolate' bottom-end character was visibly retreating. Buyers paid for the floral lift, not the chocolate base."
+  },
+  {
+    "author": "ctorresvega",
+    "region": "boquete",
+    "title": "On floral as a Geisha descriptor — a conversation",
+    "body": "'Floral' covers everything from jasmine to honeysuckle to lavender to chamomile. Boquete Geishas tend to land on jasmine and bergamot. When the panel writes 'floral' on a Boquete cup, they almost always mean jasmine-bergamot. When they write it on a Colombian Geisha, the meaning slips toward chamomile. The descriptor is regional shorthand."
+  },
+  {
+    "author": "ctorresvega",
+    "region": "boquete",
+    "title": "Why some Geishas cup over 95 and others under 90",
+    "body": "Geisha lots that cup 95+ share three things: high-altitude shaded growing, single-day cherry selection, and meticulous processing. The 88–90 lots usually compromise on one of these — mixed-day picking, faster drying, or a partial-shade plot. The varietal doesn't guarantee anything. It just raises the ceiling if the rest of the system is in tune."
+  },
+  {
+    "author": "afonseca",
+    "region": "boquete",
+    "title": "The Hacienda La Esmeralda story — twenty years on",
+    "body": "Twenty years after La Esmeralda's 2004 Geisha announcement, the family operation has rewritten what a Latin American specialty coffee farm looks like. Three generations of Petersons now manage 250 hectares. The market they created — single-farm, single-varietal, single-day auctions — has reshaped the global specialty premium structure."
+  },
+  {
+    "author": "afonseca",
+    "region": "boquete",
+    "title": "Boquete's coffee tourism and what it broke",
+    "body": "Boquete's transformation into a specialty coffee destination has brought infrastructure, visibility, and a remarkable surge in local property values. The cost has been distribution: smallholder producers in adjacent valleys without tourism exposure now compete with farms that have year-round retail buyers walking through. Visibility consolidates value."
+  },
+  {
+    "author": "afonseca",
+    "region": "boquete",
+    "title": "Generational handover at Finca Hartmann",
+    "body": "Allan Hartmann ran the Hartmann farm for forty years. His daughter Camila took operational leadership in 2024. The transition has been deliberate — Camila trained in agronomy in Costa Rica, then in cupping at the SCA — but the inherited tension between conservation acreage and production acreage will define what kind of farm Hartmann becomes for the next generation."
+  },
+  {
+    "author": "lbermudez",
+    "region": "boquete",
+    "title": "The $10,000/lb auction lot — economics of scarcity",
+    "body": "When a Boquete Geisha clears $10,000/lb at auction, the headline gets written about coffee. The reality is closer to: 100–300 lb of green coffee gets bought by a roaster as a marketing asset. The lots are micro by volume, macro by margin. They don't change the underlying smallholder economics; they shape the ceiling that nothing else clears."
+  },
+  {
+    "author": "lbermudez",
+    "region": "boquete",
+    "title": "Boquete's labor market and the harvest crunch",
+    "body": "Boquete's coffee harvest depends on indigenous Ngäbe-Buglé workers who travel from the comarca for the December–March picking window. Wages have risen sharply since 2020 — labor scarcity, plus tourism's effect on local cost of living. Producers say the labor crunch will dictate where the next decade of varietal selection lands: higher yield, lower picker-hours per kilo."
+  },
+  {
+    "author": "lbermudez",
+    "region": "boquete",
+    "title": "Direct trade from Boquete — who's exporting where",
+    "body": "Direct-trade Boquete coffee in 2025 went predominantly to: Tokyo (38% by value), New York (21%), Oslo (12%), Melbourne (8%), with the remainder spread across roasters in 14 countries. The concentration is on roasters with marketing-side resources to communicate single-origin provenance — a different filter than commodity export selects for."
+  },
+  {
+    "author": "mcervantes",
+    "region": "boquete",
+    "title": "Centroamericano's slow uptake in Panama",
+    "body": "Centroamericano — the CATIE-developed F1 hybrid combining Rume Sudan rust resistance with Sarchimor productivity — has been available in Boquete since 2018. Adoption has been slower than Costa Rica or Honduras. The reason is partly marketing — F1 hybrid lacks Geisha's halo — and partly conservatism: producers don't experiment when the existing varietals are clearing auction prices."
+  },
+  {
+    "author": "dpavon",
+    "region": "boquete",
+    "title": "Patio-drying high-altitude Geisha — the parameters",
+    "body": "Patio-drying Geisha at 1,700+ m demands constant attention. The drying window is 14–22 days depending on weather. Cherries get raked into thin layers every 60–90 minutes during sunlight hours, raked into rows at sundown to slow rehydration, then re-spread at dawn. Done correctly, patio-dried Geisha cups slightly heavier than mechanically dried."
+  },
+  {
+    "author": "mcervantes",
+    "region": "sierra-madre",
+    "title": "Why the Sierra Madre cooperatives prefer Marsellesa",
+    "body": "Marsellesa, the disease-resistant Sarchimor descendant, dominates Sierra Madre cooperative plantings. The reasoning is mostly defensive: leaf rust hit Chiapas hard in 2013–2015, and Marsellesa shrugged it off where Bourbon collapsed. Cup quality lands in the 82–85 band — adequate for cooperative pooling, not aspirational. The trade-off is conscious."
+  },
+  {
+    "author": "mcervantes",
+    "region": "sierra-madre",
+    "title": "Disease-resistant varietals in Chiapas — fifteen years of trials",
+    "body": "INIFAP's Tacaná experimental station has run varietal trials in Chiapas since 2011. Marsellesa, Costa Rica 95, Oro Azteca, and several Robusta-Arabica F1 hybrids have all been tested under highland conditions. The data are still emerging on long-term productivity, but rust resistance has held in five of six varieties through three outbreak cycles."
+  },
+  {
+    "author": "mcervantes",
+    "region": "sierra-madre",
+    "title": "Pacamara in Sierra Madre: three farms experimenting",
+    "body": "Pacamara plantings in Sierra Madre remain small — three farms with commercial-scale plots above 1,500 m, all initiated 2020–2022. The agronomic challenges are the same as elsewhere: open canopy, oversized cherries, uneven ripening. The cup-quality payoff has been real on two of three farms; the third is reconsidering varietal choice."
+  },
+  {
+    "author": "jruvalcaba",
+    "region": "sierra-madre",
+    "title": "The Sierra Madre cloud forest belt — what altitude buys you",
+    "body": "Sierra Madre's coffee belt sits at the lower edge of the cloud forest band, between roughly 1,000 m and 1,800 m. Cloud cover for 60–80% of daylight hours through the growing season cools the cherry, slows the maturation curve, and produces denser beans. The cloud belt is also where the watershed services live — coffee shade and biodiversity overlap to a degree few other origins match."
+  },
+  {
+    "author": "jruvalcaba",
+    "region": "sierra-madre",
+    "title": "Chiapas's two harvests: highland and lowland, decoupling",
+    "body": "Chiapas's lowland coffee belt (below 800 m) traditionally harvested two to three weeks earlier than the highland belt. Through the 2010s the gap was a stable five-week shift. Since 2020 the gap has widened to seven or eight weeks — climate-driven highland delays, plus the lowland belt picking earlier to dodge rainy-season disease pressure. The labor logistics are getting awkward."
+  },
+  {
+    "author": "jruvalcaba",
+    "region": "sierra-madre",
+    "title": "Why the Tacaná volcano matters to Sierra Madre coffee",
+    "body": "Tacaná, on the Mexico-Guatemala border, last erupted in 1986 — minor, but enough to refresh the surrounding soils with tephra. The volcanic-soil belt around Tacaná produces Sierra Madre's most distinctive cups: noticeably higher mineral expression, better acidity structure, and a longer finish than the metamorphic-soil farms further north."
+  },
+  {
+    "author": "dpavon",
+    "region": "sierra-madre",
+    "title": "Anaerobic process arrives in Maya Vinic",
+    "body": "Maya Vinic — the long-established Tzotzil-Tzeltal cooperative in Chiapas — ran its first anaerobic-fermentation experiments in 2024. Three lots, sealed barrels, 72 hours at the cool ambient temperatures of the highland wet mill. The results cupped above the cooperative's washed average for the same plots. The leadership is cautious about scaling — anaerobic process is unforgiving in cooperative-pooled processing."
+  },
+  {
+    "author": "dpavon",
+    "region": "sierra-madre",
+    "title": "The Sierra Madre wet mill — co-op edition",
+    "body": "Cooperative wet mills in Sierra Madre pool fermentation across multiple smallholder deliveries. The economics work; the quality control is harder. A single underripe delivery can mark the day's batch. Quality-conscious cooperatives now use color-sorting at intake, density grading at fermentation, and dry-mill cupping before lot consolidation — three checkpoints the standard FairTrade-certified mill doesn't always run."
+  },
+  {
+    "author": "dpavon",
+    "region": "sierra-madre",
+    "title": "Drying patio engineering in highland Chiapas",
+    "body": "Highland Chiapas drying patios contend with afternoon mountain showers from May through September. The engineering response — covered patios with roll-down rain shields, plus African-bed elevation off the patio surface — has matured through the 2010s. The current standard at the cooperatives is a 40 m² covered patio per ton of green output."
+  },
+  {
+    "author": "ctorresvega",
+    "region": "sierra-madre",
+    "title": "Cupping Sierra Madre 2026 — broad strokes",
+    "body": "Sierra Madre 2026 arrivals cup with notable improvement at the top end. The cooperative-pooled lots average 83.6 — a half-point above 2024. The micro-mill single-farm lots that have emerged in the past three years cup higher, with several crossing 87. The two-tier emergence is real, and it's reshaping how Sierra Madre coffee gets sold internationally."
+  },
+  {
+    "author": "ctorresvega",
+    "region": "sierra-madre",
+    "title": "On 'earthy' in highland Mexican coffees",
+    "body": "'Earthy' as a cupping descriptor used to be code for defects: musty drying, baggy storage. In recent years it has gained legitimate ground for cleanly processed coffees with a wet-leaf, forest-floor character. Sierra Madre highland Marsellesa lands cleanly in this space — and the panel's vocabulary is finally catching up."
+  },
+  {
+    "author": "ctorresvega",
+    "region": "sierra-madre",
+    "title": "The Sierra Madre micro-mill cupping league — a year in",
+    "body": "An informal cupping league among Sierra Madre micro-mill operators ran twelve monthly sessions in 2025. The structure: each participant submits one lot, others cup blind, scores get pooled, the top lot of the year gets a marketing co-op slot at New York Coffee Week. The league raised cupping discipline across the participating mills measurably."
+  },
+  {
+    "author": "afonseca",
+    "region": "sierra-madre",
+    "title": "Maya Vinic: thirty years of organized indigenous coffee",
+    "body": "Maya Vinic was founded in 1999 by Tzotzil and Tzeltal coffee producers in the aftermath of the Acteal massacre. Thirty years on, the cooperative operates seven wet mills, exports under its own brand to twelve countries, and has become a reference point for indigenous-led coffee organizing in Latin America. Its institutional resilience is its most underrated achievement."
+  },
+  {
+    "author": "afonseca",
+    "region": "sierra-madre",
+    "title": "The Zapatista influence on Chiapas coffee cooperatives",
+    "body": "The Zapatista uprising's autonomous municipalities in Chiapas built parallel coffee cooperatives outside the conventional certification structures. Their cooperative model — community-governed, anti-export-broker — has aged interestingly. Some collapsed under market pressure; the survivors built direct relationships with European solidarity-economy roasters that pre-pay for entire seasons."
+  },
+  {
+    "author": "afonseca",
+    "region": "sierra-madre",
+    "title": "Sierra Madre's cooperative landscape, charted",
+    "body": "Sierra Madre supports roughly fourteen large coffee cooperatives, organized around language community, municipal boundary, or religious affiliation. The largest pool over 3,000 producers each. The middle band — eight cooperatives between 400 and 1,500 producers — is where the institutional innovation has been concentrated, and where the next decade's structural shifts will play out."
+  },
+  {
+    "author": "lbermudez",
+    "region": "sierra-madre",
+    "title": "Maya Vinic's pricing model — what's different",
+    "body": "Maya Vinic prices on a model independent of the C-market floor or the standard fair-trade premium. Producers receive a published per-quintal price tied to cup-quality scoring at intake, plus a profit-sharing distribution at season close. The model demands cup-grading capacity the conventional cooperatives don't have — and it has held producer retention rates above 90% for a decade."
+  },
+  {
+    "author": "lbermudez",
+    "region": "sierra-madre",
+    "title": "Fair-trade certification in Chiapas — what works",
+    "body": "Fair-trade certification in Chiapas has produced a layered outcome. The price floor and democratic-governance requirements have held; the long-promised premium has been inconsistent. The cooperatives that built complementary direct-trade relationships on top of fair-trade access have done well. The cooperatives that relied on certification alone are slowly hollowing out."
+  },
+  {
+    "author": "lbermudez",
+    "region": "sierra-madre",
+    "title": "Cooperative-to-cooperative trade: a Chiapas-Cauca pipeline",
+    "body": "Maya Vinic and Tierradentro (Cauca) ran a 2024 pilot exchange: Maya Vinic shipped Chiapas honey-process Bourbon to roaster partners of Tierradentro in Norway; Tierradentro shipped washed Castillo to Maya Vinic's German partners. Volumes were small, margins were thin, but the model — peer-to-peer cooperative trade with reciprocal market access — is being studied."
+  },
+  {
+    "author": "mcervantes",
+    "region": "sierra-madre",
+    "title": "Coffee leaf rust resistance — Sierra Madre's field trials",
+    "body": "Sierra Madre cooperatives ran coordinated leaf-rust resistance trials through 2022–2025 across thirteen experimental plots. The verdict: Marsellesa held, Costa Rica 95 held, Oro Azteca held in lowland plots but showed slower vigor at altitude. Sarchimor showed reduced resistance against the 2023 strain. The varietal recommendation matrix gets updated annually."
+  },
+  {
+    "author": "dpavon",
+    "region": "sierra-madre",
+    "title": "Tacaná-grown Geisha — a Sierra Madre experiment",
+    "body": "Three farms on Tacaná's Mexican slope have planted Geisha plots in the 1,650–1,800 m band since 2021. Cup results so far: clean, floral, distinctly Geisha — but the floral character cups lighter than Panama Geisha at the same altitude. The hypothesis is soil-related — the Tacaná tephra is mineralogically different from Boquete's Barú substrate."
+  },
+  {
+    "author": "mcervantes",
+    "region": "tarrazu",
+    "title": "Tarrazú's varietal portfolio — Caturra, Catuaí, and the new wave",
+    "body": "Tarrazú remains dominated by Caturra and Catuaí — the high-yielding compact varietals that shaped Costa Rican specialty for thirty years. The new wave (Bourbon Sidra, Pink Bourbon, Centroamericano) sits in experimental plots, not commercial volume. The reason isn't conservatism — Caturra/Catuaí still pencil out at specialty prices, and the agronomy is well-understood."
+  },
+  {
+    "author": "mcervantes",
+    "region": "tarrazu",
+    "title": "Why Tarrazú producers are skeptical of Geisha",
+    "body": "Geisha trials in Tarrazú returned middling results: clean cups but missing the floral lift that defines Panamanian Geisha. Producers conclude the varietal needs the specific Boquete soil-altitude-microclimate combination to express. Tarrazú instead leans into what it does well — washed Caturra and Catuaí at extreme altitude — rather than chase a varietal that doesn't translate."
+  },
+  {
+    "author": "mcervantes",
+    "region": "tarrazu",
+    "title": "Honey process in Tarrazú — the high-altitude case",
+    "body": "Tarrazú's altitude (1,500–1,900 m on the working farms) makes honey process particularly interesting: the cool drying climate slows fermentation enough to capture honey's syrupy sweetness without the over-fermented muddiness that plagues lower-altitude honey-process attempts. Tarrazú yellow-honey lots have become a reference point for the technique."
+  },
+  {
+    "author": "jruvalcaba",
+    "region": "tarrazu",
+    "title": "Tarrazú's altitude advantage, quantified",
+    "body": "Tarrazú's commercial coffee belt sits at 1,500–1,900 m — among the highest commercial Arabica belts in the world. Every 100 m of altitude correlates with about 0.4 cupping points on Cup of Excellence panels, controlling for varietal and processing. Tarrazú's altitude is structural: the geology of the Talamanca range pushes the entire coffee economy up the slope."
+  },
+  {
+    "author": "jruvalcaba",
+    "region": "tarrazu",
+    "title": "Costa Rica's two coffee climates — Tarrazú vs. Tres Ríos",
+    "body": "Tres Ríos coffee — east of San José, lower altitude — produces a fundamentally different cup from Tarrazú's southern coffee. Where Tarrazú lands with clean acidity and brown-sugar sweetness, Tres Ríos cups silkier, with more floral overtones and a shorter finish. The two are 70 km apart and produce coffee that reads from different continents."
+  },
+  {
+    "author": "jruvalcaba",
+    "region": "tarrazu",
+    "title": "Why Tarrazú nights got warmer this decade",
+    "body": "Tarrazú's mean minimum temperature rose 0.8°C from 2015 to 2025. The cause isn't macro-warming alone; deforestation in the upper Talamanca basin has reduced nighttime cold-air drainage. Coffee at altitude tolerates the trend so far, but flowering windows are compressing — and that compression is starting to show in the cupping bell curve."
+  },
+  {
+    "author": "dpavon",
+    "region": "tarrazu",
+    "title": "The Tarrazú micro-mill revolution — twenty years in",
+    "body": "Costa Rica's 2005 banking liberalization let smallholder coffee producers finance their own wet mills. Tarrazú led the trend. Twenty years later, the micro-mill count exceeds 220 — up from fewer than a dozen in 2004. The cooperative beneficios still exist but no longer dominate. The cup-quality consequence has been a marked tightening of the upper specialty band."
+  },
+  {
+    "author": "dpavon",
+    "region": "tarrazu",
+    "title": "Beneficio Las Lajas — process notes from a pioneer",
+    "body": "Las Lajas, the Chacón family's Naranjo beneficio, pioneered honey and natural processing in Costa Rica in the early 2000s. Their published process notes — drying schedules, layer thicknesses, turning intervals — became the de facto reference for the entire micro-mill generation. The family still publishes annual updates from each season's experimental lots."
+  },
+  {
+    "author": "dpavon",
+    "region": "tarrazu",
+    "title": "Why Tarrazú's micro-mills cluster where they do",
+    "body": "Tarrazú micro-mills cluster around the Llano Bonito and San Marcos catchments — proximity to a reliable source of fermentation-grade water, plus road access to the export logistics in Pérez Zeledón. The clustering isn't economic accident; it's hydro-geographic constraint. The mills that built outside these catchments mostly faded by the early 2020s."
+  },
+  {
+    "author": "ctorresvega",
+    "region": "tarrazu",
+    "title": "Cupping Tarrazú 2026 — the high lots",
+    "body": "Tarrazú's 2026 high lots — 1,800+ m, single-varietal Caturra and Catuaí from the named micro-mills — cup with unusual consistency. The 87–89 band that was thin in 2023 is densely populated in 2026. Brown sugar, citric acid structure, longer finishes. The micro-mill cohort that started 2015–2018 has matured into reliable producers."
+  },
+  {
+    "author": "ctorresvega",
+    "region": "tarrazu",
+    "title": "On 'brown sugar' as a Tarrazú descriptor",
+    "body": "'Brown sugar' has become Tarrazú's defining cupping descriptor — used by enough panels and enough roasters that the term now functions as origin shorthand. The honest interpretation: high-altitude Tarrazú coffees express muscovado-style caramelized-molasses sweetness in the mid-palate. It's not artistic license; it's a consistent sensory anchor."
+  },
+  {
+    "author": "ctorresvega",
+    "region": "tarrazu",
+    "title": "Costa Rica's Cup of Excellence — what 2026 revealed",
+    "body": "Costa Rica's 2026 Cup of Excellence saw Tarrazú lots take seven of the top ten positions — a near-monopoly that hadn't happened since the program's first decade. The judges' notes converged on a theme: clean processing, varietal integrity, terroir expression. The Brunca and West Valley lots that competed strongly through the 2010s have lost ground to Tarrazú's micro-mill cohort."
+  },
+  {
+    "author": "afonseca",
+    "region": "tarrazu",
+    "title": "Tarrazú's transformation from commodity to specialty",
+    "body": "In 2000 Tarrazú coffee mostly entered the global commodity stream as Costa Rica SHB. By 2025 the same growing region exports more than 60% of its crop as named-origin specialty — with traceability down to the lot level. The transition happened in two generations and rewrote what a Costa Rican coffee farmer's income looked like. The story is exemplary, and not easily transferable."
+  },
+  {
+    "author": "afonseca",
+    "region": "tarrazu",
+    "title": "The ICAFE legacy — sixty years of Costa Rican coffee policy",
+    "body": "ICAFE — the Instituto del Café de Costa Rica, founded 1948 — built the institutional infrastructure that made Costa Rican coffee a brand. Quality control, export inspection, statistical reporting, varietal extension. The agency's role is contested now: its commodity-era playbook doesn't fit the specialty era as well. The 2026 reforms are an attempt to bridge."
+  },
+  {
+    "author": "afonseca",
+    "region": "tarrazu",
+    "title": "From cooperative to direct trade — Tarrazú's generational shift",
+    "body": "Tarrazú's older producers grew up in a cooperative economy where the beneficio took the crop and the producer got the average. The current generation — many of whom run their own micro-mills — sells direct to specialty importers and roasters. The generational gap is sharp, and the family-level negotiations about which model the farm follows have shaped Tarrazú's institutional landscape."
+  },
+  {
+    "author": "lbermudez",
+    "region": "tarrazu",
+    "title": "Tarrazú's labor economics — Nicaraguan migration and the harvest",
+    "body": "Tarrazú's harvest depends on seasonal Nicaraguan migrant labor — historically 60–80% of the picking workforce. Border policy shifts in 2024 reduced the labor pool measurably; producers report higher wages and longer harvest windows. The trend isn't a one-year story. The Tarrazú labor model that worked for thirty years is restructuring under pressure that won't reverse."
+  },
+  {
+    "author": "lbermudez",
+    "region": "tarrazu",
+    "title": "Direct trade from Tarrazú — concentration vs. distribution",
+    "body": "Direct-trade Tarrazú coffee in 2025 went predominantly to fewer than fifty global buyers, with the top ten accounting for more than 60% of named-origin volume. The concentration limits price discovery for producers without those relationships. The distribution question — how to broaden the buyer base without diluting the premium — is the central conversation in Tarrazú's export sector."
+  },
+  {
+    "author": "lbermudez",
+    "region": "tarrazu",
+    "title": "What ICAFE's 2026 reforms mean for smallholders",
+    "body": "ICAFE's 2026 reforms restructure the agency's role: less regulatory, more services-focused. Smallholder cooperatives applaud the shift but worry about cost recovery. The reforms eliminate several blanket subsidies in favor of targeted support; the targeting criteria are still being negotiated. For the smallest producers, the next 18 months will determine whether the reforms help or hurt."
+  },
+  {
+    "author": "mcervantes",
+    "region": "tarrazu",
+    "title": "Centroamericano in Tarrazú — five years of trial",
+    "body": "Tarrazú's CATIE Centroamericano trials, ongoing since 2020, show what the F1 hybrid does at extreme altitude: high yields, strong rust resistance, cup quality clustering at 84–86. Producers like the productivity; they're cooler on the cup character, which they describe as 'clean but unmemorable.' The varietal will probably stay a yield play, not a specialty showpiece."
+  },
+  {
+    "author": "dpavon",
+    "region": "tarrazu",
+    "title": "Black honey in Tarrazú — a process deep-dive",
+    "body": "Black honey — leaving close to full mucilage on the parchment through drying — is the most demanding honey process. Tarrazú's high-altitude cool drying makes it tractable. Beneficio Don Mayo's black honey protocol: depulped cherry on raised beds in low-humidity covered patios for 22 to 28 days, turned every two hours during daylight. The cups land syrupy, complex, fruit-forward."
+  },
+  {
+    "author": "mcervantes",
+    "region": "yirgacheffe",
+    "title": "Heirloom varieties: the genetic library of Ethiopian coffee",
+    "body": "Yirgacheffe coffee is grown almost entirely on landrace cultivars — the catch-all 'heirloom' label that covers thousands of genetically distinct plants. Most farms are unmapped at the varietal level. The chaotic genetic diversity is exactly what gives Yirgacheffe its unmistakable cup, and what protects it as a reservoir against future disease pressure."
+  },
+  {
+    "author": "mcervantes",
+    "region": "yirgacheffe",
+    "title": "Why 'Geisha' came from Yirgacheffe — the diaspora story",
+    "body": "The Geisha varietal that rewrote specialty coffee economics in 2004 traces back to a 1936 collecting expedition near the Gesha village in southwest Ethiopia. The CATIE seed travelled to Costa Rica, then Panama, where La Esmeralda's Boquete soil rewarded it. The Ethiopian forests where it originated still hold thousands of un-catalogued sibling cultivars."
+  },
+  {
+    "author": "jruvalcaba",
+    "region": "yirgacheffe",
+    "title": "The 2,100m line: Yirgacheffe's altitude ceiling",
+    "body": "Yirgacheffe coffee farms cluster between 1,700 and 2,200 m on the Gedeo highlands. Above 2,100 m frost risk becomes meaningful in the December nights; below 1,700 m the cup loses its signature floral lift. The narrow altitude band is also the cloud-forest belt — coffee here grows under semi-natural canopy, not in cleared rows."
+  },
+  {
+    "author": "jruvalcaba",
+    "region": "yirgacheffe",
+    "title": "Why Ethiopian terroir resists single-origin labeling",
+    "body": "An Ethiopian coffee bag labeled 'Yirgacheffe' is almost certainly a blend of smallholdings — hundreds of plots, processed at one of a handful of regional washing stations. The single-origin label is regional, not parcel-specific. Specialty buyers chasing parcel-level traceability have to invest in station-level relationships and direct intake controls."
+  },
+  {
+    "author": "dpavon",
+    "region": "yirgacheffe",
+    "title": "Drying-bed engineering at the Konga washing station",
+    "body": "Konga's drying yard runs 320 raised African beds in 16 ranks. Each bed dries 90 kg of parchment over 12 to 18 days, turned every 90 minutes during daylight. The station's protocol — published in 2024 — has become the de facto reference for Yirgacheffe washing stations preparing Grade 1 lots for export."
+  },
+  {
+    "author": "dpavon",
+    "region": "yirgacheffe",
+    "title": "Natural process in Yirgacheffe: the origin orthodoxy",
+    "body": "Natural-processed Yirgacheffe — whole cherry sun-dried on raised beds — is the older tradition, predating the washing-station export model by a century. The cup carries strawberry, blueberry, and a syrupy mouthfeel that washed Yirgacheffe simply doesn't produce. Natural process is making a comeback among quality-focused stations after decades of washed-process dominance."
+  },
+  {
+    "author": "ctorresvega",
+    "region": "yirgacheffe",
+    "title": "The blueberry note: where it really comes from",
+    "body": "The blueberry descriptor that pops up on Yirgacheffe cupping forms is most reliably attached to natural-processed coffees, not washed ones. The note is a fermentation-driven aldehyde signature — specifically, ethyl 3-methylbutanoate, accumulated during slow on-cherry drying. Washed Yirgacheffe leans citric-floral instead. Same coffee, two different sensory languages."
+  },
+  {
+    "author": "ctorresvega",
+    "region": "yirgacheffe",
+    "title": "Cupping the 2026 Yirgacheffe Grade 1 lots",
+    "body": "The 2026 arrival cupping at three reference roasters scored Yirgacheffe Grade 1 washed at an unweighted average of 87.8 — about a half-point above the 2024 baseline. Jasmine, bergamot, and lemon-tea descriptors dominated. Two natural lots crossed 89. The harvest was unusually clean across the region; agronomists credit a dry harvest window and disciplined picking."
+  },
+  {
+    "author": "lbermudez",
+    "region": "yirgacheffe",
+    "title": "The Ethiopian Commodity Exchange and the smallholder gap",
+    "body": "The ECX, founded in 2008, channels most Ethiopian coffee through anonymized centralized auctions — eliminating direct-trade traceability in the name of fair-price discovery. The carve-outs for specialty cooperatives and ECX-bypassing direct exports have grown, but the system still locks most smallholders out of premium pricing. The 2025 reform debate centered on this exact tension."
+  },
+  {
+    "author": "afonseca",
+    "region": "yirgacheffe",
+    "title": "Coffee's birthplace: the Kaffa-to-Yirgacheffe arc",
+    "body": "Coffee's botanical origin is the Kaffa forest region, but the trade history runs through Yirgacheffe — the Gedeo highlands' market towns funneled coffee toward Red Sea ports for centuries. The 'Yirgacheffe' brand is a modern construct; the underlying culture of coffee as social practice, ceremonial drink, and agricultural mainstay is among the oldest documented in any region."
+  },
+  {
+    "author": "mcervantes",
+    "region": "nyeri",
+    "title": "SL28 and SL34: the Kenyan workhorses",
+    "body": "Kenya's coffee economy runs on two varietals selected at the Scott Agricultural Laboratories in the 1930s: SL28 (drought-tolerant, dense bean, intense acidity) and SL34 (higher-altitude adaptation, less stress-tolerant). The two together account for about 90% of Kenyan specialty exports. Their cup signature — blackcurrant, grapefruit, dense body — is the global reference for 'Kenya coffee.'"
+  },
+  {
+    "author": "mcervantes",
+    "region": "nyeri",
+    "title": "Batian: the rust-resistant Kenyan future",
+    "body": "The Coffee Research Foundation released Batian in 2010 as a successor to Ruiru 11. Both are F1 hybrids with strong CBD and CLR resistance. Batian outperforms on cup quality — competitive with SL28 in well-managed plots. Nyeri smallholders are adopting slowly: the varietal is a long-term hedge but doesn't dethrone the Scott Labs heritage."
+  },
+  {
+    "author": "jruvalcaba",
+    "region": "nyeri",
+    "title": "Why Nyeri produces 'Kenya cup' character",
+    "body": "Nyeri sits on the eastern slopes of the Aberdares, on red volcanic soils derived from Pleistocene basalt. Combine that geology with 1,600–1,900 m altitude and cool nights through the main flowering window, and you get the dense, complex, intensely acidic cups that define Kenyan specialty. The terroir is reproducible elsewhere — but rarely all at once."
+  },
+  {
+    "author": "jruvalcaba",
+    "region": "nyeri",
+    "title": "Aberdare ranges: the eastern volcanic line",
+    "body": "The Aberdare ranges form the eastern wall of Kenya's coffee belt. Mount Kenya's basalt cap weathered into the soils Nyeri, Kirinyaga, and Embu farm today. Each district reads slightly different in the cup — Nyeri brightest, Kirinyaga sweetest, Embu most balanced — but they share the volcanic-mineral backbone that distinguishes Kenyan coffee from neighboring origins."
+  },
+  {
+    "author": "dpavon",
+    "region": "nyeri",
+    "title": "The double-fermentation Kenyan washed protocol",
+    "body": "Kenya's signature washing protocol runs cherries through 36 to 72 hours of fermentation in two stages: an initial 12–24 hour dry ferment, then a wash, then a second submerged ferment. The total cycle develops the dense fruit-acid expression that defines Kenyan coffees. Stations that shortcut to a single fermentation cycle produce technically clean cups that lose the character."
+  },
+  {
+    "author": "dpavon",
+    "region": "nyeri",
+    "title": "Washing station factory model — how it works",
+    "body": "Kenya's smallholder coffee model funnels cherries through cooperatively-owned 'factories' (washing stations). Each factory serves a few hundred farmers, processes their daily cherry deliveries, and consolidates parchment lots for the Nairobi auction. The factory's discipline at intake — color sorting, density grading — has more impact on final cup quality than any single farmer's husbandry."
+  },
+  {
+    "author": "ctorresvega",
+    "region": "nyeri",
+    "title": "Blackcurrant and grapefruit: the Nyeri sensory baseline",
+    "body": "Nyeri's reference profile lands on blackcurrant up top, grapefruit-pith bitter sweetness in the mid, and a long phosphoric-acid finish. The descriptors aren't artistic license — they're so consistent across cupping panels that the WCR's training catalog explicitly uses Nyeri SL28 as the calibration anchor for 'Kenyan' character."
+  },
+  {
+    "author": "ctorresvega",
+    "region": "nyeri",
+    "title": "Auction-day cupping at Nairobi Coffee Exchange",
+    "body": "Tuesday auction day in Nairobi is a controlled circus. The NCE board members and ~80 licensed buyers cup their way through a dozen-plus auction lots in three hours before the bidding floor opens. The cupping is fast, decisive, and unsentimental — buyers calibrate on the previous week and bid accordingly. The model has held for sixty years."
+  },
+  {
+    "author": "lbermudez",
+    "region": "nyeri",
+    "title": "Co-op factory economics in Nyeri",
+    "body": "A Nyeri washing station's economics turn on three variables: cherry intake price paid to farmers, parchment yield ratio, and auction clearance per kg. The cooperatives operating closest to the producer side pay above-floor cherry prices and squeeze margin from operational efficiency. The middleman-heavy stations pay the floor and bank the spread."
+  },
+  {
+    "author": "afonseca",
+    "region": "nyeri",
+    "title": "Kenya's coffee history: from colonial estate to smallholder",
+    "body": "Kenya's coffee economy began as a settler-estate system; smallholder African production was prohibited until the 1950s Mau Mau emergency reforms permitted it. The smallholder share grew through the 1960s independence transition and now accounts for ~60% of output. The institutional architecture — auction, factory, cooperative — remains shaped by the colonial-era settler infrastructure."
+  },
+  {
+    "author": "mcervantes",
+    "region": "mandheling",
+    "title": "Lini-S795 and Tim-Tim: the Mandheling varietals",
+    "body": "Sumatra Mandheling coffee grows mostly on Lini-S795 — an Indian-selected rust-resistant cultivar — and Tim-Tim, a CLR-tolerant Indonesian descendant of Timor Hybrid. Both produce the dense, full-bodied cups that define Mandheling. Catimor variants are creeping in for productivity, with the predictable cost: cleaner cups, less character."
+  },
+  {
+    "author": "dpavon",
+    "region": "mandheling",
+    "title": "Giling basah explained: wet-hulled processing",
+    "body": "Giling basah — the Indonesian wet-hulling protocol — removes the parchment while the bean is still at 30–35% moisture, then continues drying as bare green coffee. The protocol produces the blue-green appearance, low acidity, and earthy-woody profile distinctive to Sumatra. Cleaner washing stations skip giling basah for fully-washed; cups read more 'normal' and lose the Mandheling character."
+  },
+  {
+    "author": "dpavon",
+    "region": "mandheling",
+    "title": "Why Sumatran coffee looks blue-green when green",
+    "body": "Wet-hulled green coffee retains traces of cherry-mucilage residue and oxidizes in the open air during the final drying stages. The result: a blue-green tint that's a Mandheling tell-tale. Roasters who don't know what they're looking at sometimes flag the color as a defect; experienced Sumatra buyers know it's a signature of authentic giling basah processing."
+  },
+  {
+    "author": "jruvalcaba",
+    "region": "mandheling",
+    "title": "Lake Toba and the geology of Mandheling",
+    "body": "Lake Toba is the caldera of the largest known volcanic eruption in 25 million years. The mandheling coffee belt surrounds Toba's southern and western slopes on weathered tuff and andesite soils — mineral-rich, acidic, and exceptionally well-drained. The volcanism shaped Sumatra's coffee terroir more than any human institution did."
+  },
+  {
+    "author": "jruvalcaba",
+    "region": "mandheling",
+    "title": "Aceh vs. Sumatra Mandheling: two distinct origins",
+    "body": "Aceh and Mandheling are often blended together as 'Sumatra' in supermarket coffee, but they're distinct origins with different elevations, different processing maturity, and different cup profiles. Aceh (Gayo highlands) cups brighter and cleaner; Mandheling cups deeper and earthier. Conflating them is convenient for the commodity trade and misleading for specialty buyers."
+  },
+  {
+    "author": "ctorresvega",
+    "region": "mandheling",
+    "title": "Earthy, mushroom, tobacco: the Sumatra sensory profile",
+    "body": "Mandheling's reference profile reads earthy, mushroom-forward, with cedar and tobacco notes underlying a chocolate body. The acidity is low — sometimes flagged as 'flat' by cuppers unfamiliar with the origin. The descriptors aren't defect-coded; they're varietal-and-process expressions. Specialty buyers who chase Mandheling are chasing exactly this profile."
+  },
+  {
+    "author": "ctorresvega",
+    "region": "mandheling",
+    "title": "Cupping wet-hulled vs. fully-washed Sumatran lots",
+    "body": "Side-by-side cupping a wet-hulled Mandheling and a fully-washed Aceh of the same varietal reveals how much giling basah shapes the cup. Wet-hulled: heavy body, low acid, woody-earthy. Fully washed: brighter, more citric, cleaner — and arguably less interesting. The 'cleanness' the fully-washed route brings sacrifices what makes the origin distinct."
+  },
+  {
+    "author": "lbermudez",
+    "region": "mandheling",
+    "title": "Smallholder cooperatives in Aceh post-tsunami",
+    "body": "Aceh's coffee economy lost its institutional infrastructure to the 2004 tsunami and the long civil conflict that preceded it. The post-2005 reconstruction rebuilt around smallholder cooperatives — particularly KBQ Baburrayyan and Gayo Megah Berseri — which now anchor the specialty export channel. The model is fragile, donor-dependent, and shows the cracks of post-conflict economic stitching."
+  },
+  {
+    "author": "afonseca",
+    "region": "mandheling",
+    "title": "The Dutch colonial coffee legacy in Sumatra",
+    "body": "The Dutch East India Company began Sumatran coffee cultivation in the 1690s; the Java/Sumatra origin axis dominated European coffee for 150 years. The colonial system extracted value to Amsterdam; Sumatran smallholders had no equity until the 20th century reforms. The institutional residue — exporter concentration, processing infrastructure — still shapes how Sumatra's coffee reaches market."
+  },
+  {
+    "author": "mcervantes",
+    "region": "mandheling",
+    "title": "Gayo highlands: the Aceh specialty corner",
+    "body": "The Gayo highlands sit at 1,200–1,600 m on Aceh's central spine. The varietals — Catimor variants plus older Tim-Tim — produce cups noticeably cleaner than southern Mandheling. Specialty buyers chasing high-grown Sumatran coffee with sharper acidity and less of the earthy bottom-end gravitate to Gayo. The region's smallholders are organized around three large cooperatives."
+  },
+  {
+    "author": "afonseca",
+    "region": "haraz",
+    "title": "Mocha: the original coffee port",
+    "body": "The port of Mocha on Yemen's Red Sea coast gave its name to the commodity, the drink, and (later) the chocolate-coffee combination. Mocha was the only legal export port for Yemeni coffee through the 17th century. Decline followed: silting, competition from Indonesian Dutch coffee, and Ottoman politics ended Mocha's dominance. The name survived as shorthand for coffee culture itself."
+  },
+  {
+    "author": "afonseca",
+    "region": "haraz",
+    "title": "Yemeni coffee culture: qishr and beyond",
+    "body": "Yemeni coffee culture predates and partly differs from the global espresso tradition. Qishr — coffee-husk tea spiced with ginger and cardamom — is the everyday drink; the bean itself is largely exported. The mocha trade made coffee Western before Yemenis had access to the volume of beans they grew. The cultural inversion is unusual among producing origins."
+  },
+  {
+    "author": "mcervantes",
+    "region": "haraz",
+    "title": "Heirloom Yemeni varieties: a genetic museum",
+    "body": "Yemen's coffee genetics are arguably the most under-mapped reservoir of Arabica diversity outside Ethiopia. Local landraces — Udaini, Dawairi, Tufahi — represent centuries of in-situ selection on terraced highland plots. The 2024 Yemen Coffee Mission's varietal-cataloguing trip identified 38 distinct cultivars still in cultivation. The genetic value as a future-proofing resource is enormous."
+  },
+  {
+    "author": "mcervantes",
+    "region": "haraz",
+    "title": "Why Yemen Mocha shares DNA with Bourbon",
+    "body": "The Bourbon varietal — backbone of Latin American specialty — traces back through 17th century Yemeni stock taken to Réunion island and propagated throughout the colonial coffee world. Modern genetic analysis confirms the lineage. Cupping a Yemen Mocha alongside a Latin American Bourbon reveals the kinship: shared structure, different terroir overlay."
+  },
+  {
+    "author": "jruvalcaba",
+    "region": "haraz",
+    "title": "Haraz: terraced agriculture at 1,800m+",
+    "body": "The Haraz mountains' coffee plots are centuries-old stone terraces — narrow, hand-built shelves following the contours, carrying soil where natural slopes wouldn't hold it. Most are above 1,800 m. The terracing is an act of patrimonial labor; abandoning a terrace means erosion in two seasons. The coffee economy and the terraced landscape are inseparable."
+  },
+  {
+    "author": "jruvalcaba",
+    "region": "haraz",
+    "title": "Yemen's water crisis and the coffee future",
+    "body": "Yemen has among the most stressed groundwater tables of any producing country. Highland coffee farming competes for water with khat — the chewing-leaf cash crop whose price-per-liter usage substantially beats coffee's. Many former coffee terraces have converted to khat in the past two decades. The water arithmetic, not the agronomy, will determine whether Yemeni coffee scales."
+  },
+  {
+    "author": "dpavon",
+    "region": "haraz",
+    "title": "Yemeni drying patios — sun-dried natural at altitude",
+    "body": "Yemeni coffee is almost exclusively natural-processed — sun-dried whole cherry on rooftop patios or terraced drying beds. The dry highland air and intense solar incidence drive the curing fast enough to avoid the fermentation-mush problem that plagues natural processing at lower altitudes. The traditional protocol predates and informs modern specialty natural processing globally."
+  },
+  {
+    "author": "ctorresvega",
+    "region": "haraz",
+    "title": "Berry, cocoa, wine: the Mocha cup profile",
+    "body": "Yemen Mocha cups winey, jammy, cocoa-rich — sometimes flagged as fermented past the line by cuppers used to washed-process profiles. The character is varietal-and-process-driven: heirloom genetics plus sun-dried natural processing yields the deep fruit-and-cocoa signature that's been the Yemeni cup baseline for centuries. It's coffee's deepest sensory memory."
+  },
+  {
+    "author": "ctorresvega",
+    "region": "haraz",
+    "title": "Cupping a Yemen Mocha alongside a Yirgacheffe natural",
+    "body": "A side-by-side cupping of Yemen Mocha and Yirgacheffe natural reveals the family resemblance and the divergence. Both natural processed, both heritage varietals, both fruit-forward. Yemen reads heavier, more cocoa-and-wine; Yirgacheffe reads brighter, more floral. The genetic and historical kinship maps directly onto the sensory cousinhood."
+  },
+  {
+    "author": "lbermudez",
+    "region": "haraz",
+    "title": "Direct-trade pioneers reaching Yemen",
+    "body": "Reaching Yemeni coffee at producer scale requires navigating a civil conflict, fractured logistics, and banking restrictions. The handful of direct-trade importers who manage it — Mokhtar Alkhanshali's Mocha Mill being the highest-profile — work with multi-year purchase commitments and pre-financing. The model is fragile but is the only path for Yemen's coffee to access the specialty premium."
+  },
+  {
+    "author": "lbermudez",
+    "region": "kayanza",
+    "title": "Burundi's specialty resurgence after the civil war",
+    "body": "Burundi's coffee sector spent the 1993-2005 civil war effectively paralyzed. The post-2008 specialty resurgence has come through cooperative organization, donor-supported washing station construction, and the country's entry into the Cup of Excellence program in 2012. Producer livelihoods have improved measurably; political stability remains the rate-limiting factor."
+  },
+  {
+    "author": "lbermudez",
+    "region": "kayanza",
+    "title": "The Burundi washing station network",
+    "body": "Burundi has roughly 280 active washing stations serving smallholder farmers. Most are owned by SOGESTAL cooperative federations or private operators; a smaller subset are direct-trade-focused independents. The station infrastructure — and the choice of which station to deliver to — is the smallholder's primary economic relationship in Burundi's coffee economy."
+  },
+  {
+    "author": "mcervantes",
+    "region": "kayanza",
+    "title": "Bourbon-dominant: why Burundi's varietal portfolio matters",
+    "body": "Burundi grows almost entirely Bourbon and related Bourbon-derived cultivars. The varietal monoculture — risky from a disease-pressure standpoint — produces the cup quality that defines Burundian specialty: balanced acidity, structured sweetness, restrained tropical fruit. The bet on Bourbon is being tested by climate change and CBD pressure; the trade-off is conscious."
+  },
+  {
+    "author": "dpavon",
+    "region": "kayanza",
+    "title": "Washing station processing in Kayanza",
+    "body": "Kayanza washing stations run a fully-washed protocol close to the Kenyan reference: depulped cherries ferment 18-36 hours, wash, dry-ferment another 12 hours, wash again, then sun-dry on raised beds for 14-21 days. The process is labor-intensive and benefits from the cool Burundi highland climate. Cup quality is consistently top-quartile African washed coffee."
+  },
+  {
+    "author": "dpavon",
+    "region": "kayanza",
+    "title": "Anaerobic experiments in Burundi — three farms",
+    "body": "Three Burundi producers (Long Miles Coffee, Heza, and Bukeye) ran anaerobic-fermentation experiments through the 2024-2025 seasons. Sealed-tank fermentation at altitude produced cups with significantly elevated fruit-forward character — strawberry, papaya — at the cost of some of the structured acidity that defines Burundian washed coffee. The technique is promising but not the default."
+  },
+  {
+    "author": "jruvalcaba",
+    "region": "kayanza",
+    "title": "The Burundi-Rwanda altitude continuum",
+    "body": "Burundi's Kayanza and Rwanda's Nyamasheke districts sit on the same geological spine — the Central African highlands — at similar altitudes (1,500-2,100 m). Cup profiles overlap meaningfully: both produce washed Bourbon with bright acidity, citrus and tropical fruit notes, and structured sweetness. The geopolitical border doesn't map cleanly to terroir distinction."
+  },
+  {
+    "author": "jruvalcaba",
+    "region": "kayanza",
+    "title": "Volcanic soil belts of central Africa",
+    "body": "The volcanic activity of the Albertine Rift — the Western branch of the East African Rift — created the soil belt that runs from Burundi through Rwanda, Uganda, and eastern DRC. The basalt and tuff weathering products are the geological foundation under most of central Africa's specialty coffee. Where the rift soils thin out, coffee quality reliably drops."
+  },
+  {
+    "author": "ctorresvega",
+    "region": "kayanza",
+    "title": "Bright, juicy, citric: Burundi cup signatures",
+    "body": "Burundi's reference profile lands bright and citric — orange, grapefruit, lemon zest — with a structured sweetness and medium body. The cups are closer to Kenya in shape than to Ethiopia, with less of the floral lift and more of the dense acid backbone. Specialty buyers consistently rank top-quartile Burundi washed against Kenya AA at similar price tiers."
+  },
+  {
+    "author": "ctorresvega",
+    "region": "kayanza",
+    "title": "Burundi Cup of Excellence 2025 — the high lots",
+    "body": "Burundi's 2025 Cup of Excellence saw 28 lots clear 87, with the top lot — Long Miles Coffee's Bukeye Anaerobic — scoring 91.4. Auction clearing prices averaged $19.40/lb across the top 30, with the leader clearing $84/lb. International buyer participation was the strongest since the program's Burundi launch in 2012."
+  },
+  {
+    "author": "afonseca",
+    "region": "kayanza",
+    "title": "From colonial Belgium to specialty present: Burundi's arc",
+    "body": "Burundi's coffee economy was built under Belgian colonial administration in the 1930s, restructured under post-independence Tutsi-led state ownership through the 1970s, decimated through the 1990s civil conflict, and rebuilt as a smallholder-cooperative export economy in the post-2005 reform period. The institutional layers are visible in the present-day washing station map."
+  }
 ]

@@ -3,5 +3,10 @@
   {"slug": "cauca",         "name": "Cauca, Colombia"},
   {"slug": "boquete",       "name": "Boquete, Panamá"},
   {"slug": "sierra-madre",  "name": "Sierra Madre, México"},
-  {"slug": "tarrazu",       "name": "Tarrazú, Costa Rica"}
+  {"slug": "tarrazu",       "name": "Tarrazú, Costa Rica"},
+  {"slug": "yirgacheffe",   "name": "Yirgacheffe, Etiopía"},
+  {"slug": "nyeri",         "name": "Nyeri, Kenia"},
+  {"slug": "mandheling",    "name": "Sumatra Mandheling, Indonesia"},
+  {"slug": "haraz",         "name": "Haraz, Yemen"},
+  {"slug": "kayanza",       "name": "Kayanza, Burundi"}
 ]

@@ -1,17 +1,127 @@
 [
-  {"region": "antigua", "title": "The 2026 Antigua harvest: La Niña and what producers are calling 'unusually clean'", "body": "Harvest window: December 2025 – March 2026.\n\nEarly arrivals are showing low defect counts across the region. Cooler nights through January, slightly delayed flowering in October, and a dry harvest window all combined into what beneficios are quietly calling a once-in-five-year crop. The Antigua Coffee Producers Association's preliminary cupping shows an average 86.4 across submitted lots, with the top decile crossing 89. Buyers from Tokyo, Oslo, and Melbourne have been on the ground since late January."},
-  {"region": "antigua", "title": "Acatenango Origin Tasting — November 2025", "body": "An invitation-only cupping event hosted at Beneficio Bella Vista, bringing together fourteen Antigua producers and twenty-three international roaster representatives. Two cupping rounds: classical washed Bourbon, then experimental anaerobic and carbonic lots. Outcome: three previously unrepresented Antigua farms placed lots with European specialty roasters during the on-site auction phase."},
-  {"region": "antigua", "title": "Anacafé Sustainability Forum — June 2026", "body": "Three days at Anacafé's Guatemala City headquarters. Focus: integrated leaf-rust management, the 2026 rust strain's reduced copper sensitivity, and the agency's revised recommendation matrix for resistant varietals. Forty Antigua producers attended; the consensus on the closing day was that the Marsellesa-Castillo-Costa Rica 95 trio remains the practical option, with Centroamericano showing promise for early adopters."},
-  {"region": "cauca",   "title": "Cauca Best of Origin 2026", "body": "Annual cupping competition held in Popayán. 312 lots submitted; 23 cleared 87, with the winning lot — a 1,820 m anaerobic Castillo — cupping 89.7. Auction prices averaged $14.20/lb, with the top lot clearing $42.10/lb. Two Japanese buyers and a Norwegian roaster participated on the cupping panel. The Cauca Federation's reform discussions overlapped with the event's closing session."},
-  {"region": "cauca",   "title": "Inzá Anaerobic Symposium — March 2026", "body": "A two-day technical symposium hosted by a coalition of Inzá-area micro-mill operators. Topics: fermentation duration, starter-culture inoculation, ambient-temperature management at altitude. Twenty-two producers presented their 2025 process notes. The published proceedings — informal but specific — have become a reference document for Cauca producers experimenting with controlled-fermentation techniques."},
-  {"region": "cauca",   "title": "Cauca Harvest 2026: early arrivals at the dry mill", "body": "Harvest window: October 2025 – February 2026.\n\nEarly arrivals at the regional dry mills show flowering happened slightly later than the 2024 average — a pattern consistent with the past three seasons. Cup-quality early reads point toward a higher average than 2025. The municipal cooperatives' price-pooling discussions are scheduled for late February, ahead of the Cauca Federation's reform implementation."},
-  {"region": "boquete", "title": "Best of Panama 2026 — auction results", "body": "The 2026 Best of Panama auction settled with the top geisha-natural lot clearing $5,001.50/lb green. Eighty-seven lots competed across geisha-washed, geisha-natural, traditional-washed, and traditional-natural categories. The panel's cupping notes converged on stronger floral expression year-over-year. Hacienda La Esmeralda placed two lots in the top ten; six other farms placed at least one."},
-  {"region": "boquete", "title": "Boquete Coffee Week — January 2026", "body": "The annual gathering of producers, importers, and roasters in Boquete town. Cupping rooms operated at six venues; farm tours ran daily across forty estates. The Wednesday-evening industry panel debated direct trade's concentration effect on smallholder access. The Friday auction-eve event sold out for the eighth consecutive year."},
-  {"region": "boquete", "title": "Lamastus Family Estates Geisha Release — February 2026", "body": "The Lamastus family released their 2026 Geisha lots in a limited single-day auction streamed live to qualified buyers. Six lots: three carbonic-maceration, two washed, one extended-anaerobic natural. Total volume across all six: 412 lb green. Average clearing price: $1,247/lb. The auction structure — limited buyers, single-day, no pre-cupping — has become a Lamastus signature."},
-  {"region": "sierra-madre", "title": "Maya Vinic Annual Cupping — January 2026", "body": "The Maya Vinic cooperative's annual cupping brought together its highland and lowland producer delegations for a three-day program. Seventeen cooperative lots were cupped by an international panel; the top lot — a 1,540 m Bourbon honey from Polhó — scored 87.4. The cooperative announced a 6% price-pool increase for the 2026 season."},
-  {"region": "sierra-madre", "title": "Sierra Madre Micro-Mill Cup League — closing session 2025", "body": "Twelve monthly cupping sessions across 2025 culminated in a final tournament in November. Forty-seven micro-mill operators participated across the season; nineteen entered the final round. The 2025 league winner — a Tacaná-slope farm's 1,720 m Pacamara — earned a marketing co-op slot at the New York Coffee Week event in March. Participation for 2026 is already oversubscribed."},
-  {"region": "sierra-madre", "title": "Tacaná Coffee Conference — September 2025", "body": "A binational (Mexico–Guatemala) conference focused on the Tacaná volcanic-soil coffee belt's agronomy and economics. Held in Tapachula. Forty-three speakers across two days, including Cenicafé-Guatemala extensionists, INIFAP-Tacaná researchers, and seven cooperative leaders. The conference's published recommendations on integrated rust management are now used by extension offices on both sides of the border."},
-  {"region": "tarrazu", "title": "Tarrazú Cupping Week — March 2026", "body": "The Tarrazú producer association's annual Cupping Week ran ten cupping sessions over five days. 174 lots competed across washed, honey, and natural categories. Twelve lots cleared 88. The closing-day auction brought direct-trade buyers from nine countries; total auction volume cleared $4.3M USD across 41 sold lots."},
-  {"region": "tarrazu", "title": "Cup of Excellence Costa Rica 2026", "body": "Tarrazú lots took seven of the top ten positions — a near-monopoly that hadn't happened since the program's first decade. The winning lot, a 1,870 m Caturra from Beneficio Don Mayo, scored 91.2. The Cup of Excellence panel noted unusually clean processing across the top quartile, and converged on Tarrazú's emerging dominance in the Costa Rica specialty bracket."},
-  {"region": "tarrazu", "title": "ICAFE Reform Briefing — June 2026", "body": "ICAFE's 2026 internal reforms were presented to the Tarrazú producer association at a half-day briefing in San Marcos. Sixty-three producers attended. The Q&A ran ninety minutes longer than scheduled; the targeting criteria for the new support programs drew sustained discussion. Implementation begins in October."}
+  {
+    "region": "antigua",
+    "title": "The 2026 Antigua harvest: La Niña and what producers are calling 'unusually clean'",
+    "body": "Harvest window: December 2025 – March 2026.\n\nEarly arrivals are showing low defect counts across the region. Cooler nights through January, slightly delayed flowering in October, and a dry harvest window all combined into what beneficios are quietly calling a once-in-five-year crop. The Antigua Coffee Producers Association's preliminary cupping shows an average 86.4 across submitted lots, with the top decile crossing 89. Buyers from Tokyo, Oslo, and Melbourne have been on the ground since late January."
+  },
+  {
+    "region": "antigua",
+    "title": "Acatenango Origin Tasting — November 2025",
+    "body": "An invitation-only cupping event hosted at Beneficio Bella Vista, bringing together fourteen Antigua producers and twenty-three international roaster representatives. Two cupping rounds: classical washed Bourbon, then experimental anaerobic and carbonic lots. Outcome: three previously unrepresented Antigua farms placed lots with European specialty roasters during the on-site auction phase."
+  },
+  {
+    "region": "antigua",
+    "title": "Anacafé Sustainability Forum — June 2026",
+    "body": "Three days at Anacafé's Guatemala City headquarters. Focus: integrated leaf-rust management, the 2026 rust strain's reduced copper sensitivity, and the agency's revised recommendation matrix for resistant varietals. Forty Antigua producers attended; the consensus on the closing day was that the Marsellesa-Castillo-Costa Rica 95 trio remains the practical option, with Centroamericano showing promise for early adopters."
+  },
+  {
+    "region": "cauca",
+    "title": "Cauca Best of Origin 2026",
+    "body": "Annual cupping competition held in Popayán. 312 lots submitted; 23 cleared 87, with the winning lot — a 1,820 m anaerobic Castillo — cupping 89.7. Auction prices averaged $14.20/lb, with the top lot clearing $42.10/lb. Two Japanese buyers and a Norwegian roaster participated on the cupping panel. The Cauca Federation's reform discussions overlapped with the event's closing session."
+  },
+  {
+    "region": "cauca",
+    "title": "Inzá Anaerobic Symposium — March 2026",
+    "body": "A two-day technical symposium hosted by a coalition of Inzá-area micro-mill operators. Topics: fermentation duration, starter-culture inoculation, ambient-temperature management at altitude. Twenty-two producers presented their 2025 process notes. The published proceedings — informal but specific — have become a reference document for Cauca producers experimenting with controlled-fermentation techniques."
+  },
+  {
+    "region": "cauca",
+    "title": "Cauca Harvest 2026: early arrivals at the dry mill",
+    "body": "Harvest window: October 2025 – February 2026.\n\nEarly arrivals at the regional dry mills show flowering happened slightly later than the 2024 average — a pattern consistent with the past three seasons. Cup-quality early reads point toward a higher average than 2025. The municipal cooperatives' price-pooling discussions are scheduled for late February, ahead of the Cauca Federation's reform implementation."
+  },
+  {
+    "region": "boquete",
+    "title": "Best of Panama 2026 — auction results",
+    "body": "The 2026 Best of Panama auction settled with the top geisha-natural lot clearing $5,001.50/lb green. Eighty-seven lots competed across geisha-washed, geisha-natural, traditional-washed, and traditional-natural categories. The panel's cupping notes converged on stronger floral expression year-over-year. Hacienda La Esmeralda placed two lots in the top ten; six other farms placed at least one."
+  },
+  {
+    "region": "boquete",
+    "title": "Boquete Coffee Week — January 2026",
+    "body": "The annual gathering of producers, importers, and roasters in Boquete town. Cupping rooms operated at six venues; farm tours ran daily across forty estates. The Wednesday-evening industry panel debated direct trade's concentration effect on smallholder access. The Friday auction-eve event sold out for the eighth consecutive year."
+  },
+  {
+    "region": "boquete",
+    "title": "Lamastus Family Estates Geisha Release — February 2026",
+    "body": "The Lamastus family released their 2026 Geisha lots in a limited single-day auction streamed live to qualified buyers. Six lots: three carbonic-maceration, two washed, one extended-anaerobic natural. Total volume across all six: 412 lb green. Average clearing price: $1,247/lb. The auction structure — limited buyers, single-day, no pre-cupping — has become a Lamastus signature."
+  },
+  {
+    "region": "sierra-madre",
+    "title": "Maya Vinic Annual Cupping — January 2026",
+    "body": "The Maya Vinic cooperative's annual cupping brought together its highland and lowland producer delegations for a three-day program. Seventeen cooperative lots were cupped by an international panel; the top lot — a 1,540 m Bourbon honey from Polhó — scored 87.4. The cooperative announced a 6% price-pool increase for the 2026 season."
+  },
+  {
+    "region": "sierra-madre",
+    "title": "Sierra Madre Micro-Mill Cup League — closing session 2025",
+    "body": "Twelve monthly cupping sessions across 2025 culminated in a final tournament in November. Forty-seven micro-mill operators participated across the season; nineteen entered the final round. The 2025 league winner — a Tacaná-slope farm's 1,720 m Pacamara — earned a marketing co-op slot at the New York Coffee Week event in March. Participation for 2026 is already oversubscribed."
+  },
+  {
+    "region": "sierra-madre",
+    "title": "Tacaná Coffee Conference — September 2025",
+    "body": "A binational (Mexico–Guatemala) conference focused on the Tacaná volcanic-soil coffee belt's agronomy and economics. Held in Tapachula. Forty-three speakers across two days, including Cenicafé-Guatemala extensionists, INIFAP-Tacaná researchers, and seven cooperative leaders. The conference's published recommendations on integrated rust management are now used by extension offices on both sides of the border."
+  },
+  {
+    "region": "tarrazu",
+    "title": "Tarrazú Cupping Week — March 2026",
+    "body": "The Tarrazú producer association's annual Cupping Week ran ten cupping sessions over five days. 174 lots competed across washed, honey, and natural categories. Twelve lots cleared 88. The closing-day auction brought direct-trade buyers from nine countries; total auction volume cleared $4.3M USD across 41 sold lots."
+  },
+  {
+    "region": "tarrazu",
+    "title": "Cup of Excellence Costa Rica 2026",
+    "body": "Tarrazú lots took seven of the top ten positions — a near-monopoly that hadn't happened since the program's first decade. The winning lot, a 1,870 m Caturra from Beneficio Don Mayo, scored 91.2. The Cup of Excellence panel noted unusually clean processing across the top quartile, and converged on Tarrazú's emerging dominance in the Costa Rica specialty bracket."
+  },
+  {
+    "region": "tarrazu",
+    "title": "ICAFE Reform Briefing — June 2026",
+    "body": "ICAFE's 2026 internal reforms were presented to the Tarrazú producer association at a half-day briefing in San Marcos. Sixty-three producers attended. The Q&A ran ninety minutes longer than scheduled; the targeting criteria for the new support programs drew sustained discussion. Implementation begins in October."
+  },
+  {
+    "region": "yirgacheffe",
+    "title": "Yirgacheffe Coffee Week — January 2026",
+    "body": "Annual gathering of Yirgacheffe and Gedeo cooperatives in Dilla. Three days of cupping, washing station tours, and producer panels. The 2026 edition featured 23 cooperative-submitted lots cupped by an international jury; the top three crossed 90. Direct-trade buying contracts signed during the event totaled an estimated $2.4M across 11 participating roasters."
+  },
+  {
+    "region": "yirgacheffe",
+    "title": "Yirgacheffe Harvest 2026",
+    "body": "Harvest window: November 2025 — February 2026.\n\nThe 2026 Yirgacheffe harvest came in clean and bright. Cool nights through December, a dry harvest window through January, and disciplined picking at the cooperative-affiliated washing stations all combined into a cup-quality average that several long-time buyers called the best since 2019. Total volume tracked 3% above the 2024 baseline."
+  },
+  {
+    "region": "nyeri",
+    "title": "Nairobi Coffee Exchange — Auction 14, 2026",
+    "body": "Auction 14 of the 2026 season cleared 38 lots across 320 tons. Top of board: Tegu factory, Kirinyaga district, SL28 lot — 89.4 cupping, $14.30/lb clearing. Nyeri factories placed five lots in the top 15 by price, including Gakuyuini and Karatina factories. Active buyer participation totaled 67 licensed bidders."
+  },
+  {
+    "region": "nyeri",
+    "title": "Nyeri Central Washing Station Tour — June 2026",
+    "body": "Annual technical tour organized by the Coffee Research Foundation for visiting buyers and trade press. Eight factories in the Nyeri corridor opened their fermentation tanks and drying yards to documented inspection. The tour's standard protocol report — published annually since 2008 — documents factory-level process variation across the Nyeri cooperative network."
+  },
+  {
+    "region": "mandheling",
+    "title": "Mandheling Cupping Summit — March 2026",
+    "body": "Two-day cupping summit at the Lintongnihuta cooperative federation. 47 specialty buyers cupped 91 lots representing the Mandheling region's washing stations and giling basah processors. The summit also debuted an experimental fully-washed Mandheling category — eight lots — to track whether the cleaner protocol delivers the cup-quality jump that proponents claim."
+  },
+  {
+    "region": "mandheling",
+    "title": "Sumatra Harvest 2026",
+    "body": "Harvest window: October 2025 — March 2026.\n\nMandheling and Aceh harvests overlapped through January and February, with both regions reporting cooler-than-average drying conditions and the corresponding cup-quality improvement. Gayo highland lots cupped notably brighter than the 2024 baseline. The wet-hulled Mandheling lots retained their characteristic profile but with less of the over-fermented bottom-end that crops occasionally produce."
+  },
+  {
+    "region": "haraz",
+    "title": "Mocha Origins Symposium — May 2026",
+    "body": "An invitation-only symposium hosted in Sana'a and Mocha port, organized by the Yemen Coffee Cooperative Union with international academic and trade participation. Two days of varietal cataloguing presentations, terroir mapping, and direct-trade buyer-producer meetings. The 2026 edition was the first since 2019 to have meaningful international travel restored after the security situation eased."
+  },
+  {
+    "region": "haraz",
+    "title": "Haraz Harvest 2026",
+    "body": "Harvest window: October 2025 — January 2026.\n\nHaraz harvest 2026 brought roughly 4,200 tons of cherry — a modest year-over-year improvement, still well below the 2010s baseline. Producers reported acceptable quality despite a stressful season's intermittent water access. The direct-trade-bound lots accounted for an estimated 14% of total output; the rest moves through the domestic and traditional Red Sea trade channels."
+  },
+  {
+    "region": "kayanza",
+    "title": "Burundi Cup of Excellence — September 2025 auction",
+    "body": "Burundi's 2025 Cup of Excellence saw 28 lots cleared the 87 threshold. The Bukeye anaerobic from Long Miles Coffee took first at 91.4, clearing $84/lb. Auction-day buyer participation drew 41 international roasters and importers across 17 countries — a record for Burundi CoE. Total auction value cleared $1.8M across 30 finals lots."
+  },
+  {
+    "region": "kayanza",
+    "title": "Kayanza Harvest 2026",
+    "body": "Harvest window: April — July 2026.\n\nThe 2026 Kayanza harvest tracked roughly 5% above the 2024 cherry intake at washing stations across the district. Disease pressure was low — the dry pre-flowering window gave CBD limited opportunity. Cup-quality averages held above the 2024 baseline at the cooperative federations' preliminary cuppings. Direct-trade buyers reported strong interest in the top quartile of stations."
+  }
 ]

@@ -1,17 +1,127 @@
 [
-  {"region": "antigua", "title": "Doña Rosa Méndez — three generations on the slopes of Acatenango", "body": "Third-generation Antigua producer. Forty-eight hectares of Bourbon, Caturra, and an experimental block of Pacamara, 1,500 to 1,700 meters on the Acatenango slopes.\n\nDoña Rosa's grandfather cleared the upper terrace in 1948; her father added the wet mill in 1976; she added shade restoration and the second drying patio in the early 2010s. She still cups every lot herself before it leaves the beneficio.\n\n\"You taste the year in the cup,\" she says. \"You cannot hide the year.\""},
-  {"region": "antigua", "title": "Sandra Solís — Pacamara breeder at Finca El Almendro", "body": "Second-generation Antigua producer, varietal specialist. Twenty-two hectares on the eastern Acatenango slope inherited from her father in 2018; the seven years since spent converting half the farm to experimental Pacamara plots.\n\nPacamara — the Pacas × Maragogipe cross developed in El Salvador in the 1950s — is rare in Antigua. Sandra propagated her starter plants from a CATIE-sourced batch and now maintains 18 selection lines, scoring each on cup quality, disease resistance, and yield."},
-  {"region": "antigua", "title": "Ricardo Aldana — beneficio operator, Bella Vista", "body": "Ricardo Aldana has run Beneficio Bella Vista's processing floor for twelve seasons. Trained as a fermentation chemist before he came home to coffee. He authored the lactic protocol that the 2026 experimental lots used, and he writes process notes for the family's communications to direct-trade partners. Spends harvest season largely at the wet mill, sleeping in the office during the high-volume weeks."},
-  {"region": "cauca",   "title": "Iván Pérez Hernández — agronomist for the Sierra Madre cooperative network", "body": "Iván Pérez Hernández works as a field agronomist serving cooperatives across northern Cauca. Trained at the Universidad Nacional in Palmira; field experience across both volcanic and metamorphic soil belts. His current focus: helping cooperative members standardize the agronomic data they share with each other, so the cooperative-to-cooperative trade pilots have a common reference for quality conversations."},
-  {"region": "cauca",   "title": "Lucia Mosquera — Inzá cooperative coordinator", "body": "Lucia Mosquera coordinates the Inzá-area producer cooperative, which clusters twenty-two micro-mill operators around shared cup-grading and marketing services. Background: agricultural economics at the Universidad del Cauca, then five years in regional fair-trade coordination before moving to the cooperative. She has been the visible interface for Inzá's experimental fermentation work."},
-  {"region": "cauca",   "title": "Don Aurelio Quintana — fourth-generation Cauca producer", "body": "Don Aurelio Quintana farms thirty-eight hectares on the western Andes slope above Popayán. His farm has been in the family since the 1920s — through coffee leaf rust outbreaks, the narcotraffic decades, the Federation's various reforms. He's not interested in experimental fermentation. He runs washed Castillo, sells through his municipal cooperative, and is teaching his granddaughter to cup."},
-  {"region": "boquete", "title": "Daniel Peterson — Hacienda La Esmeralda", "body": "Daniel Peterson's 2004 Geisha lots rewrote the global specialty coffee economy. Two decades later he manages the third generation of the family operation, balancing the auction premium business with the broader farm management. Daniel is a quiet figure at industry events; the family's published transparency reports speak more than he does. He still cups every Geisha lot before it ships."},
-  {"region": "boquete", "title": "Allan Hartmann — Finca Hartmann", "body": "Allan Hartmann ran the Hartmann farm for forty years. Trained as a forester; spent his career integrating coffee with a 200-hectare biological reserve in the Volcán Barú adjacent watershed. His operational handover to his daughter Camila in 2024 marked an inflection — the next twenty years will balance conservation acreage and production acreage in a way the previous generation didn't have to."},
-  {"region": "boquete", "title": "Camila Hartmann — Finca Hartmann's next generation", "body": "Camila Hartmann took operational leadership at the family farm in 2024, after agronomy training at EARTH University in Costa Rica and a year-long Q-grader residency at the SCA's Long Beach campus. She is the third Hartmann generation on the farm. Her published vision: maintain the existing conservation footprint while modernizing the coffee operation around micro-mill processing and named-lot direct trade."},
-  {"region": "sierra-madre", "title": "Don Mateo Pérez — Maya Vinic founding member", "body": "Don Mateo Pérez was one of the original Tzotzil signatories of the Maya Vinic cooperative in 1999. Twenty-six years later he still farms his five hectares above Polhó, still represents his community in cooperative council meetings, and still cups every shipment that leaves the cooperative's wet mill. He's resistant to the experimental-fermentation push, polite about it, immovable."},
-  {"region": "sierra-madre", "title": "Marta Espinoza, cooperative lead at Café de Especialidad Chiapas", "body": "Marta Espinoza leads Café de Especialidad Chiapas, a younger cooperative organized around fourteen micro-mill operators across the Sierra Madre belt. Background: agronomy at the Universidad Autónoma de Chiapas, then five years coordinating fair-trade certification audits across Mesoamerica. She's been the cooperative's external voice and its principal architect of the cup-grading-based pricing model that pulls members from the older fair-trade cooperatives."},
-  {"region": "sierra-madre", "title": "Don Cipriano López — micro-mill operator, Motozintla", "body": "Don Cipriano López runs a single-family micro-mill above Motozintla, on Tacaná's Mexican slope. Twelve hectares of mixed Marsellesa and Bourbon, 1,650 m. His 2025 Pacamara experimental lot won the Sierra Madre Micro-Mill Cup League. He doesn't speak Spanish well — Mam is the household language — and most of his external communications come through a cooperative coordinator."},
-  {"region": "tarrazu", "title": "Diego Robles — Beneficio Don Mayo", "body": "Diego Robles took over operations at Beneficio Don Mayo in 2019. Trained as a hydraulic engineer; brought a process-optimization mindset to the wet mill. His Cup of Excellence-winning 1,870 m Caturra came from a plot that his father had nearly converted to pasture in 2008. The black honey protocols Don Mayo has published since 2022 have become reference documents in the Tarrazú micro-mill cohort."},
-  {"region": "tarrazu", "title": "Luis Quintero — Geisha pioneer in Tarrazú", "body": "Luis Quintero planted Tarrazú's first significant Geisha plot in 2014 — 0.8 hectares on a 1,820 m corner of his family farm. The cup results have been honest: clean, technically excellent, but missing the Boquete-style floral lift. He's transitioning the plot back to Caturra over the next three seasons and writing up the experiment as a reference for other producers tempted by the same path."},
-  {"region": "tarrazu", "title": "Ana Lucía Chacón — Beneficio Las Lajas", "body": "Ana Lucía Chacón is the second-generation operator at Beneficio Las Lajas, the family's Naranjo wet mill that pioneered Costa Rican honey and natural processing in the early 2000s. She joined the operation full-time in 2018 after a master's in food science in São Paulo. Her published 2025 season notes — five experimental fermentation protocols, full data — have been widely circulated through the Tarrazú micro-mill network."}
+  {
+    "region": "antigua",
+    "title": "Doña Rosa Méndez — three generations on the slopes of Acatenango",
+    "body": "Third-generation Antigua producer. Forty-eight hectares of Bourbon, Caturra, and an experimental block of Pacamara, 1,500 to 1,700 meters on the Acatenango slopes.\n\nDoña Rosa's grandfather cleared the upper terrace in 1948; her father added the wet mill in 1976; she added shade restoration and the second drying patio in the early 2010s. She still cups every lot herself before it leaves the beneficio.\n\n\"You taste the year in the cup,\" she says. \"You cannot hide the year.\""
+  },
+  {
+    "region": "antigua",
+    "title": "Sandra Solís — Pacamara breeder at Finca El Almendro",
+    "body": "Second-generation Antigua producer, varietal specialist. Twenty-two hectares on the eastern Acatenango slope inherited from her father in 2018; the seven years since spent converting half the farm to experimental Pacamara plots.\n\nPacamara — the Pacas × Maragogipe cross developed in El Salvador in the 1950s — is rare in Antigua. Sandra propagated her starter plants from a CATIE-sourced batch and now maintains 18 selection lines, scoring each on cup quality, disease resistance, and yield."
+  },
+  {
+    "region": "antigua",
+    "title": "Ricardo Aldana — beneficio operator, Bella Vista",
+    "body": "Ricardo Aldana has run Beneficio Bella Vista's processing floor for twelve seasons. Trained as a fermentation chemist before he came home to coffee. He authored the lactic protocol that the 2026 experimental lots used, and he writes process notes for the family's communications to direct-trade partners. Spends harvest season largely at the wet mill, sleeping in the office during the high-volume weeks."
+  },
+  {
+    "region": "cauca",
+    "title": "Iván Pérez Hernández — agronomist for the Sierra Madre cooperative network",
+    "body": "Iván Pérez Hernández works as a field agronomist serving cooperatives across northern Cauca. Trained at the Universidad Nacional in Palmira; field experience across both volcanic and metamorphic soil belts. His current focus: helping cooperative members standardize the agronomic data they share with each other, so the cooperative-to-cooperative trade pilots have a common reference for quality conversations."
+  },
+  {
+    "region": "cauca",
+    "title": "Lucia Mosquera — Inzá cooperative coordinator",
+    "body": "Lucia Mosquera coordinates the Inzá-area producer cooperative, which clusters twenty-two micro-mill operators around shared cup-grading and marketing services. Background: agricultural economics at the Universidad del Cauca, then five years in regional fair-trade coordination before moving to the cooperative. She has been the visible interface for Inzá's experimental fermentation work."
+  },
+  {
+    "region": "cauca",
+    "title": "Don Aurelio Quintana — fourth-generation Cauca producer",
+    "body": "Don Aurelio Quintana farms thirty-eight hectares on the western Andes slope above Popayán. His farm has been in the family since the 1920s — through coffee leaf rust outbreaks, the narcotraffic decades, the Federation's various reforms. He's not interested in experimental fermentation. He runs washed Castillo, sells through his municipal cooperative, and is teaching his granddaughter to cup."
+  },
+  {
+    "region": "boquete",
+    "title": "Daniel Peterson — Hacienda La Esmeralda",
+    "body": "Daniel Peterson's 2004 Geisha lots rewrote the global specialty coffee economy. Two decades later he manages the third generation of the family operation, balancing the auction premium business with the broader farm management. Daniel is a quiet figure at industry events; the family's published transparency reports speak more than he does. He still cups every Geisha lot before it ships."
+  },
+  {
+    "region": "boquete",
+    "title": "Allan Hartmann — Finca Hartmann",
+    "body": "Allan Hartmann ran the Hartmann farm for forty years. Trained as a forester; spent his career integrating coffee with a 200-hectare biological reserve in the Volcán Barú adjacent watershed. His operational handover to his daughter Camila in 2024 marked an inflection — the next twenty years will balance conservation acreage and production acreage in a way the previous generation didn't have to."
+  },
+  {
+    "region": "boquete",
+    "title": "Camila Hartmann — Finca Hartmann's next generation",
+    "body": "Camila Hartmann took operational leadership at the family farm in 2024, after agronomy training at EARTH University in Costa Rica and a year-long Q-grader residency at the SCA's Long Beach campus. She is the third Hartmann generation on the farm. Her published vision: maintain the existing conservation footprint while modernizing the coffee operation around micro-mill processing and named-lot direct trade."
+  },
+  {
+    "region": "sierra-madre",
+    "title": "Don Mateo Pérez — Maya Vinic founding member",
+    "body": "Don Mateo Pérez was one of the original Tzotzil signatories of the Maya Vinic cooperative in 1999. Twenty-six years later he still farms his five hectares above Polhó, still represents his community in cooperative council meetings, and still cups every shipment that leaves the cooperative's wet mill. He's resistant to the experimental-fermentation push, polite about it, immovable."
+  },
+  {
+    "region": "sierra-madre",
+    "title": "Marta Espinoza, cooperative lead at Café de Especialidad Chiapas",
+    "body": "Marta Espinoza leads Café de Especialidad Chiapas, a younger cooperative organized around fourteen micro-mill operators across the Sierra Madre belt. Background: agronomy at the Universidad Autónoma de Chiapas, then five years coordinating fair-trade certification audits across Mesoamerica. She's been the cooperative's external voice and its principal architect of the cup-grading-based pricing model that pulls members from the older fair-trade cooperatives."
+  },
+  {
+    "region": "sierra-madre",
+    "title": "Don Cipriano López — micro-mill operator, Motozintla",
+    "body": "Don Cipriano López runs a single-family micro-mill above Motozintla, on Tacaná's Mexican slope. Twelve hectares of mixed Marsellesa and Bourbon, 1,650 m. His 2025 Pacamara experimental lot won the Sierra Madre Micro-Mill Cup League. He doesn't speak Spanish well — Mam is the household language — and most of his external communications come through a cooperative coordinator."
+  },
+  {
+    "region": "tarrazu",
+    "title": "Diego Robles — Beneficio Don Mayo",
+    "body": "Diego Robles took over operations at Beneficio Don Mayo in 2019. Trained as a hydraulic engineer; brought a process-optimization mindset to the wet mill. His Cup of Excellence-winning 1,870 m Caturra came from a plot that his father had nearly converted to pasture in 2008. The black honey protocols Don Mayo has published since 2022 have become reference documents in the Tarrazú micro-mill cohort."
+  },
+  {
+    "region": "tarrazu",
+    "title": "Luis Quintero — Geisha pioneer in Tarrazú",
+    "body": "Luis Quintero planted Tarrazú's first significant Geisha plot in 2014 — 0.8 hectares on a 1,820 m corner of his family farm. The cup results have been honest: clean, technically excellent, but missing the Boquete-style floral lift. He's transitioning the plot back to Caturra over the next three seasons and writing up the experiment as a reference for other producers tempted by the same path."
+  },
+  {
+    "region": "tarrazu",
+    "title": "Ana Lucía Chacón — Beneficio Las Lajas",
+    "body": "Ana Lucía Chacón is the second-generation operator at Beneficio Las Lajas, the family's Naranjo wet mill that pioneered Costa Rican honey and natural processing in the early 2000s. She joined the operation full-time in 2018 after a master's in food science in São Paulo. Her published 2025 season notes — five experimental fermentation protocols, full data — have been widely circulated through the Tarrazú micro-mill network."
+  },
+  {
+    "region": "yirgacheffe",
+    "title": "Tadesse Bekele — Konga Washing Station manager",
+    "body": "Tadesse Bekele has run the Konga washing station's processing floor for nine seasons. Trained as a food technologist in Addis Ababa before returning home to Yirgacheffe. He published the 2024 Konga drying protocol that became the regional reference. He cups every Grade 1 lot before it leaves the station for export consolidation, and writes his own annual technical notes documenting the year's experimentation."
+  },
+  {
+    "region": "yirgacheffe",
+    "title": "Workitu Lemma — Gedeo Coffee Farmers Cooperative",
+    "body": "Workitu Lemma is one of the founding members of the Gedeo Coffee Farmers Cooperative, formed in 2003 after the Ethiopian liberalization opened cooperative-direct export channels. She farms two hectares of heirloom coffee on the Gedeo highlands, has chaired the cooperative's quality committee for the past four seasons, and is one of the small number of women in senior cooperative leadership across the Yirgacheffe region."
+  },
+  {
+    "region": "nyeri",
+    "title": "James Mwangi — Tegu Factory manager",
+    "body": "James Mwangi has managed the Tegu factory for sixteen years across two cooperative ownership transitions. Tegu has placed in the Nairobi auction's top 10 board in nine of those sixteen years — an exceptional consistency record. James is opinionated about the Kenyan washed protocol's discipline ('shortcuts cost you on day three of fermentation, not day one') and has trained the floor managers of three sibling factories in the Nyeri corridor."
+  },
+  {
+    "region": "nyeri",
+    "title": "Esther Wanjiru — SL28 specialist agronomist",
+    "body": "Esther Wanjiru works as a varietal specialist for the Coffee Research Foundation's Nyeri station. Her doctorate at Egerton University focused on SL28 disease resistance trajectories — specifically the varietal's gradually-eroding tolerance to coffee berry disease. Her published work has become the reference cited in Kenya's varietal-recommendation policy debates."
+  },
+  {
+    "region": "mandheling",
+    "title": "Ridwan Hasibuan — Sumatra Mandheling exporter",
+    "body": "Ridwan Hasibuan founded his Mandheling specialty export business in 2012 after a decade working for one of the large Sumatran commodity exporters. His operation focuses on traceable lots from named villages in the Lintongnihuta corridor; total volume runs about 800 tons of green coffee per year. He maintains direct relationships with two dozen specialty roasters in Europe, North America, and Asia."
+  },
+  {
+    "region": "mandheling",
+    "title": "Siti Nurhayati — Gayo highlands cooperative coordinator",
+    "body": "Siti Nurhayati coordinates the Gayo Megah Berseri cooperative's quality and certification programs. Her background is in agricultural economics at Syiah Kuala University; she joined the cooperative in 2018 after several years in fair-trade certification audit work across Southeast Asia. The cooperative aggregates lots from 480 smallholder members across the central Gayo highlands."
+  },
+  {
+    "region": "haraz",
+    "title": "Mokhtar Alkhanshali — Mocha Mill founder",
+    "body": "Mokhtar Alkhanshali co-founded the Mocha Mill in 2014, building one of the first direct-trade specialty export channels from Yemen since the modern specialty era began. The 2015 escape-from-Sana'a story documented in 'The Monk of Mokha' is the most-told slice of a longer institutional history. Mocha Mill now sources from 32 named Yemeni villages across three governorates."
+  },
+  {
+    "region": "haraz",
+    "title": "Aziz Al-Sanhubi — Yemeni varietal preservationist",
+    "body": "Aziz Al-Sanhubi works as a varietal-cataloguing agronomist with the Yemen Coffee Cooperative Union. Trained in agricultural genetics at Sana'a University, his fieldwork through 2020-2024 documented 38 distinct landrace cultivars still in active cultivation across the Yemeni highlands. The genetic-resource preservation case he's built is the institutional argument for Yemen's coffee future at the international specialty-coffee level."
+  },
+  {
+    "region": "kayanza",
+    "title": "Ben Carlson — Long Miles Coffee co-founder",
+    "body": "Ben Carlson and Kristy Carlson co-founded Long Miles Coffee in 2011 in Bujumbura, building one of the most-known direct-trade specialty export operations in Burundi. The Bukeye washing station they operate has consistently placed in Burundi CoE finals since the program's inception. Long Miles' commercial-and-mission model has become a reference case for specialty-coffee operators considering Burundi as a sourcing origin."
+  },
+  {
+    "region": "kayanza",
+    "title": "Léonidas Niyongabo — Heza washing station quality lead",
+    "body": "Léonidas Niyongabo leads quality control at the Heza washing station in southern Kayanza. He came to Heza in 2017 after several seasons at Long Miles' Bukeye station; the Heza investment in cup-quality discipline since his arrival has tracked through measurable Q-grade improvements. His protocol notes — published informally through cooperative-affiliated WhatsApp networks — have circulated widely among Burundi station managers."
+  }
 ]

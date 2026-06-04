@@ -1,106 +1,602 @@
 [
-  {"title": "Por qué el suelo volcánico de Antigua se nota en la taza", "body": "Acatenango y Fuego cubren las laderas de ceniza mineral rica cada pocos años. Los suelos drenan rápido, retienen alta capacidad de intercambio catiónico y mantienen los cafetos estresados — produciendo semillas densas y complejas. Las tazas de Antigua aterrizan con cuerpo medio, chocolate, avellana y una acidez brillante."},
-  {"title": "El cruce Pacas × Maragogipe llega a Acatenango", "body": "Pacamara — el cruce salvadoreño que llevó los granos grandes del Maragogipe al árbol compacto de Pacas — ha estado infiltrándose en las parcelas experimentales de Antigua durante cinco temporadas. Los productores reportan un perfil de sabor más amplio y rendimientos un 15% por debajo del Bourbon clásico."},
-  {"title": "Bourbon rosado en Antigua: tres fincas, tres resultados", "body": "La reputación del Bourbon rosado llegó de Tolima con la promesa de tazas florales a cualquier altitud. En Antigua, tres fincas hicieron parcelas piloto entre 2024 y 2026: una cató 88.4, otra 85.1, la tercera no llegó a 84. La lección, dicen los productores, no es la variedad — es el microclima."},
-  {"title": "El ciclo eruptivo de Acatenango y la mineralogía de la cereza del próximo año", "body": "Acatenango entró en erupción en octubre de 2024. La pluma de ceniza derivó al este-sureste durante nueve horas, depositando 0.3–1.1 cm de tefra fresca sobre el cinturón cafetero de Antigua. La mineralogía resultó inusualmente rica en sílice. Los productores no verán el efecto en la taza hasta la cosecha 2026."},
-  {"title": "Por qué las noches de Antigua se enfriaron esta década", "body": "La temperatura mínima media nocturna de Antigua cayó 0.7°C entre 2015 y 2025 — un enfriamiento contraintuitivo que va contra la tendencia regional. La causa es local: los patrones cambiantes de nubosidad sobre Acatenango han eliminado la manta radiativa nocturna. Noches más frías, cerezas más lentas, granos más densos."},
-  {"title": "La línea de los 1.800 m y lo que la cruza", "body": "Debajo de 1.500 m el cinturón cafetero de Antigua crece en margas volcánicas sobre una capa fina de caliche. Entre 1.500 y 1.800 m el suelo se profundiza, la cereza se ralentiza. Por encima de 1.800 m la lluvia cambia a eventos más cortos y agudos y la helada se convierte en un riesgo real."},
-  {"title": "El lento abrazo de Antigua a la fermentación carbónica", "body": "Los experimentos de Aida Batlle en El Salvador con maceración carbónica cumplen ocho años. La técnica — cerezas selladas bajo CO₂ durante 72 a 120 horas antes del despulpado — ha cruzado la frontera guatemalteca esta temporada en tres beneficios de Antigua. La taza retiene la acidez estructural de Antigua y gana una nota frutada fermentada."},
-  {"title": "Dentro del protocolo láctico del Beneficio Bella Vista", "body": "El lote experimental de Bella Vista en 2026 corrió 96 horas en bidones sellados inoculados con un cultivo iniciador de Lactobacillus cultivado a partir de su propia cascarilla. El protocolo lleva el pH de 5.1 a 3.8 en las primeras 48 horas. La taza resultante lee como dulce de miel, cremosa, con un final largo de ácido málico."},
-  {"title": "Beneficio húmedo vs. lavado completo: el idioma en el que nadie se pone de acuerdo", "body": "'Lavado' significa cosas distintas en distintos beneficios. En Antigua, lo que se vende como 'lavado completo' suele significar 18-36 horas de fermentación seca seguidas de canal de agua. El resto de Latinoamérica salta la fase seca. La deriva terminológica hace difícil comparar notas de cata entre orígenes."},
-  {"title": "Catando los arribos 2025 de Antigua — qué cambió", "body": "Los arribos 2025 de Antigua promediaron 86.4 en las catas preliminares de la Asociación de Productores — medio punto por encima del promedio de cinco años. El cambio notable no fue el promedio sino la dispersión: el decil superior cruzó los 89, una banda que Antigua no había alcanzado consistentemente desde 2017."},
-  {"title": "Cuando 'chocolate' dejó de significar chocolate en una hoja de cata", "body": "'Chocolate' solía significar cacao procesado en estilo holandés: seco, oscuro, levemente amargo. A lo largo de los 2010, el descriptor derivó — hacia chocolate con leche, luego chocolate con avellana, luego cualquier cosa con base parda, dulce, de baja acidez. La taza referencia de Antigua es el café 'chocolate' prototípico — el descriptor hace más trabajo semántico que la palabra."},
-  {"title": "El examen Q-grader desde el lado equivocado de la mesa", "body": "Sentarse para el examen Q no es una prueba sensorial; es una prueba de calibración. El reto no es saborear la acidez — es saborearla como los examinadores SCA la saboreaban hace veinte años. Los productores de Antigua que pasan cuentan la misma historia: las tazas son más fáciles que el protocolo."},
-  {"title": "Cómo Antigua perdió la mitad de sus hectáreas entre 1990 y 2010", "body": "La hectarea cafetera en el valle de Antigua cayó de aproximadamente 8.200 ha en 1990 a 4.100 ha para 2010. El crecimiento urbano alrededor de la ciudad de Antigua tomó las terrazas bajas; los brotes de roya en 2012 y 2018 tomaron las plantaciones viejas de Bourbon. Lo que queda es más denso, más alto, más concentrado."},
-  {"title": "Las raíces coloniales del beneficio húmedo de Antigua", "body": "El beneficio húmedo de Antigua se remonta directamente a la técnica hispano-caribeña de mediados del siglo XIX, traída por plantadores alemanes que llegaron en la década de 1870. El sistema de lavado por canales de agua fue una adaptación al flujo estacional de los arroyos de Antigua. Lo sorprendente es lo poco que ha cambiado la arquitectura."},
-  {"title": "Tres generaciones en las laderas del Acatenango", "body": "El abuelo de Doña Rosa Méndez despejó la terraza superior de Finca El Carmen en 1948. Su padre añadió el beneficio húmedo en 1976. Ella añadió la restauración de sombra y el segundo patio de secado a principios de los 2010. Cada generación hizo la finca más legible al mercado de su época."},
-  {"title": "El precio mínimo del comercio justo y lo que Antigua realmente recibe", "body": "El piso de Fair Trade USA para Arábica lavado se sitúa en $1.80/lb FOB. Los arribos lavados de Antigua se venden rutinariamente a compradores especiales a $4-7/lb — un múltiplo por encima del piso. El piso importa más en años cuando el mercado-C colapsa; en años normales el premio especial hace el trabajo y la certificación compra acceso a estanterías."},
-  {"title": "Comercio directo en Antigua: quién realmente se beneficia", "body": "El comercio directo se enmarca como la alternativa amistosa al productor frente a la exportación de commodity. En la práctica, en Antigua, las relaciones sesgan hacia el cuartil superior de productores — aquellos con puntajes de cata fiables, capacidad de marketing en inglés y flujo de caja para esperar seis meses por el pago."},
-  {"title": "Disolución cooperativa en Sacatepéquez — qué salió mal", "body": "Tres cooperativas de Sacatepéquez cerraron entre 2022 y 2025. Las causas próximas difieren — reestructuración de deuda, conflicto de junta, éxodo de miembros — pero el patrón subyacente es el mismo: pequeños productores encontraron compradores directos dispuestos a pagar precios especiales, la lógica de pool de precios dejó de cuadrar."},
-  {"title": "La roya regresa a Antigua — la agronomía de la contención", "body": "Los brotes de Hemileia vastatrix han golpeado Antigua en 2012, 2018, y ahora de nuevo a principios de 2026. La cepa 2026 muestra sensibilidad reducida a los fungicidas a base de cobre, el caballo de batalla de la contención convencional. La guía de Cenicafé-Guatemala ha cambiado hacia el manejo integrado."},
-  {"title": "El cuestión del beneficio seco — ¿el secado en patio sigue siendo defendible?", "body": "Los secadores mecánicos guardiola son más rápidos, más uniformes y más amigables con los presupuestos laborales. El secado en patio es más lento, dependiente del clima y se lee como artesanal. ¿Son las tazas secadas en patio mensurablemente mejores? La evidencia de cata es mixta. El argumento es cada vez más económico, no sensorial."},
-
-  {"title": "Castillo: la variedad resistente de Cenicafé, dos décadas después", "body": "Castillo fue liberada en 2005 como la respuesta de Cenicafé a la roya. Veinte años después, el argumento de calidad en taza se ha enfriado. Los puntajes Q de Castillo se agrupan en 82-84 — competentes pero raramente sobresalientes. El verdadero legado de la variedad es lo que evitó: una epidemia que habría vaciado al pequeño productor del Cauca."},
-  {"title": "La controversia Geisha en Cauca: ¿viajó bien?", "body": "El Geisha plantado en Cauca entre 2017-2019 produjo tazas mixtas: brillantes, a veces florales, pero raramente con la nota superior de jazmín que define los lotes panameños. La forma de hoja es correcta, el hábito frutal es correcto. Lo que falta es la combinación específica de 1.650-1.800 m sobre suelo volcánico que Boquete entrega."},
-  {"title": "La lenta migración del Bourbon rosado de Tolima a Cauca", "body": "El Bourbon rosado se originó en Tolima alrededor de 2010 — una mutación espontánea que produjo cerezas rosa-rosadas y un carácter de taza inusual. Para 2026 está en volúmenes comerciales en tres municipios del Cauca. El trasplante ha conservado su carácter: floral, tipo té, con acidez de fruta de hueso."},
-  {"title": "Por qué los microclimas del Cauca resisten la tendencia de calentamiento", "body": "El cinturón cafetero del Cauca se sitúa en los Andes occidentales, en la sombra de lluvia de la cordillera del Pacífico. El blindaje doble de montaña produce microclimas marcadamente variables — y muchos resisten el calentamiento regional por virtud del amortiguador de altitud."},
-  {"title": "La sequía de Patia y los Andes que la amortiguaron", "body": "La sequía del valle de Patia en 2024 trajo ciclos de noticias semanales sobre café andino en riesgo. La realidad en altitud fue menos dramática. Las fincas cafeteras sobre 1.500 m vieron retrasos de floración de cuatro a siete días, no la pérdida catastrófica de cosecha que implicaban los titulares de tierras bajas."},
-  {"title": "Volcánico vs. metamórfico: las dos familias de suelo del Cauca", "body": "El café del Cauca crece en dos sustratos de suelo distintos. Al norte de Popayán domina la marga volcánica de los sistemas Sotará y Puracé. Al sur hacia Patia, los suelos metamórficos derivados de pizarra toman el control. Las tazas son reconociblemente diferentes, y la diferencia se nota en catas a ciegas."},
-  {"title": "Fermentación anaeróbica en Inzá: las notas de un productor", "body": "El productor de Inzá Luis Méndez ha corrido fermentación anaeróbica en sus lotes de Castillo durante tres temporadas. Su protocolo: cereza despulpada en barriles plásticos sellados, 96 horas a temperatura ambiente (12-17°C aquí). La taza gana una nota superior frutada. El compromiso: una ventana más estrecha entre subdesarrollado y sobrefermentado."},
-  {"title": "El natural de 84 horas — notas de proceso desde Finca Las Margaritas", "body": "Los lotes experimentales de natural de Las Margaritas corren 84 horas sobre camas africanas en túneles cubiertos. Los lotes se voltean cada 90 minutos las primeras 12 horas. El resultado se acerca a un natural etíope — adelantado en bayas, jarabe, con el pH celular cayendo lo suficiente para desarrollarse sin entrar en vinagre."},
-  {"title": "Por qué los productores del Cauca regresan al proceso miel", "body": "El proceso miel — cereza despulpada secada con el mucílago intacto — fue una tendencia de los 2010 en Cauca que perdió terreno frente a los anaeróbicos para 2020. Está regresando. La razón no es sensorial; es económica. Miel es indulgente, repetible y barato de implementar. Las tazas aterrizan predecibles."},
-  {"title": "Notas de cata Cauca 2026 — más claras, más brillantes, menos consistentes", "body": "Los arribos 2026 del Cauca se catan con más carácter de origen evidente que 2024 o 2025 — pero la variabilidad lote-a-lote se ha ampliado. El cuartil superior lee notablemente más brillante (acidez cítrica, final más largo). El cuartil inferior lee más delgado y menos integrado. Los agrónomos apuntan a la varianza de floración como causa subyacente."},
-  {"title": "Sobre 'frutado' como descriptor de cata — una conversación", "body": "Tres Q-graders se sentaron a discutir 'frutado'. Uno lo usa solo para frutas de hueso y cítricos. Uno lo usa para cualquier fruta no-cereza. Uno lo usa para cualquier cosa fuera del eje chocolate-nuez. Las tazas del Cauca fuerzan la pregunta: un Castillo de 1.700 m puede leer frutado para uno y balanceado para otro."},
-  {"title": "Las redes cafeteras indígenas del Cauca — Misak, Nasa y otras", "body": "La economía cafetera del Cauca está superpuesta con la organización territorial indígena: las comunidades Nasa, Misak, Yanaconas y Coconuco operan redes cafeteras distintas. Algunas se integran con la FNC; otras no. Los lotes organizados comunitariamente tienen acceso inusual al mercado — relaciones directas con tostadores europeos y este-asiáticos."},
-  {"title": "Del narcotráfico al comercio justo — el giro duro del Cauca", "body": "Los valles de altitud media del Cauca pasaron los años 90 y principios de los 2000 como corredores de coca. El giro al café especial fue arriba-abajo al principio — programas gubernamentales de sustitución — luego abajo-arriba mientras los pequeños productores vieron el diferencial de precio. Para 2026 las tierras de coca se han convertido en gran parte."},
-  {"title": "La reforma 2026 de la Federación del Cauca — qué cambia", "body": "Las reformas internas 2026 de la Federación Nacional de Cafeteros reestructuraron el sistema de asignación de cuotas de exportación, desplazando más autonomía a los comités municipales de café. Los pequeños productores del Cauca están divididos. Los defensores argumentan que las decisiones locales sobre precio y ruteo llegarán a los productores más rápido."},
-  {"title": "Comercio directo a Tokio — el patrón de exportación 2025 del Cauca", "body": "Los lotes de comercio directo con destino a Tokio desde Cauca subieron 41% por volumen entre 2023 y 2025, contra un aumento total de exportaciones del Cauca de 12%. Los tostadores japoneses han construido relaciones con cinco cooperativas específicas del Cauca — concentradas, técnicas y dispuestas a pagar primas de calidad."},
-  {"title": "Por qué las cooperativas del Cauca superan a la Federación", "body": "En ingreso por productor, los miembros del Cauca de la FNC promedian más bajo que las cooperativas municipales independientes. La razón no es malicia institucional; es desajuste de escala. Los servicios de la FNC fueron diseñados para una economía de café commodity de los 60. El giro especial del Cauca favorece estructuras de compra más pequeñas, rápidas, conscientes de la taza."},
-  {"title": "Sidra en Cauca: una variedad con un origen disputado", "body": "Sidra llegó al Cauca vía Ecuador a finales de los 2010, comercializada como un híbrido de Bourbon y Typica. El origen botánico es disputado — algunos reclaman un cruce natural de la estación experimental de Pichincha; otros la identifican como una selección de Bourbon Rojo mal rebautizada. La taza es consistente: limpia, cítrica, tipo té."},
-  {"title": "La explosión de micro-beneficios en Cauca, en números", "body": "Los micro-beneficios activos en Cauca crecieron de 47 en 2018 a 219 en 2026 — un aumento de 4.6×. El patrón sigue de cerca la trayectoria de Tarrazú 2005-2015. El costo de capital por productor promedia $14k-22k USD. Las ventanas de recuperación en mercados de grado especial corren 3-5 años."},
-  {"title": "Impacto climático en las ventanas de floración del Cauca", "body": "A lo largo de la última década, la ventana de floración principal del Cauca se ha desplazado más tarde unos nueve días en altitud — y la floración secundaria se ha vuelto más fiable. El patrón es inusual: el calentamiento usualmente comprime la floración. Cenicafé atribuye esto a cambios de humedad más que a cambios de temperatura."},
-  {"title": "Cata de subasta en Cauca Best of Origin 2026", "body": "El lote superior del Best of Origin Cauca 2026 cató 89.7 — un Castillo de una parcela de 1.820 m corrido como anaeróbico de 72 horas. Veintitrés lotes cruzaron 87. El panel de cata de seis incluyó a dos compradores japoneses y un tostador noruego. Los precios de subasta promediaron $14.20/lb."},
-
-  {"title": "Historia del origen Geisha: de Etiopía a Hacienda La Esmeralda", "body": "El camino de la variedad Geisha desde el bosque Gesha de Etiopía hasta Boquete está bien documentado pero todavía mitificado. CATIE introdujo plantas a Costa Rica en los años 50; se diseminaron hacia el norte como portainjerto resistente a roya. La Esmeralda las plantó como cortinas rompevientos. Cuando el lote separado de Daniel Peterson en 2004 puntuó sobre 90, el precio reescribió qué era el café especial."},
-  {"title": "Las variedades experimentales de Boquete — Sidra, Centroamericano, Gesha 1931", "body": "Más allá de Geisha, las parcelas experimentales de Boquete ahora incluyen Sidra, Centroamericano (el híbrido F1 de CATIE) y Gesha 1931 (una selección panameña de Geisha). Cada uno carga su propio lenguaje de marketing. La evidencia de calidad en taza en altitud es genuinamente interesante para Centroamericano; los demás comercian con la aureola de Geisha."},
-  {"title": "Por qué el Geisha no sabe a Geisha en todas partes", "body": "El Geisha plantado en Colombia, México, El Salvador y Honduras ha producido tazas que el mercado global sigue llamando 'Geisha' pero que se catan muy diferente. El perfil de Boquete — florales altos, jazmín, bergamota — emerge fiablemente sobre 1.650 m en suelo volcánico. Debajo de eso, el carácter floral se aplana. La variedad no es suficiente; el lugar importa."},
-  {"title": "La sombra de lluvia del Volcán Barú y lo que las fincas de Boquete saben", "body": "La sombra de lluvia del Volcán Barú le da al cinturón cafetero occidental de Boquete aproximadamente 30% menos precipitación que el cinturón oriental a la misma altitud. Esa sequedad, más mayor incidencia solar, más noches más frías, produce la maduración ralentizada que se traduce en la densidad de taza característica de Boquete."},
-  {"title": "Las bandas de altitud de Boquete, mapeadas", "body": "El cinturón cafetero de Boquete va de 1.200 m a 1.950 m. La banda de 1.400 m todavía produce Catuaí lavado de grado comercial. La banda de 1.650+ m es donde Geisha cuadra a precios de subasta. Por encima de 1.850 m, el riesgo de helada y la mortalidad por estrés del árbol se vuelven restricciones reales."},
-  {"title": "Por qué los valles orientales de Chiriquí son más frescos que los occidentales", "body": "Los valles orientales de Chiriquí — Tierras Altas, Volcancito — están del lado caribeño de la divisoria continental. Más húmedos, más cubiertos de nubes, y en promedio 1.5-2°C más frescos a la misma elevación que valles occidentales como Palmira. Los productores de especialidad han gravitado al este; el volumen comercial se queda al oeste."},
-  {"title": "Maceración carbónica en Lamastus Family Estates — qué comparten", "body": "Lamastus corre maceración carbónica en un subconjunto de sus lotes Geisha — las temperaturas y duraciones exactas siguen siendo secreto comercial, pero la familia ha compartido públicamente el contorno amplio: cerezas despulpadas, luego selladas bajo CO₂ durante 60 a 100 horas dependiendo del lote."},
-  {"title": "El libro de jugadas del procesamiento seco en Boquete", "body": "El procesamiento natural en Boquete usa camas africanas elevadas bajo estructuras de sombra. Las cerezas pasan de 18 a 28 días en la cama, volteadas seis a ocho veces al día durante la primera semana. El clima relativamente fresco y seco de Boquete ralentiza la curva de fermentación — el mismo protocolo en un origen más caliente produciría una taza muy diferente."},
-  {"title": "Miel negra, miel roja, miel blanca — qué significan los colores", "body": "La terminología de miel es código de porcentaje de mucílago. La miel blanca deja aproximadamente 25% de mucílago en el pergamino. La amarilla deja alrededor de 50%. La roja deja 70-80%. La miel negra deja cerca del 100% — esencialmente natural completo sin la pulpa de la cereza. El nombrado es informal pero estable."},
-  {"title": "Catando la subasta Best of Panama 2025 — tres conclusiones", "body": "La categoría geisha-natural del Best of Panama 2025 alcanzó $5.001,50/lb verde. Las notas del panel de cata convergieron en tres cosas: las notas superiores de hierba limón fueron más fuertes que en 2024, la bergamota apareció más fiablemente, y el histórico carácter de fondo de 'chocolate de Boquete' se retiraba visiblemente."},
-  {"title": "Sobre floral como descriptor de Geisha — una conversación", "body": "'Floral' cubre todo desde jazmín hasta madreselva hasta lavanda hasta manzanilla. Los Geisha de Boquete tienden a aterrizar en jazmín y bergamota. Cuando el panel escribe 'floral' en una taza de Boquete, casi siempre significan jazmín-bergamota. Cuando lo escriben en un Geisha colombiano, el significado se desliza hacia manzanilla."},
-  {"title": "Por qué algunos Geishas catan sobre 95 y otros bajo 90", "body": "Los lotes Geisha que catan 95+ comparten tres cosas: cultivo en altitud bajo sombra, selección de cereza de día único, y procesamiento meticuloso. Los lotes 88-90 usualmente comprometen uno de estos — recogida de días mezclados, secado más rápido, o una parcela de sombra parcial. La variedad no garantiza nada. Solo eleva el techo si el resto del sistema está afinado."},
-  {"title": "La historia de Hacienda La Esmeralda — veinte años después", "body": "Veinte años después del anuncio Geisha de La Esmeralda en 2004, la operación familiar ha reescrito cómo se ve una finca de café especial latinoamericana. Tres generaciones de Petersons ahora manejan 250 hectáreas. El mercado que crearon — finca única, variedad única, subasta de día único — ha reconfigurado la estructura de premio especial global."},
-  {"title": "El turismo cafetero de Boquete y lo que rompió", "body": "La transformación de Boquete en un destino de café especial ha traído infraestructura, visibilidad y un notable aumento en los valores de propiedad locales. El costo ha sido la distribución: los pequeños productores en valles adyacentes sin exposición turística ahora compiten con fincas que tienen compradores minoristas todo el año."},
-  {"title": "Traspaso generacional en Finca Hartmann", "body": "Allan Hartmann dirigió la finca Hartmann durante cuarenta años. Su hija Camila tomó el liderazgo operativo en 2024. La transición ha sido deliberada — Camila se entrenó en agronomía en Costa Rica, luego en cata en SCA — pero la tensión heredada entre acreaje de conservación y acreaje de producción definirá qué tipo de finca se vuelve Hartmann."},
-  {"title": "El lote de subasta de $10.000/lb — economía de la escasez", "body": "Cuando un Geisha de Boquete despeja $10.000/lb en subasta, el titular se escribe sobre café. La realidad se acerca a: 100-300 lb de café verde compradas por un tostador como activo de marketing. Los lotes son micro por volumen, macro por margen. No cambian la economía subyacente del pequeño productor; dan forma al techo."},
-  {"title": "El mercado laboral de Boquete y la crisis de cosecha", "body": "La cosecha de café de Boquete depende de trabajadores indígenas Ngäbe-Buglé que viajan desde la comarca para la ventana de recogida diciembre-marzo. Los salarios han subido pronunciadamente desde 2020 — escasez laboral, más el efecto del turismo en el costo de vida local. Los productores dicen que la crisis laboral dictará dónde aterriza la próxima década de selección varietal."},
-  {"title": "Comercio directo desde Boquete — quién está exportando a dónde", "body": "El café de comercio directo de Boquete en 2025 fue predominantemente a: Tokio (38% por valor), Nueva York (21%), Oslo (12%), Melbourne (8%), con el resto distribuido a tostadores en 14 países. La concentración es en tostadores con recursos de marketing para comunicar procedencia de origen único."},
-  {"title": "La lenta adopción de Centroamericano en Panamá", "body": "Centroamericano — el híbrido F1 desarrollado por CATIE combinando resistencia a roya de Rume Sudan con productividad de Sarchimor — ha estado disponible en Boquete desde 2018. La adopción ha sido más lenta que Costa Rica u Honduras. La razón es parcialmente marketing: el híbrido F1 carece de la aureola de Geisha."},
-  {"title": "Secado en patio de Geisha de altitud — los parámetros", "body": "Secar Geisha en patio a 1.700+ m exige atención constante. La ventana de secado es 14-22 días dependiendo del clima. Las cerezas se rastrillan en capas finas cada 60-90 minutos durante las horas de luz, se rastrillan en hileras al atardecer, luego se reesparcen al amanecer. Hecho correctamente, el Geisha secado en patio cata ligeramente más pesado."},
-
-  {"title": "Por qué las cooperativas de Sierra Madre prefieren Marsellesa", "body": "Marsellesa, la descendiente del Sarchimor resistente a enfermedades, domina las plantaciones cooperativas de Sierra Madre. El razonamiento es mayormente defensivo: la roya golpeó Chiapas fuerte en 2013-2015, y Marsellesa la espantó donde el Bourbon colapsó. La calidad en taza aterriza en la banda 82-85 — adecuada para el pool cooperativo, no aspiracional."},
-  {"title": "Variedades resistentes a enfermedades en Chiapas — quince años de ensayos", "body": "La estación experimental Tacaná del INIFAP ha corrido ensayos varietales en Chiapas desde 2011. Marsellesa, Costa Rica 95, Oro Azteca y varios híbridos F1 Robusta-Arábica han sido todos probados bajo condiciones de altitud. Los datos siguen emergiendo sobre productividad a largo plazo, pero la resistencia a roya se ha mantenido en cinco de seis variedades."},
-  {"title": "Pacamara en Sierra Madre: tres fincas experimentando", "body": "Las plantaciones de Pacamara en Sierra Madre siguen siendo pequeñas — tres fincas con parcelas a escala comercial sobre 1.500 m, todas iniciadas entre 2020-2022. Los desafíos agronómicos son los mismos que en otros lugares: copa abierta, cerezas sobredimensionadas, maduración desigual. La recompensa de calidad en taza ha sido real en dos de tres fincas."},
-  {"title": "El cinturón de bosque nuboso de Sierra Madre — lo que la altitud te compra", "body": "El cinturón cafetero de Sierra Madre se sitúa en el borde bajo de la banda de bosque nuboso, entre aproximadamente 1.000 m y 1.800 m. La cobertura nubosa durante 60-80% de las horas de luz a través de la temporada de crecimiento enfría la cereza y produce granos más densos. El cinturón nuboso es también donde viven los servicios de cuenca."},
-  {"title": "Las dos cosechas de Chiapas: altiplano y tierras bajas, desacoplándose", "body": "El cinturón cafetero de tierras bajas de Chiapas (debajo de 800 m) tradicionalmente cosechaba dos a tres semanas antes que el cinturón de altiplano. A lo largo de los 2010 la brecha era una desfase estable de cinco semanas. Desde 2020 la brecha se ha ampliado a siete u ocho semanas — retrasos en altiplano por clima, más el cinturón bajo recogiendo más temprano."},
-  {"title": "Por qué el volcán Tacaná importa al café de Sierra Madre", "body": "Tacaná, en la frontera México-Guatemala, entró en erupción por última vez en 1986 — menor, pero suficiente para refrescar los suelos circundantes con tefra. El cinturón de suelo volcánico alrededor de Tacaná produce las tazas más distintivas de Sierra Madre: expresión mineral notablemente más alta, mejor estructura de acidez y un final más largo."},
-  {"title": "El proceso anaeróbico llega a Maya Vinic", "body": "Maya Vinic — la cooperativa Tzotzil-Tzeltal establecida hace tiempo en Chiapas — corrió sus primeros experimentos de fermentación anaeróbica en 2024. Tres lotes, barriles sellados, 72 horas a las temperaturas ambiente frescas del beneficio de altiplano. Los resultados cataron por encima del promedio lavado de la cooperativa para las mismas parcelas. El liderazgo es cauteloso sobre la escala."},
-  {"title": "El beneficio húmedo de Sierra Madre — edición cooperativa", "body": "Los beneficios húmedos cooperativos en Sierra Madre agrupan la fermentación a través de múltiples entregas de pequeños productores. La economía funciona; el control de calidad es más difícil. Una sola entrega no madura puede marcar el lote del día. Las cooperativas conscientes de calidad ahora usan clasificación por color en la entrada, gradación por densidad en fermentación, y cata de beneficio seco antes de la consolidación de lote."},
-  {"title": "Ingeniería de patios de secado en Chiapas altiplano", "body": "Los patios de secado de Chiapas altiplano lidian con chubascos de montaña vespertinos desde mayo hasta septiembre. La respuesta ingenieril — patios cubiertos con cortinas de lluvia enrollables, más elevación de cama africana sobre la superficie del patio — ha madurado a lo largo de los 2010. El estándar actual en las cooperativas es 40 m² de patio cubierto por tonelada de salida verde."},
-  {"title": "Catando Sierra Madre 2026 — trazos amplios", "body": "Los arribos 2026 de Sierra Madre catan con mejora notable en el extremo superior. Los lotes agrupados cooperativos promedian 83.6 — medio punto sobre 2024. Los lotes de micro-beneficio de finca única que han emergido en los últimos tres años catan más alto, con varios cruzando 87. La emergencia de dos niveles es real."},
-  {"title": "Sobre 'terroso' en cafés mexicanos de altiplano", "body": "'Terroso' como descriptor de cata solía ser código para defectos: secado mohoso, almacenamiento ensacado. En años recientes ha ganado terreno legítimo para cafés procesados limpiamente con un carácter de hoja mojada, piso de bosque. El Marsellesa de altiplano de Sierra Madre aterriza limpiamente en este espacio."},
-  {"title": "La liga de cata de micro-beneficios de Sierra Madre — un año dentro", "body": "Una liga informal de cata entre operadores de micro-beneficios de Sierra Madre corrió doce sesiones mensuales en 2025. La estructura: cada participante envía un lote, los demás catan a ciegas, los puntajes se agrupan, el lote superior del año obtiene un espacio de marketing cooperativo en la Semana del Café de Nueva York."},
-  {"title": "Maya Vinic: treinta años de café indígena organizado", "body": "Maya Vinic fue fundada en 1999 por productores de café Tzotzil y Tzeltal después de la masacre de Acteal. Treinta años después, la cooperativa opera siete beneficios húmedos, exporta bajo su propia marca a doce países, y se ha vuelto un punto de referencia para la organización cafetera liderada por indígenas en Latinoamérica."},
-  {"title": "La influencia zapatista en las cooperativas cafeteras de Chiapas", "body": "Los municipios autónomos del levantamiento zapatista en Chiapas construyeron cooperativas cafeteras paralelas fuera de las estructuras de certificación convencionales. Su modelo cooperativo — gobernado por comunidad, anti-corredor de exportación — ha envejecido interesantemente. Algunas colapsaron bajo presión de mercado; las sobrevivientes construyeron relaciones directas con tostadores europeos de economía solidaria."},
-  {"title": "El paisaje cooperativo de Sierra Madre, graficado", "body": "Sierra Madre soporta aproximadamente catorce grandes cooperativas cafeteras, organizadas alrededor de comunidad lingüística, frontera municipal o afiliación religiosa. Las más grandes agrupan más de 3.000 productores cada una. La banda media — ocho cooperativas entre 400 y 1.500 productores — es donde la innovación institucional se ha concentrado."},
-  {"title": "El modelo de precios de Maya Vinic — qué es diferente", "body": "Maya Vinic establece precios en un modelo independiente del piso del mercado-C o el premio estándar de comercio justo. Los productores reciben un precio publicado por quintal vinculado a la puntuación de calidad en taza al ingreso, más una distribución de reparto de ganancias al cierre de temporada. El modelo demanda capacidad de gradación de taza que las cooperativas convencionales no tienen."},
-  {"title": "Certificación de comercio justo en Chiapas — qué funciona", "body": "La certificación de comercio justo en Chiapas ha producido un resultado en capas. El piso de precio y los requisitos de gobernanza democrática se han mantenido; el premio largamente prometido ha sido inconsistente. Las cooperativas que construyeron relaciones complementarias de comercio directo sobre el acceso de comercio justo han prosperado."},
-  {"title": "Comercio cooperativa-a-cooperativa: una tubería Chiapas-Cauca", "body": "Maya Vinic y Tierradentro (Cauca) corrieron un intercambio piloto en 2024: Maya Vinic envió Bourbon proceso miel de Chiapas a socios tostadores de Tierradentro en Noruega; Tierradentro envió Castillo lavado a los socios alemanes de Maya Vinic. Los volúmenes fueron pequeños, los márgenes delgados, pero el modelo se está estudiando."},
-  {"title": "Resistencia a la roya — los ensayos de campo de Sierra Madre", "body": "Las cooperativas de Sierra Madre corrieron ensayos coordinados de resistencia a roya a lo largo de 2022-2025 en trece parcelas experimentales. El veredicto: Marsellesa se mantuvo, Costa Rica 95 se mantuvo, Oro Azteca se mantuvo en parcelas bajas pero mostró vigor más lento en altitud. Sarchimor mostró resistencia reducida contra la cepa 2023."},
-  {"title": "Geisha cultivado en Tacaná — un experimento de Sierra Madre", "body": "Tres fincas en la ladera mexicana del Tacaná han plantado parcelas de Geisha en la banda 1.650-1.800 m desde 2021. Resultados de taza hasta ahora: limpios, florales, distintivamente Geisha — pero el carácter floral cata más ligero que el Geisha de Panamá a la misma altitud. La hipótesis es relacionada al suelo."},
-
-  {"title": "El portafolio varietal de Tarrazú — Caturra, Catuaí y la nueva ola", "body": "Tarrazú sigue dominado por Caturra y Catuaí — las variedades compactas de alto rendimiento que dieron forma al café especial costarricense durante treinta años. La nueva ola (Bourbon Sidra, Bourbon Rosado, Centroamericano) se sienta en parcelas experimentales, no en volumen comercial. La razón no es conservadurismo — Caturra/Catuaí aún cuadran a precios especiales."},
-  {"title": "Por qué los productores de Tarrazú son escépticos del Geisha", "body": "Los ensayos de Geisha en Tarrazú devolvieron resultados intermedios: tazas limpias pero sin el levantamiento floral que define al Geisha panameño. Los productores concluyen que la variedad necesita la combinación específica suelo-altitud-microclima de Boquete para expresarse. Tarrazú en cambio se apoya en lo que hace bien — Caturra y Catuaí lavados a altitud extrema."},
-  {"title": "Proceso miel en Tarrazú — el caso de altitud", "body": "La altitud de Tarrazú (1.500-1.900 m en las fincas activas) hace el proceso miel particularmente interesante: el clima fresco de secado ralentiza la fermentación lo suficiente para capturar la dulzura jarabesa de la miel sin el barro sobrefermentado que aqueja los intentos de proceso miel en altitud más baja."},
-  {"title": "La ventaja de altitud de Tarrazú, cuantificada", "body": "El cinturón cafetero comercial de Tarrazú se sitúa en 1.500-1.900 m — entre los cinturones Arábica comerciales más altos del mundo. Cada 100 m de altitud se correlaciona con aproximadamente 0.4 puntos de cata en paneles de Cup of Excellence, controlando por variedad y procesamiento. La altitud de Tarrazú es estructural."},
-  {"title": "Los dos climas cafeteros de Costa Rica — Tarrazú vs. Tres Ríos", "body": "El café de Tres Ríos — al este de San José, altitud más baja — produce una taza fundamentalmente diferente del café del sur de Tarrazú. Donde Tarrazú aterriza con acidez limpia y dulzura de azúcar moreno, Tres Ríos cata más sedoso, con más matices florales y un final más corto. Los dos están a 70 km y producen café que se lee desde continentes diferentes."},
-  {"title": "Por qué las noches de Tarrazú se calentaron esta década", "body": "La temperatura mínima media de Tarrazú subió 0.8°C de 2015 a 2025. La causa no es solo calentamiento macro; la deforestación en la cuenca alta del Talamanca ha reducido el drenaje de aire frío nocturno. El café en altitud tolera la tendencia hasta ahora, pero las ventanas de floración se están comprimiendo."},
-  {"title": "La revolución de micro-beneficios de Tarrazú — veinte años dentro", "body": "La liberalización bancaria de Costa Rica en 2005 permitió a los pequeños productores cafeteros financiar sus propios beneficios húmedos. Tarrazú lideró la tendencia. Veinte años después, el conteo de micro-beneficios excede 220 — desde menos de una docena en 2004. Los beneficios cooperativos aún existen pero ya no dominan."},
-  {"title": "Beneficio Las Lajas — notas de proceso desde un pionero", "body": "Las Lajas, el beneficio de la familia Chacón en Naranjo, fue pionero de los procesamientos miel y natural en Costa Rica a principios de los 2000. Sus notas de proceso publicadas — horarios de secado, espesores de capa, intervalos de volteo — se convirtieron en la referencia de facto para toda la generación de micro-beneficios."},
-  {"title": "Por qué los micro-beneficios de Tarrazú se agrupan donde se agrupan", "body": "Los micro-beneficios de Tarrazú se agrupan alrededor de las cuencas de Llano Bonito y San Marcos — proximidad a una fuente fiable de agua de grado fermentación, más acceso vial a la logística de exportación en Pérez Zeledón. La agrupación no es accidente económico; es restricción hidro-geográfica."},
-  {"title": "Catando Tarrazú 2026 — los lotes altos", "body": "Los lotes altos 2026 de Tarrazú — 1.800+ m, Caturra y Catuaí de variedad única de los micro-beneficios nombrados — catan con consistencia inusual. La banda 87-89 que era delgada en 2023 está densamente poblada en 2026. Azúcar moreno, estructura de acidez cítrica, finales más largos."},
-  {"title": "Sobre 'azúcar moreno' como descriptor de Tarrazú", "body": "'Azúcar moreno' se ha vuelto el descriptor de cata definitorio de Tarrazú — usado por suficientes paneles y suficientes tostadores que el término ahora funciona como abreviatura de origen. La interpretación honesta: los cafés de Tarrazú de altitud expresan dulzura caramelizada estilo melaza muscovado en el paladar medio."},
-  {"title": "Cup of Excellence Costa Rica — qué reveló 2026", "body": "El Cup of Excellence Costa Rica 2026 vio a los lotes de Tarrazú tomar siete de las diez posiciones principales — un casi-monopolio que no había pasado desde la primera década del programa. Las notas de los jueces convergieron en un tema: procesamiento limpio, integridad varietal, expresión de terroir."},
-  {"title": "La transformación de Tarrazú de commodity a especial", "body": "En 2000 el café de Tarrazú entraba mayormente al flujo global de commodity como Costa Rica SHB. Para 2025 la misma región productora exporta más del 60% de su cosecha como especial de origen nombrado — con trazabilidad hasta el nivel de lote. La transición sucedió en dos generaciones."},
-  {"title": "El legado de ICAFE — sesenta años de política cafetera costarricense", "body": "ICAFE — el Instituto del Café de Costa Rica, fundado en 1948 — construyó la infraestructura institucional que hizo del café costarricense una marca. Control de calidad, inspección de exportación, reporte estadístico, extensión varietal. El rol de la agencia es ahora disputado: su libro de jugadas de era commodity no encaja con la era especial."},
-  {"title": "De cooperativa a comercio directo — el cambio generacional de Tarrazú", "body": "Los productores mayores de Tarrazú crecieron en una economía cooperativa donde el beneficio tomaba la cosecha y el productor recibía el promedio. La generación actual — muchos de los cuales operan sus propios micro-beneficios — vende directo a importadores y tostadores de especialidad. La brecha generacional es marcada."},
-  {"title": "La economía laboral de Tarrazú — migración nicaragüense y la cosecha", "body": "La cosecha de Tarrazú depende de mano de obra migrante nicaragüense estacional — históricamente 60-80% de la fuerza laboral de recolección. Los cambios de política fronteriza en 2024 redujeron el pool laboral mensurablemente; los productores reportan salarios más altos y ventanas de cosecha más largas. La tendencia no es historia de un año."},
-  {"title": "Comercio directo desde Tarrazú — concentración vs. distribución", "body": "El café de comercio directo de Tarrazú en 2025 fue predominantemente a menos de cincuenta compradores globales, con el top diez representando más del 60% del volumen de origen nombrado. La concentración limita el descubrimiento de precio para productores sin esas relaciones."},
-  {"title": "Qué significan las reformas 2026 de ICAFE para los pequeños productores", "body": "Las reformas 2026 de ICAFE reestructuran el rol de la agencia: menos regulatorio, más enfocado en servicios. Las cooperativas de pequeños productores aplauden el cambio pero se preocupan por la recuperación de costos. Las reformas eliminan varios subsidios generales en favor de soporte focalizado."},
-  {"title": "Centroamericano en Tarrazú — cinco años de ensayo", "body": "Los ensayos Centroamericano de CATIE en Tarrazú, en curso desde 2020, muestran lo que el híbrido F1 hace en altitud extrema: altos rendimientos, fuerte resistencia a roya, calidad de taza agrupándose en 84-86. A los productores les gusta la productividad; son más fríos con el carácter de taza."},
-  {"title": "Miel negra en Tarrazú — una inmersión profunda en proceso", "body": "La miel negra — dejando cerca de mucílago completo en el pergamino durante el secado — es el proceso miel más exigente. El secado fresco de altitud de Tarrazú lo hace tratable. El protocolo de miel negra del Beneficio Don Mayo: cereza despulpada en camas elevadas en patios cubiertos de baja humedad durante 22 a 28 días, volteada cada dos horas."}
+  {
+    "title": "Por qué el suelo volcánico de Antigua se nota en la taza",
+    "body": "Acatenango y Fuego cubren las laderas de ceniza mineral rica cada pocos años. Los suelos drenan rápido, retienen alta capacidad de intercambio catiónico y mantienen los cafetos estresados — produciendo semillas densas y complejas. Las tazas de Antigua aterrizan con cuerpo medio, chocolate, avellana y una acidez brillante."
+  },
+  {
+    "title": "El cruce Pacas × Maragogipe llega a Acatenango",
+    "body": "Pacamara — el cruce salvadoreño que llevó los granos grandes del Maragogipe al árbol compacto de Pacas — ha estado infiltrándose en las parcelas experimentales de Antigua durante cinco temporadas. Los productores reportan un perfil de sabor más amplio y rendimientos un 15% por debajo del Bourbon clásico."
+  },
+  {
+    "title": "Bourbon rosado en Antigua: tres fincas, tres resultados",
+    "body": "La reputación del Bourbon rosado llegó de Tolima con la promesa de tazas florales a cualquier altitud. En Antigua, tres fincas hicieron parcelas piloto entre 2024 y 2026: una cató 88.4, otra 85.1, la tercera no llegó a 84. La lección, dicen los productores, no es la variedad — es el microclima."
+  },
+  {
+    "title": "El ciclo eruptivo de Acatenango y la mineralogía de la cereza del próximo año",
+    "body": "Acatenango entró en erupción en octubre de 2024. La pluma de ceniza derivó al este-sureste durante nueve horas, depositando 0.3–1.1 cm de tefra fresca sobre el cinturón cafetero de Antigua. La mineralogía resultó inusualmente rica en sílice. Los productores no verán el efecto en la taza hasta la cosecha 2026."
+  },
+  {
+    "title": "Por qué las noches de Antigua se enfriaron esta década",
+    "body": "La temperatura mínima media nocturna de Antigua cayó 0.7°C entre 2015 y 2025 — un enfriamiento contraintuitivo que va contra la tendencia regional. La causa es local: los patrones cambiantes de nubosidad sobre Acatenango han eliminado la manta radiativa nocturna. Noches más frías, cerezas más lentas, granos más densos."
+  },
+  {
+    "title": "La línea de los 1.800 m y lo que la cruza",
+    "body": "Debajo de 1.500 m el cinturón cafetero de Antigua crece en margas volcánicas sobre una capa fina de caliche. Entre 1.500 y 1.800 m el suelo se profundiza, la cereza se ralentiza. Por encima de 1.800 m la lluvia cambia a eventos más cortos y agudos y la helada se convierte en un riesgo real."
+  },
+  {
+    "title": "El lento abrazo de Antigua a la fermentación carbónica",
+    "body": "Los experimentos de Aida Batlle en El Salvador con maceración carbónica cumplen ocho años. La técnica — cerezas selladas bajo CO₂ durante 72 a 120 horas antes del despulpado — ha cruzado la frontera guatemalteca esta temporada en tres beneficios de Antigua. La taza retiene la acidez estructural de Antigua y gana una nota frutada fermentada."
+  },
+  {
+    "title": "Dentro del protocolo láctico del Beneficio Bella Vista",
+    "body": "El lote experimental de Bella Vista en 2026 corrió 96 horas en bidones sellados inoculados con un cultivo iniciador de Lactobacillus cultivado a partir de su propia cascarilla. El protocolo lleva el pH de 5.1 a 3.8 en las primeras 48 horas. La taza resultante lee como dulce de miel, cremosa, con un final largo de ácido málico."
+  },
+  {
+    "title": "Beneficio húmedo vs. lavado completo: el idioma en el que nadie se pone de acuerdo",
+    "body": "'Lavado' significa cosas distintas en distintos beneficios. En Antigua, lo que se vende como 'lavado completo' suele significar 18-36 horas de fermentación seca seguidas de canal de agua. El resto de Latinoamérica salta la fase seca. La deriva terminológica hace difícil comparar notas de cata entre orígenes."
+  },
+  {
+    "title": "Catando los arribos 2025 de Antigua — qué cambió",
+    "body": "Los arribos 2025 de Antigua promediaron 86.4 en las catas preliminares de la Asociación de Productores — medio punto por encima del promedio de cinco años. El cambio notable no fue el promedio sino la dispersión: el decil superior cruzó los 89, una banda que Antigua no había alcanzado consistentemente desde 2017."
+  },
+  {
+    "title": "Cuando 'chocolate' dejó de significar chocolate en una hoja de cata",
+    "body": "'Chocolate' solía significar cacao procesado en estilo holandés: seco, oscuro, levemente amargo. A lo largo de los 2010, el descriptor derivó — hacia chocolate con leche, luego chocolate con avellana, luego cualquier cosa con base parda, dulce, de baja acidez. La taza referencia de Antigua es el café 'chocolate' prototípico — el descriptor hace más trabajo semántico que la palabra."
+  },
+  {
+    "title": "El examen Q-grader desde el lado equivocado de la mesa",
+    "body": "Sentarse para el examen Q no es una prueba sensorial; es una prueba de calibración. El reto no es saborear la acidez — es saborearla como los examinadores SCA la saboreaban hace veinte años. Los productores de Antigua que pasan cuentan la misma historia: las tazas son más fáciles que el protocolo."
+  },
+  {
+    "title": "Cómo Antigua perdió la mitad de sus hectáreas entre 1990 y 2010",
+    "body": "La hectarea cafetera en el valle de Antigua cayó de aproximadamente 8.200 ha en 1990 a 4.100 ha para 2010. El crecimiento urbano alrededor de la ciudad de Antigua tomó las terrazas bajas; los brotes de roya en 2012 y 2018 tomaron las plantaciones viejas de Bourbon. Lo que queda es más denso, más alto, más concentrado."
+  },
+  {
+    "title": "Las raíces coloniales del beneficio húmedo de Antigua",
+    "body": "El beneficio húmedo de Antigua se remonta directamente a la técnica hispano-caribeña de mediados del siglo XIX, traída por plantadores alemanes que llegaron en la década de 1870. El sistema de lavado por canales de agua fue una adaptación al flujo estacional de los arroyos de Antigua. Lo sorprendente es lo poco que ha cambiado la arquitectura."
+  },
+  {
+    "title": "Tres generaciones en las laderas del Acatenango",
+    "body": "El abuelo de Doña Rosa Méndez despejó la terraza superior de Finca El Carmen en 1948. Su padre añadió el beneficio húmedo en 1976. Ella añadió la restauración de sombra y el segundo patio de secado a principios de los 2010. Cada generación hizo la finca más legible al mercado de su época."
+  },
+  {
+    "title": "El precio mínimo del comercio justo y lo que Antigua realmente recibe",
+    "body": "El piso de Fair Trade USA para Arábica lavado se sitúa en $1.80/lb FOB. Los arribos lavados de Antigua se venden rutinariamente a compradores especiales a $4-7/lb — un múltiplo por encima del piso. El piso importa más en años cuando el mercado-C colapsa; en años normales el premio especial hace el trabajo y la certificación compra acceso a estanterías."
+  },
+  {
+    "title": "Comercio directo en Antigua: quién realmente se beneficia",
+    "body": "El comercio directo se enmarca como la alternativa amistosa al productor frente a la exportación de commodity. En la práctica, en Antigua, las relaciones sesgan hacia el cuartil superior de productores — aquellos con puntajes de cata fiables, capacidad de marketing en inglés y flujo de caja para esperar seis meses por el pago."
+  },
+  {
+    "title": "Disolución cooperativa en Sacatepéquez — qué salió mal",
+    "body": "Tres cooperativas de Sacatepéquez cerraron entre 2022 y 2025. Las causas próximas difieren — reestructuración de deuda, conflicto de junta, éxodo de miembros — pero el patrón subyacente es el mismo: pequeños productores encontraron compradores directos dispuestos a pagar precios especiales, la lógica de pool de precios dejó de cuadrar."
+  },
+  {
+    "title": "La roya regresa a Antigua — la agronomía de la contención",
+    "body": "Los brotes de Hemileia vastatrix han golpeado Antigua en 2012, 2018, y ahora de nuevo a principios de 2026. La cepa 2026 muestra sensibilidad reducida a los fungicidas a base de cobre, el caballo de batalla de la contención convencional. La guía de Cenicafé-Guatemala ha cambiado hacia el manejo integrado."
+  },
+  {
+    "title": "El cuestión del beneficio seco — ¿el secado en patio sigue siendo defendible?",
+    "body": "Los secadores mecánicos guardiola son más rápidos, más uniformes y más amigables con los presupuestos laborales. El secado en patio es más lento, dependiente del clima y se lee como artesanal. ¿Son las tazas secadas en patio mensurablemente mejores? La evidencia de cata es mixta. El argumento es cada vez más económico, no sensorial."
+  },
+  {
+    "title": "Castillo: la variedad resistente de Cenicafé, dos décadas después",
+    "body": "Castillo fue liberada en 2005 como la respuesta de Cenicafé a la roya. Veinte años después, el argumento de calidad en taza se ha enfriado. Los puntajes Q de Castillo se agrupan en 82-84 — competentes pero raramente sobresalientes. El verdadero legado de la variedad es lo que evitó: una epidemia que habría vaciado al pequeño productor del Cauca."
+  },
+  {
+    "title": "La controversia Geisha en Cauca: ¿viajó bien?",
+    "body": "El Geisha plantado en Cauca entre 2017-2019 produjo tazas mixtas: brillantes, a veces florales, pero raramente con la nota superior de jazmín que define los lotes panameños. La forma de hoja es correcta, el hábito frutal es correcto. Lo que falta es la combinación específica de 1.650-1.800 m sobre suelo volcánico que Boquete entrega."
+  },
+  {
+    "title": "La lenta migración del Bourbon rosado de Tolima a Cauca",
+    "body": "El Bourbon rosado se originó en Tolima alrededor de 2010 — una mutación espontánea que produjo cerezas rosa-rosadas y un carácter de taza inusual. Para 2026 está en volúmenes comerciales en tres municipios del Cauca. El trasplante ha conservado su carácter: floral, tipo té, con acidez de fruta de hueso."
+  },
+  {
+    "title": "Por qué los microclimas del Cauca resisten la tendencia de calentamiento",
+    "body": "El cinturón cafetero del Cauca se sitúa en los Andes occidentales, en la sombra de lluvia de la cordillera del Pacífico. El blindaje doble de montaña produce microclimas marcadamente variables — y muchos resisten el calentamiento regional por virtud del amortiguador de altitud."
+  },
+  {
+    "title": "La sequía de Patia y los Andes que la amortiguaron",
+    "body": "La sequía del valle de Patia en 2024 trajo ciclos de noticias semanales sobre café andino en riesgo. La realidad en altitud fue menos dramática. Las fincas cafeteras sobre 1.500 m vieron retrasos de floración de cuatro a siete días, no la pérdida catastrófica de cosecha que implicaban los titulares de tierras bajas."
+  },
+  {
+    "title": "Volcánico vs. metamórfico: las dos familias de suelo del Cauca",
+    "body": "El café del Cauca crece en dos sustratos de suelo distintos. Al norte de Popayán domina la marga volcánica de los sistemas Sotará y Puracé. Al sur hacia Patia, los suelos metamórficos derivados de pizarra toman el control. Las tazas son reconociblemente diferentes, y la diferencia se nota en catas a ciegas."
+  },
+  {
+    "title": "Fermentación anaeróbica en Inzá: las notas de un productor",
+    "body": "El productor de Inzá Luis Méndez ha corrido fermentación anaeróbica en sus lotes de Castillo durante tres temporadas. Su protocolo: cereza despulpada en barriles plásticos sellados, 96 horas a temperatura ambiente (12-17°C aquí). La taza gana una nota superior frutada. El compromiso: una ventana más estrecha entre subdesarrollado y sobrefermentado."
+  },
+  {
+    "title": "El natural de 84 horas — notas de proceso desde Finca Las Margaritas",
+    "body": "Los lotes experimentales de natural de Las Margaritas corren 84 horas sobre camas africanas en túneles cubiertos. Los lotes se voltean cada 90 minutos las primeras 12 horas. El resultado se acerca a un natural etíope — adelantado en bayas, jarabe, con el pH celular cayendo lo suficiente para desarrollarse sin entrar en vinagre."
+  },
+  {
+    "title": "Por qué los productores del Cauca regresan al proceso miel",
+    "body": "El proceso miel — cereza despulpada secada con el mucílago intacto — fue una tendencia de los 2010 en Cauca que perdió terreno frente a los anaeróbicos para 2020. Está regresando. La razón no es sensorial; es económica. Miel es indulgente, repetible y barato de implementar. Las tazas aterrizan predecibles."
+  },
+  {
+    "title": "Notas de cata Cauca 2026 — más claras, más brillantes, menos consistentes",
+    "body": "Los arribos 2026 del Cauca se catan con más carácter de origen evidente que 2024 o 2025 — pero la variabilidad lote-a-lote se ha ampliado. El cuartil superior lee notablemente más brillante (acidez cítrica, final más largo). El cuartil inferior lee más delgado y menos integrado. Los agrónomos apuntan a la varianza de floración como causa subyacente."
+  },
+  {
+    "title": "Sobre 'frutado' como descriptor de cata — una conversación",
+    "body": "Tres Q-graders se sentaron a discutir 'frutado'. Uno lo usa solo para frutas de hueso y cítricos. Uno lo usa para cualquier fruta no-cereza. Uno lo usa para cualquier cosa fuera del eje chocolate-nuez. Las tazas del Cauca fuerzan la pregunta: un Castillo de 1.700 m puede leer frutado para uno y balanceado para otro."
+  },
+  {
+    "title": "Las redes cafeteras indígenas del Cauca — Misak, Nasa y otras",
+    "body": "La economía cafetera del Cauca está superpuesta con la organización territorial indígena: las comunidades Nasa, Misak, Yanaconas y Coconuco operan redes cafeteras distintas. Algunas se integran con la FNC; otras no. Los lotes organizados comunitariamente tienen acceso inusual al mercado — relaciones directas con tostadores europeos y este-asiáticos."
+  },
+  {
+    "title": "Del narcotráfico al comercio justo — el giro duro del Cauca",
+    "body": "Los valles de altitud media del Cauca pasaron los años 90 y principios de los 2000 como corredores de coca. El giro al café especial fue arriba-abajo al principio — programas gubernamentales de sustitución — luego abajo-arriba mientras los pequeños productores vieron el diferencial de precio. Para 2026 las tierras de coca se han convertido en gran parte."
+  },
+  {
+    "title": "La reforma 2026 de la Federación del Cauca — qué cambia",
+    "body": "Las reformas internas 2026 de la Federación Nacional de Cafeteros reestructuraron el sistema de asignación de cuotas de exportación, desplazando más autonomía a los comités municipales de café. Los pequeños productores del Cauca están divididos. Los defensores argumentan que las decisiones locales sobre precio y ruteo llegarán a los productores más rápido."
+  },
+  {
+    "title": "Comercio directo a Tokio — el patrón de exportación 2025 del Cauca",
+    "body": "Los lotes de comercio directo con destino a Tokio desde Cauca subieron 41% por volumen entre 2023 y 2025, contra un aumento total de exportaciones del Cauca de 12%. Los tostadores japoneses han construido relaciones con cinco cooperativas específicas del Cauca — concentradas, técnicas y dispuestas a pagar primas de calidad."
+  },
+  {
+    "title": "Por qué las cooperativas del Cauca superan a la Federación",
+    "body": "En ingreso por productor, los miembros del Cauca de la FNC promedian más bajo que las cooperativas municipales independientes. La razón no es malicia institucional; es desajuste de escala. Los servicios de la FNC fueron diseñados para una economía de café commodity de los 60. El giro especial del Cauca favorece estructuras de compra más pequeñas, rápidas, conscientes de la taza."
+  },
+  {
+    "title": "Sidra en Cauca: una variedad con un origen disputado",
+    "body": "Sidra llegó al Cauca vía Ecuador a finales de los 2010, comercializada como un híbrido de Bourbon y Typica. El origen botánico es disputado — algunos reclaman un cruce natural de la estación experimental de Pichincha; otros la identifican como una selección de Bourbon Rojo mal rebautizada. La taza es consistente: limpia, cítrica, tipo té."
+  },
+  {
+    "title": "La explosión de micro-beneficios en Cauca, en números",
+    "body": "Los micro-beneficios activos en Cauca crecieron de 47 en 2018 a 219 en 2026 — un aumento de 4.6×. El patrón sigue de cerca la trayectoria de Tarrazú 2005-2015. El costo de capital por productor promedia $14k-22k USD. Las ventanas de recuperación en mercados de grado especial corren 3-5 años."
+  },
+  {
+    "title": "Impacto climático en las ventanas de floración del Cauca",
+    "body": "A lo largo de la última década, la ventana de floración principal del Cauca se ha desplazado más tarde unos nueve días en altitud — y la floración secundaria se ha vuelto más fiable. El patrón es inusual: el calentamiento usualmente comprime la floración. Cenicafé atribuye esto a cambios de humedad más que a cambios de temperatura."
+  },
+  {
+    "title": "Cata de subasta en Cauca Best of Origin 2026",
+    "body": "El lote superior del Best of Origin Cauca 2026 cató 89.7 — un Castillo de una parcela de 1.820 m corrido como anaeróbico de 72 horas. Veintitrés lotes cruzaron 87. El panel de cata de seis incluyó a dos compradores japoneses y un tostador noruego. Los precios de subasta promediaron $14.20/lb."
+  },
+  {
+    "title": "Historia del origen Geisha: de Etiopía a Hacienda La Esmeralda",
+    "body": "El camino de la variedad Geisha desde el bosque Gesha de Etiopía hasta Boquete está bien documentado pero todavía mitificado. CATIE introdujo plantas a Costa Rica en los años 50; se diseminaron hacia el norte como portainjerto resistente a roya. La Esmeralda las plantó como cortinas rompevientos. Cuando el lote separado de Daniel Peterson en 2004 puntuó sobre 90, el precio reescribió qué era el café especial."
+  },
+  {
+    "title": "Las variedades experimentales de Boquete — Sidra, Centroamericano, Gesha 1931",
+    "body": "Más allá de Geisha, las parcelas experimentales de Boquete ahora incluyen Sidra, Centroamericano (el híbrido F1 de CATIE) y Gesha 1931 (una selección panameña de Geisha). Cada uno carga su propio lenguaje de marketing. La evidencia de calidad en taza en altitud es genuinamente interesante para Centroamericano; los demás comercian con la aureola de Geisha."
+  },
+  {
+    "title": "Por qué el Geisha no sabe a Geisha en todas partes",
+    "body": "El Geisha plantado en Colombia, México, El Salvador y Honduras ha producido tazas que el mercado global sigue llamando 'Geisha' pero que se catan muy diferente. El perfil de Boquete — florales altos, jazmín, bergamota — emerge fiablemente sobre 1.650 m en suelo volcánico. Debajo de eso, el carácter floral se aplana. La variedad no es suficiente; el lugar importa."
+  },
+  {
+    "title": "La sombra de lluvia del Volcán Barú y lo que las fincas de Boquete saben",
+    "body": "La sombra de lluvia del Volcán Barú le da al cinturón cafetero occidental de Boquete aproximadamente 30% menos precipitación que el cinturón oriental a la misma altitud. Esa sequedad, más mayor incidencia solar, más noches más frías, produce la maduración ralentizada que se traduce en la densidad de taza característica de Boquete."
+  },
+  {
+    "title": "Las bandas de altitud de Boquete, mapeadas",
+    "body": "El cinturón cafetero de Boquete va de 1.200 m a 1.950 m. La banda de 1.400 m todavía produce Catuaí lavado de grado comercial. La banda de 1.650+ m es donde Geisha cuadra a precios de subasta. Por encima de 1.850 m, el riesgo de helada y la mortalidad por estrés del árbol se vuelven restricciones reales."
+  },
+  {
+    "title": "Por qué los valles orientales de Chiriquí son más frescos que los occidentales",
+    "body": "Los valles orientales de Chiriquí — Tierras Altas, Volcancito — están del lado caribeño de la divisoria continental. Más húmedos, más cubiertos de nubes, y en promedio 1.5-2°C más frescos a la misma elevación que valles occidentales como Palmira. Los productores de especialidad han gravitado al este; el volumen comercial se queda al oeste."
+  },
+  {
+    "title": "Maceración carbónica en Lamastus Family Estates — qué comparten",
+    "body": "Lamastus corre maceración carbónica en un subconjunto de sus lotes Geisha — las temperaturas y duraciones exactas siguen siendo secreto comercial, pero la familia ha compartido públicamente el contorno amplio: cerezas despulpadas, luego selladas bajo CO₂ durante 60 a 100 horas dependiendo del lote."
+  },
+  {
+    "title": "El libro de jugadas del procesamiento seco en Boquete",
+    "body": "El procesamiento natural en Boquete usa camas africanas elevadas bajo estructuras de sombra. Las cerezas pasan de 18 a 28 días en la cama, volteadas seis a ocho veces al día durante la primera semana. El clima relativamente fresco y seco de Boquete ralentiza la curva de fermentación — el mismo protocolo en un origen más caliente produciría una taza muy diferente."
+  },
+  {
+    "title": "Miel negra, miel roja, miel blanca — qué significan los colores",
+    "body": "La terminología de miel es código de porcentaje de mucílago. La miel blanca deja aproximadamente 25% de mucílago en el pergamino. La amarilla deja alrededor de 50%. La roja deja 70-80%. La miel negra deja cerca del 100% — esencialmente natural completo sin la pulpa de la cereza. El nombrado es informal pero estable."
+  },
+  {
+    "title": "Catando la subasta Best of Panama 2025 — tres conclusiones",
+    "body": "La categoría geisha-natural del Best of Panama 2025 alcanzó $5.001,50/lb verde. Las notas del panel de cata convergieron en tres cosas: las notas superiores de hierba limón fueron más fuertes que en 2024, la bergamota apareció más fiablemente, y el histórico carácter de fondo de 'chocolate de Boquete' se retiraba visiblemente."
+  },
+  {
+    "title": "Sobre floral como descriptor de Geisha — una conversación",
+    "body": "'Floral' cubre todo desde jazmín hasta madreselva hasta lavanda hasta manzanilla. Los Geisha de Boquete tienden a aterrizar en jazmín y bergamota. Cuando el panel escribe 'floral' en una taza de Boquete, casi siempre significan jazmín-bergamota. Cuando lo escriben en un Geisha colombiano, el significado se desliza hacia manzanilla."
+  },
+  {
+    "title": "Por qué algunos Geishas catan sobre 95 y otros bajo 90",
+    "body": "Los lotes Geisha que catan 95+ comparten tres cosas: cultivo en altitud bajo sombra, selección de cereza de día único, y procesamiento meticuloso. Los lotes 88-90 usualmente comprometen uno de estos — recogida de días mezclados, secado más rápido, o una parcela de sombra parcial. La variedad no garantiza nada. Solo eleva el techo si el resto del sistema está afinado."
+  },
+  {
+    "title": "La historia de Hacienda La Esmeralda — veinte años después",
+    "body": "Veinte años después del anuncio Geisha de La Esmeralda en 2004, la operación familiar ha reescrito cómo se ve una finca de café especial latinoamericana. Tres generaciones de Petersons ahora manejan 250 hectáreas. El mercado que crearon — finca única, variedad única, subasta de día único — ha reconfigurado la estructura de premio especial global."
+  },
+  {
+    "title": "El turismo cafetero de Boquete y lo que rompió",
+    "body": "La transformación de Boquete en un destino de café especial ha traído infraestructura, visibilidad y un notable aumento en los valores de propiedad locales. El costo ha sido la distribución: los pequeños productores en valles adyacentes sin exposición turística ahora compiten con fincas que tienen compradores minoristas todo el año."
+  },
+  {
+    "title": "Traspaso generacional en Finca Hartmann",
+    "body": "Allan Hartmann dirigió la finca Hartmann durante cuarenta años. Su hija Camila tomó el liderazgo operativo en 2024. La transición ha sido deliberada — Camila se entrenó en agronomía en Costa Rica, luego en cata en SCA — pero la tensión heredada entre acreaje de conservación y acreaje de producción definirá qué tipo de finca se vuelve Hartmann."
+  },
+  {
+    "title": "El lote de subasta de $10.000/lb — economía de la escasez",
+    "body": "Cuando un Geisha de Boquete despeja $10.000/lb en subasta, el titular se escribe sobre café. La realidad se acerca a: 100-300 lb de café verde compradas por un tostador como activo de marketing. Los lotes son micro por volumen, macro por margen. No cambian la economía subyacente del pequeño productor; dan forma al techo."
+  },
+  {
+    "title": "El mercado laboral de Boquete y la crisis de cosecha",
+    "body": "La cosecha de café de Boquete depende de trabajadores indígenas Ngäbe-Buglé que viajan desde la comarca para la ventana de recogida diciembre-marzo. Los salarios han subido pronunciadamente desde 2020 — escasez laboral, más el efecto del turismo en el costo de vida local. Los productores dicen que la crisis laboral dictará dónde aterriza la próxima década de selección varietal."
+  },
+  {
+    "title": "Comercio directo desde Boquete — quién está exportando a dónde",
+    "body": "El café de comercio directo de Boquete en 2025 fue predominantemente a: Tokio (38% por valor), Nueva York (21%), Oslo (12%), Melbourne (8%), con el resto distribuido a tostadores en 14 países. La concentración es en tostadores con recursos de marketing para comunicar procedencia de origen único."
+  },
+  {
+    "title": "La lenta adopción de Centroamericano en Panamá",
+    "body": "Centroamericano — el híbrido F1 desarrollado por CATIE combinando resistencia a roya de Rume Sudan con productividad de Sarchimor — ha estado disponible en Boquete desde 2018. La adopción ha sido más lenta que Costa Rica u Honduras. La razón es parcialmente marketing: el híbrido F1 carece de la aureola de Geisha."
+  },
+  {
+    "title": "Secado en patio de Geisha de altitud — los parámetros",
+    "body": "Secar Geisha en patio a 1.700+ m exige atención constante. La ventana de secado es 14-22 días dependiendo del clima. Las cerezas se rastrillan en capas finas cada 60-90 minutos durante las horas de luz, se rastrillan en hileras al atardecer, luego se reesparcen al amanecer. Hecho correctamente, el Geisha secado en patio cata ligeramente más pesado."
+  },
+  {
+    "title": "Por qué las cooperativas de Sierra Madre prefieren Marsellesa",
+    "body": "Marsellesa, la descendiente del Sarchimor resistente a enfermedades, domina las plantaciones cooperativas de Sierra Madre. El razonamiento es mayormente defensivo: la roya golpeó Chiapas fuerte en 2013-2015, y Marsellesa la espantó donde el Bourbon colapsó. La calidad en taza aterriza en la banda 82-85 — adecuada para el pool cooperativo, no aspiracional."
+  },
+  {
+    "title": "Variedades resistentes a enfermedades en Chiapas — quince años de ensayos",
+    "body": "La estación experimental Tacaná del INIFAP ha corrido ensayos varietales en Chiapas desde 2011. Marsellesa, Costa Rica 95, Oro Azteca y varios híbridos F1 Robusta-Arábica han sido todos probados bajo condiciones de altitud. Los datos siguen emergiendo sobre productividad a largo plazo, pero la resistencia a roya se ha mantenido en cinco de seis variedades."
+  },
+  {
+    "title": "Pacamara en Sierra Madre: tres fincas experimentando",
+    "body": "Las plantaciones de Pacamara en Sierra Madre siguen siendo pequeñas — tres fincas con parcelas a escala comercial sobre 1.500 m, todas iniciadas entre 2020-2022. Los desafíos agronómicos son los mismos que en otros lugares: copa abierta, cerezas sobredimensionadas, maduración desigual. La recompensa de calidad en taza ha sido real en dos de tres fincas."
+  },
+  {
+    "title": "El cinturón de bosque nuboso de Sierra Madre — lo que la altitud te compra",
+    "body": "El cinturón cafetero de Sierra Madre se sitúa en el borde bajo de la banda de bosque nuboso, entre aproximadamente 1.000 m y 1.800 m. La cobertura nubosa durante 60-80% de las horas de luz a través de la temporada de crecimiento enfría la cereza y produce granos más densos. El cinturón nuboso es también donde viven los servicios de cuenca."
+  },
+  {
+    "title": "Las dos cosechas de Chiapas: altiplano y tierras bajas, desacoplándose",
+    "body": "El cinturón cafetero de tierras bajas de Chiapas (debajo de 800 m) tradicionalmente cosechaba dos a tres semanas antes que el cinturón de altiplano. A lo largo de los 2010 la brecha era una desfase estable de cinco semanas. Desde 2020 la brecha se ha ampliado a siete u ocho semanas — retrasos en altiplano por clima, más el cinturón bajo recogiendo más temprano."
+  },
+  {
+    "title": "Por qué el volcán Tacaná importa al café de Sierra Madre",
+    "body": "Tacaná, en la frontera México-Guatemala, entró en erupción por última vez en 1986 — menor, pero suficiente para refrescar los suelos circundantes con tefra. El cinturón de suelo volcánico alrededor de Tacaná produce las tazas más distintivas de Sierra Madre: expresión mineral notablemente más alta, mejor estructura de acidez y un final más largo."
+  },
+  {
+    "title": "El proceso anaeróbico llega a Maya Vinic",
+    "body": "Maya Vinic — la cooperativa Tzotzil-Tzeltal establecida hace tiempo en Chiapas — corrió sus primeros experimentos de fermentación anaeróbica en 2024. Tres lotes, barriles sellados, 72 horas a las temperaturas ambiente frescas del beneficio de altiplano. Los resultados cataron por encima del promedio lavado de la cooperativa para las mismas parcelas. El liderazgo es cauteloso sobre la escala."
+  },
+  {
+    "title": "El beneficio húmedo de Sierra Madre — edición cooperativa",
+    "body": "Los beneficios húmedos cooperativos en Sierra Madre agrupan la fermentación a través de múltiples entregas de pequeños productores. La economía funciona; el control de calidad es más difícil. Una sola entrega no madura puede marcar el lote del día. Las cooperativas conscientes de calidad ahora usan clasificación por color en la entrada, gradación por densidad en fermentación, y cata de beneficio seco antes de la consolidación de lote."
+  },
+  {
+    "title": "Ingeniería de patios de secado en Chiapas altiplano",
+    "body": "Los patios de secado de Chiapas altiplano lidian con chubascos de montaña vespertinos desde mayo hasta septiembre. La respuesta ingenieril — patios cubiertos con cortinas de lluvia enrollables, más elevación de cama africana sobre la superficie del patio — ha madurado a lo largo de los 2010. El estándar actual en las cooperativas es 40 m² de patio cubierto por tonelada de salida verde."
+  },
+  {
+    "title": "Catando Sierra Madre 2026 — trazos amplios",
+    "body": "Los arribos 2026 de Sierra Madre catan con mejora notable en el extremo superior. Los lotes agrupados cooperativos promedian 83.6 — medio punto sobre 2024. Los lotes de micro-beneficio de finca única que han emergido en los últimos tres años catan más alto, con varios cruzando 87. La emergencia de dos niveles es real."
+  },
+  {
+    "title": "Sobre 'terroso' en cafés mexicanos de altiplano",
+    "body": "'Terroso' como descriptor de cata solía ser código para defectos: secado mohoso, almacenamiento ensacado. En años recientes ha ganado terreno legítimo para cafés procesados limpiamente con un carácter de hoja mojada, piso de bosque. El Marsellesa de altiplano de Sierra Madre aterriza limpiamente en este espacio."
+  },
+  {
+    "title": "La liga de cata de micro-beneficios de Sierra Madre — un año dentro",
+    "body": "Una liga informal de cata entre operadores de micro-beneficios de Sierra Madre corrió doce sesiones mensuales en 2025. La estructura: cada participante envía un lote, los demás catan a ciegas, los puntajes se agrupan, el lote superior del año obtiene un espacio de marketing cooperativo en la Semana del Café de Nueva York."
+  },
+  {
+    "title": "Maya Vinic: treinta años de café indígena organizado",
+    "body": "Maya Vinic fue fundada en 1999 por productores de café Tzotzil y Tzeltal después de la masacre de Acteal. Treinta años después, la cooperativa opera siete beneficios húmedos, exporta bajo su propia marca a doce países, y se ha vuelto un punto de referencia para la organización cafetera liderada por indígenas en Latinoamérica."
+  },
+  {
+    "title": "La influencia zapatista en las cooperativas cafeteras de Chiapas",
+    "body": "Los municipios autónomos del levantamiento zapatista en Chiapas construyeron cooperativas cafeteras paralelas fuera de las estructuras de certificación convencionales. Su modelo cooperativo — gobernado por comunidad, anti-corredor de exportación — ha envejecido interesantemente. Algunas colapsaron bajo presión de mercado; las sobrevivientes construyeron relaciones directas con tostadores europeos de economía solidaria."
+  },
+  {
+    "title": "El paisaje cooperativo de Sierra Madre, graficado",
+    "body": "Sierra Madre soporta aproximadamente catorce grandes cooperativas cafeteras, organizadas alrededor de comunidad lingüística, frontera municipal o afiliación religiosa. Las más grandes agrupan más de 3.000 productores cada una. La banda media — ocho cooperativas entre 400 y 1.500 productores — es donde la innovación institucional se ha concentrado."
+  },
+  {
+    "title": "El modelo de precios de Maya Vinic — qué es diferente",
+    "body": "Maya Vinic establece precios en un modelo independiente del piso del mercado-C o el premio estándar de comercio justo. Los productores reciben un precio publicado por quintal vinculado a la puntuación de calidad en taza al ingreso, más una distribución de reparto de ganancias al cierre de temporada. El modelo demanda capacidad de gradación de taza que las cooperativas convencionales no tienen."
+  },
+  {
+    "title": "Certificación de comercio justo en Chiapas — qué funciona",
+    "body": "La certificación de comercio justo en Chiapas ha producido un resultado en capas. El piso de precio y los requisitos de gobernanza democrática se han mantenido; el premio largamente prometido ha sido inconsistente. Las cooperativas que construyeron relaciones complementarias de comercio directo sobre el acceso de comercio justo han prosperado."
+  },
+  {
+    "title": "Comercio cooperativa-a-cooperativa: una tubería Chiapas-Cauca",
+    "body": "Maya Vinic y Tierradentro (Cauca) corrieron un intercambio piloto en 2024: Maya Vinic envió Bourbon proceso miel de Chiapas a socios tostadores de Tierradentro en Noruega; Tierradentro envió Castillo lavado a los socios alemanes de Maya Vinic. Los volúmenes fueron pequeños, los márgenes delgados, pero el modelo se está estudiando."
+  },
+  {
+    "title": "Resistencia a la roya — los ensayos de campo de Sierra Madre",
+    "body": "Las cooperativas de Sierra Madre corrieron ensayos coordinados de resistencia a roya a lo largo de 2022-2025 en trece parcelas experimentales. El veredicto: Marsellesa se mantuvo, Costa Rica 95 se mantuvo, Oro Azteca se mantuvo en parcelas bajas pero mostró vigor más lento en altitud. Sarchimor mostró resistencia reducida contra la cepa 2023."
+  },
+  {
+    "title": "Geisha cultivado en Tacaná — un experimento de Sierra Madre",
+    "body": "Tres fincas en la ladera mexicana del Tacaná han plantado parcelas de Geisha en la banda 1.650-1.800 m desde 2021. Resultados de taza hasta ahora: limpios, florales, distintivamente Geisha — pero el carácter floral cata más ligero que el Geisha de Panamá a la misma altitud. La hipótesis es relacionada al suelo."
+  },
+  {
+    "title": "El portafolio varietal de Tarrazú — Caturra, Catuaí y la nueva ola",
+    "body": "Tarrazú sigue dominado por Caturra y Catuaí — las variedades compactas de alto rendimiento que dieron forma al café especial costarricense durante treinta años. La nueva ola (Bourbon Sidra, Bourbon Rosado, Centroamericano) se sienta en parcelas experimentales, no en volumen comercial. La razón no es conservadurismo — Caturra/Catuaí aún cuadran a precios especiales."
+  },
+  {
+    "title": "Por qué los productores de Tarrazú son escépticos del Geisha",
+    "body": "Los ensayos de Geisha en Tarrazú devolvieron resultados intermedios: tazas limpias pero sin el levantamiento floral que define al Geisha panameño. Los productores concluyen que la variedad necesita la combinación específica suelo-altitud-microclima de Boquete para expresarse. Tarrazú en cambio se apoya en lo que hace bien — Caturra y Catuaí lavados a altitud extrema."
+  },
+  {
+    "title": "Proceso miel en Tarrazú — el caso de altitud",
+    "body": "La altitud de Tarrazú (1.500-1.900 m en las fincas activas) hace el proceso miel particularmente interesante: el clima fresco de secado ralentiza la fermentación lo suficiente para capturar la dulzura jarabesa de la miel sin el barro sobrefermentado que aqueja los intentos de proceso miel en altitud más baja."
+  },
+  {
+    "title": "La ventaja de altitud de Tarrazú, cuantificada",
+    "body": "El cinturón cafetero comercial de Tarrazú se sitúa en 1.500-1.900 m — entre los cinturones Arábica comerciales más altos del mundo. Cada 100 m de altitud se correlaciona con aproximadamente 0.4 puntos de cata en paneles de Cup of Excellence, controlando por variedad y procesamiento. La altitud de Tarrazú es estructural."
+  },
+  {
+    "title": "Los dos climas cafeteros de Costa Rica — Tarrazú vs. Tres Ríos",
+    "body": "El café de Tres Ríos — al este de San José, altitud más baja — produce una taza fundamentalmente diferente del café del sur de Tarrazú. Donde Tarrazú aterriza con acidez limpia y dulzura de azúcar moreno, Tres Ríos cata más sedoso, con más matices florales y un final más corto. Los dos están a 70 km y producen café que se lee desde continentes diferentes."
+  },
+  {
+    "title": "Por qué las noches de Tarrazú se calentaron esta década",
+    "body": "La temperatura mínima media de Tarrazú subió 0.8°C de 2015 a 2025. La causa no es solo calentamiento macro; la deforestación en la cuenca alta del Talamanca ha reducido el drenaje de aire frío nocturno. El café en altitud tolera la tendencia hasta ahora, pero las ventanas de floración se están comprimiendo."
+  },
+  {
+    "title": "La revolución de micro-beneficios de Tarrazú — veinte años dentro",
+    "body": "La liberalización bancaria de Costa Rica en 2005 permitió a los pequeños productores cafeteros financiar sus propios beneficios húmedos. Tarrazú lideró la tendencia. Veinte años después, el conteo de micro-beneficios excede 220 — desde menos de una docena en 2004. Los beneficios cooperativos aún existen pero ya no dominan."
+  },
+  {
+    "title": "Beneficio Las Lajas — notas de proceso desde un pionero",
+    "body": "Las Lajas, el beneficio de la familia Chacón en Naranjo, fue pionero de los procesamientos miel y natural en Costa Rica a principios de los 2000. Sus notas de proceso publicadas — horarios de secado, espesores de capa, intervalos de volteo — se convirtieron en la referencia de facto para toda la generación de micro-beneficios."
+  },
+  {
+    "title": "Por qué los micro-beneficios de Tarrazú se agrupan donde se agrupan",
+    "body": "Los micro-beneficios de Tarrazú se agrupan alrededor de las cuencas de Llano Bonito y San Marcos — proximidad a una fuente fiable de agua de grado fermentación, más acceso vial a la logística de exportación en Pérez Zeledón. La agrupación no es accidente económico; es restricción hidro-geográfica."
+  },
+  {
+    "title": "Catando Tarrazú 2026 — los lotes altos",
+    "body": "Los lotes altos 2026 de Tarrazú — 1.800+ m, Caturra y Catuaí de variedad única de los micro-beneficios nombrados — catan con consistencia inusual. La banda 87-89 que era delgada en 2023 está densamente poblada en 2026. Azúcar moreno, estructura de acidez cítrica, finales más largos."
+  },
+  {
+    "title": "Sobre 'azúcar moreno' como descriptor de Tarrazú",
+    "body": "'Azúcar moreno' se ha vuelto el descriptor de cata definitorio de Tarrazú — usado por suficientes paneles y suficientes tostadores que el término ahora funciona como abreviatura de origen. La interpretación honesta: los cafés de Tarrazú de altitud expresan dulzura caramelizada estilo melaza muscovado en el paladar medio."
+  },
+  {
+    "title": "Cup of Excellence Costa Rica — qué reveló 2026",
+    "body": "El Cup of Excellence Costa Rica 2026 vio a los lotes de Tarrazú tomar siete de las diez posiciones principales — un casi-monopolio que no había pasado desde la primera década del programa. Las notas de los jueces convergieron en un tema: procesamiento limpio, integridad varietal, expresión de terroir."
+  },
+  {
+    "title": "La transformación de Tarrazú de commodity a especial",
+    "body": "En 2000 el café de Tarrazú entraba mayormente al flujo global de commodity como Costa Rica SHB. Para 2025 la misma región productora exporta más del 60% de su cosecha como especial de origen nombrado — con trazabilidad hasta el nivel de lote. La transición sucedió en dos generaciones."
+  },
+  {
+    "title": "El legado de ICAFE — sesenta años de política cafetera costarricense",
+    "body": "ICAFE — el Instituto del Café de Costa Rica, fundado en 1948 — construyó la infraestructura institucional que hizo del café costarricense una marca. Control de calidad, inspección de exportación, reporte estadístico, extensión varietal. El rol de la agencia es ahora disputado: su libro de jugadas de era commodity no encaja con la era especial."
+  },
+  {
+    "title": "De cooperativa a comercio directo — el cambio generacional de Tarrazú",
+    "body": "Los productores mayores de Tarrazú crecieron en una economía cooperativa donde el beneficio tomaba la cosecha y el productor recibía el promedio. La generación actual — muchos de los cuales operan sus propios micro-beneficios — vende directo a importadores y tostadores de especialidad. La brecha generacional es marcada."
+  },
+  {
+    "title": "La economía laboral de Tarrazú — migración nicaragüense y la cosecha",
+    "body": "La cosecha de Tarrazú depende de mano de obra migrante nicaragüense estacional — históricamente 60-80% de la fuerza laboral de recolección. Los cambios de política fronteriza en 2024 redujeron el pool laboral mensurablemente; los productores reportan salarios más altos y ventanas de cosecha más largas. La tendencia no es historia de un año."
+  },
+  {
+    "title": "Comercio directo desde Tarrazú — concentración vs. distribución",
+    "body": "El café de comercio directo de Tarrazú en 2025 fue predominantemente a menos de cincuenta compradores globales, con el top diez representando más del 60% del volumen de origen nombrado. La concentración limita el descubrimiento de precio para productores sin esas relaciones."
+  },
+  {
+    "title": "Qué significan las reformas 2026 de ICAFE para los pequeños productores",
+    "body": "Las reformas 2026 de ICAFE reestructuran el rol de la agencia: menos regulatorio, más enfocado en servicios. Las cooperativas de pequeños productores aplauden el cambio pero se preocupan por la recuperación de costos. Las reformas eliminan varios subsidios generales en favor de soporte focalizado."
+  },
+  {
+    "title": "Centroamericano en Tarrazú — cinco años de ensayo",
+    "body": "Los ensayos Centroamericano de CATIE en Tarrazú, en curso desde 2020, muestran lo que el híbrido F1 hace en altitud extrema: altos rendimientos, fuerte resistencia a roya, calidad de taza agrupándose en 84-86. A los productores les gusta la productividad; son más fríos con el carácter de taza."
+  },
+  {
+    "title": "Miel negra en Tarrazú — una inmersión profunda en proceso",
+    "body": "La miel negra — dejando cerca de mucílago completo en el pergamino durante el secado — es el proceso miel más exigente. El secado fresco de altitud de Tarrazú lo hace tratable. El protocolo de miel negra del Beneficio Don Mayo: cereza despulpada en camas elevadas en patios cubiertos de baja humedad durante 22 a 28 días, volteada cada dos horas."
+  },
+  {
+    "title": "Variedades heirloom: la biblioteca genética del café etíope",
+    "body": "El café de Yirgacheffe se cultiva casi exclusivamente sobre cultivares ancestrales — la etiqueta genérica 'heirloom' que cubre miles de plantas genéticamente distintas. La mayoría de fincas no están mapeadas a nivel varietal. La diversidad genética caótica es precisamente lo que le da a Yirgacheffe su taza inconfundible, y lo que la protege como reservorio contra futura presión de enfermedades."
+  },
+  {
+    "title": "Por qué 'Geisha' vino de Yirgacheffe — la historia de la diáspora",
+    "body": "La variedad Geisha que reescribió la economía del café especial en 2004 se remonta a una expedición de recolección de 1936 cerca del pueblo de Gesha en el suroeste de Etiopía. La semilla CATIE viajó a Costa Rica, luego a Panamá, donde el suelo de Boquete en La Esmeralda la recompensó. Los bosques etíopes de su origen aún albergan miles de cultivares hermanos sin catalogar."
+  },
+  {
+    "title": "La línea de los 2.100 m: el techo de altitud de Yirgacheffe",
+    "body": "Las fincas de café de Yirgacheffe se agrupan entre 1.700 y 2.200 m en las tierras altas de Gedeo. Por encima de 2.100 m el riesgo de helada se vuelve significativo en las noches de diciembre; por debajo de 1.700 m la taza pierde su característico levantamiento floral. La banda estrecha de altitud es también el cinturón de bosque nuboso — el café aquí crece bajo dosel semi-natural."
+  },
+  {
+    "title": "Por qué el terroir etíope resiste el etiquetado de origen único",
+    "body": "Una bolsa de café etíope etiquetada 'Yirgacheffe' es casi seguramente una mezcla de pequeñas propiedades — cientos de parcelas, procesadas en uno de un puñado de beneficios regionales. La etiqueta de origen único es regional, no específica de parcela. Los compradores especiales que persiguen trazabilidad a nivel de parcela tienen que invertir en relaciones a nivel de estación."
+  },
+  {
+    "title": "Ingeniería de camas de secado en el beneficio Konga",
+    "body": "El patio de secado de Konga corre 320 camas africanas elevadas en 16 hileras. Cada cama seca 90 kg de pergamino durante 12 a 18 días, volteado cada 90 minutos durante el día. El protocolo del beneficio — publicado en 2024 — se ha vuelto la referencia de facto para los beneficios de Yirgacheffe preparando lotes Grado 1 para exportación."
+  },
+  {
+    "title": "Proceso natural en Yirgacheffe: la ortodoxia de origen",
+    "body": "El Yirgacheffe procesado natural — cereza entera secada al sol en camas elevadas — es la tradición más antigua, anterior al modelo de exportación de beneficio por un siglo. La taza lleva fresa, mora azul, y un cuerpo jarabesco que el Yirgacheffe lavado simplemente no produce. El proceso natural está regresando entre estaciones enfocadas en calidad después de décadas de dominio de proceso lavado."
+  },
+  {
+    "title": "La nota de mora azul: de dónde realmente viene",
+    "body": "El descriptor mora azul que aparece en las formas de cata de Yirgacheffe está más fiablemente unido a cafés procesados naturales, no lavados. La nota es una firma de aldehído impulsada por fermentación — específicamente, etil 3-metilbutanoato, acumulado durante el secado lento en cereza. El Yirgacheffe lavado se inclina cítrico-floral en su lugar. Mismo café, dos lenguajes sensoriales diferentes."
+  },
+  {
+    "title": "Catando los lotes Grado 1 de Yirgacheffe 2026",
+    "body": "La cata de arribos 2026 en tres tostadores de referencia puntuó al Yirgacheffe Grado 1 lavado en un promedio no ponderado de 87.8 — aproximadamente medio punto por encima de la línea base de 2024. Jazmín, bergamota, y descriptores de té de limón dominaron. Dos lotes naturales cruzaron 89. La cosecha fue inusualmente limpia en toda la región."
+  },
+  {
+    "title": "La Bolsa de Materias Primas de Etiopía y la brecha del pequeño productor",
+    "body": "El ECX, fundado en 2008, canaliza la mayoría del café etíope a través de subastas centralizadas anónimas — eliminando la trazabilidad de comercio directo en nombre del descubrimiento de precio justo. Las exclusiones para cooperativas especiales y exportaciones directas que evitan el ECX han crecido, pero el sistema aún excluye a la mayoría de pequeños productores del precio premium."
+  },
+  {
+    "title": "El lugar de nacimiento del café: el arco Kaffa-a-Yirgacheffe",
+    "body": "El origen botánico del café es la región del bosque Kaffa, pero la historia comercial corre a través de Yirgacheffe — los pueblos de mercado de las tierras altas de Gedeo canalizaron el café hacia los puertos del Mar Rojo durante siglos. La marca 'Yirgacheffe' es una construcción moderna; la cultura subyacente del café como práctica social está entre las más antiguas documentadas en cualquier región."
+  },
+  {
+    "title": "SL28 y SL34: los caballos de batalla de Kenia",
+    "body": "La economía cafetera de Kenia corre sobre dos variedades seleccionadas en los Scott Agricultural Laboratories en los años 30: SL28 (tolerante a sequía, grano denso, acidez intensa) y SL34 (adaptación a altitud más alta, menos tolerante al estrés). Las dos juntas representan alrededor del 90% de las exportaciones especiales kenianas. Su firma de taza — grosella negra, pomelo, cuerpo denso — es la referencia global para 'café de Kenia.'"
+  },
+  {
+    "title": "Batian: el futuro keniano resistente a la roya",
+    "body": "La Coffee Research Foundation lanzó Batian en 2010 como sucesor de Ruiru 11. Ambos son híbridos F1 con fuerte resistencia a CBD y CLR. Batian supera en calidad de taza — competitivo con SL28 en parcelas bien manejadas. Los pequeños productores de Nyeri adoptan lentamente: la variedad es una cobertura a largo plazo pero no destrona la herencia de los Scott Labs."
+  },
+  {
+    "title": "Por qué Nyeri produce el carácter 'taza de Kenia'",
+    "body": "Nyeri se sienta en las laderas orientales de las Aberdares, sobre suelos volcánicos rojos derivados de basalto del Pleistoceno. Combina esa geología con altitud de 1.600-1.900 m y noches frescas durante la ventana de floración principal, y obtienes las tazas densas, complejas, intensamente ácidas que definen la especialidad keniana. El terroir es reproducible en otros lugares — pero raramente todo a la vez."
+  },
+  {
+    "title": "Cordilleras de Aberdare: la línea volcánica oriental",
+    "body": "Las cordilleras de Aberdare forman la pared oriental del cinturón cafetero de Kenia. La capa basáltica del Monte Kenia se erosionó en los suelos que Nyeri, Kirinyaga y Embu cultivan hoy. Cada distrito lee ligeramente diferente en la taza — Nyeri más brillante, Kirinyaga más dulce, Embu más balanceado — pero comparten la columna vertebral mineral-volcánica."
+  },
+  {
+    "title": "El protocolo lavado keniano de doble fermentación",
+    "body": "El protocolo de lavado característico de Kenia corre cerezas a través de 36 a 72 horas de fermentación en dos etapas: una fermentación seca inicial de 12-24 horas, luego un lavado, luego una segunda fermentación sumergida. El ciclo total desarrolla la densa expresión ácido-frutal que define los cafés kenianos. Las estaciones que recortan a un solo ciclo producen tazas técnicamente limpias que pierden el carácter."
+  },
+  {
+    "title": "Modelo de fábrica del beneficio — cómo funciona",
+    "body": "El modelo de pequeño productor de café de Kenia canaliza cerezas a través de 'fábricas' (estaciones de lavado) cooperativamente propiedad. Cada fábrica sirve a unos pocos cientos de productores, procesa sus entregas diarias de cereza, y consolida lotes de pergamino para la subasta de Nairobi. La disciplina de la fábrica al ingreso tiene más impacto en la calidad final de taza que la labranza individual."
+  },
+  {
+    "title": "Grosella negra y pomelo: la línea base sensorial de Nyeri",
+    "body": "El perfil de referencia de Nyeri aterriza en grosella negra arriba, dulzura amarga de cáscara de pomelo en el medio, y un largo final de ácido fosfórico. Los descriptores no son licencia artística — son tan consistentes a través de paneles de cata que el catálogo de entrenamiento del WCR usa explícitamente el SL28 de Nyeri como ancla de calibración para carácter 'keniano.'"
+  },
+  {
+    "title": "Cata del día de subasta en el Nairobi Coffee Exchange",
+    "body": "El día de subasta del martes en Nairobi es un circo controlado. Los miembros del consejo del NCE y ~80 compradores licenciados catan a través de una docena-más de lotes de subasta en tres horas antes de que abra el piso de pujas. La cata es rápida, decisiva, y desensentimental — los compradores calibran sobre la semana anterior y pujan en consecuencia. El modelo se ha mantenido durante sesenta años."
+  },
+  {
+    "title": "Economía de fábrica cooperativa en Nyeri",
+    "body": "La economía de un beneficio de Nyeri gira sobre tres variables: precio de ingreso de cereza pagado a productores, ratio de rendimiento de pergamino, y compensación de subasta por kg. Las cooperativas operando más cerca del lado del productor pagan precios de cereza por encima del piso y exprimen margen de la eficiencia operativa. Las estaciones cargadas de intermediarios pagan el piso y guardan el diferencial."
+  },
+  {
+    "title": "Historia del café de Kenia: de finca colonial a pequeño productor",
+    "body": "La economía cafetera de Kenia comenzó como un sistema de finca colonial; la producción africana de pequeños productores estuvo prohibida hasta las reformas de emergencia Mau Mau de los años 50 que la permitieron. La participación de pequeños productores creció a través de la transición de independencia de los 60 y ahora representa ~60% de la producción. La arquitectura institucional — subasta, fábrica, cooperativa — sigue moldeada por la infraestructura colonial."
+  },
+  {
+    "title": "Lini-S795 y Tim-Tim: las variedades de Mandheling",
+    "body": "El café Sumatra Mandheling crece principalmente sobre Lini-S795 — un cultivar resistente a la roya seleccionado en India — y Tim-Tim, un descendiente indonesio tolerante a CLR de Híbrido Timor. Ambos producen las tazas densas y de cuerpo completo que definen Mandheling. Las variantes Catimor se están colando por productividad, con el costo predecible: tazas más limpias, menos carácter."
+  },
+  {
+    "title": "Giling basah explicado: procesamiento descascarillado húmedo",
+    "body": "Giling basah — el protocolo indonesio de descascarillado húmedo — remueve el pergamino mientras el grano aún está al 30-35% de humedad, luego continúa secando como café verde desnudo. El protocolo produce la apariencia azul-verde, baja acidez, y perfil terroso-leñoso distintivo de Sumatra. Las estaciones de lavado más limpias saltan giling basah por lavado completo; las tazas se leen más 'normales' y pierden el carácter Mandheling."
+  },
+  {
+    "title": "Por qué el café sumatrano se ve azul-verde cuando está verde",
+    "body": "El café verde descascarillado húmedo retiene rastros de residuo de mucílago de cereza y se oxida al aire libre durante las etapas finales de secado. El resultado: un tinte azul-verde que es señal Mandheling. Los tostadores que no saben lo que están mirando a veces marcan el color como un defecto; los compradores experimentados de Sumatra saben que es una firma del procesamiento giling basah auténtico."
+  },
+  {
+    "title": "Lago Toba y la geología de Mandheling",
+    "body": "El lago Toba es la caldera de la erupción volcánica más grande conocida en 25 millones de años. El cinturón cafetero de mandheling rodea las laderas sur y oeste de Toba sobre suelos de toba erosionada y andesita — ricos en minerales, ácidos, y excepcionalmente bien drenados. El volcanismo dio forma al terroir cafetero de Sumatra más que cualquier institución humana."
+  },
+  {
+    "title": "Aceh vs. Sumatra Mandheling: dos orígenes distintos",
+    "body": "Aceh y Mandheling a menudo se mezclan juntos como 'Sumatra' en el café de supermercado, pero son orígenes distintos con diferentes elevaciones, diferente madurez de procesamiento, y diferentes perfiles de taza. Aceh (tierras altas de Gayo) cata más brillante y limpio; Mandheling cata más profundo y terroso. Confundirlos es conveniente para el comercio de commodity y engañoso para los compradores especiales."
+  },
+  {
+    "title": "Terroso, hongo, tabaco: el perfil sensorial de Sumatra",
+    "body": "El perfil de referencia de Mandheling lee terroso, con hongo al frente, con notas de cedro y tabaco subyacentes a un cuerpo de chocolate. La acidez es baja — a veces marcada como 'plana' por catadores no familiarizados con el origen. Los descriptores no están codificados como defectos; son expresiones varietales y de proceso. Los compradores especiales que persiguen Mandheling persiguen exactamente este perfil."
+  },
+  {
+    "title": "Catando lotes sumatranos descascarillados húmedos vs. lavados completos",
+    "body": "Catar lado a lado un Mandheling descascarillado húmedo y un Aceh lavado completo de la misma variedad revela cuánto el giling basah da forma a la taza. Descascarillado húmedo: cuerpo pesado, ácido bajo, leñoso-terroso. Lavado completo: más brillante, más cítrico, más limpio — y argumentablemente menos interesante. La 'limpieza' que trae la ruta lavada completa sacrifica lo que hace distinto al origen."
+  },
+  {
+    "title": "Cooperativas de pequeños productores en Aceh post-tsunami",
+    "body": "La economía cafetera de Aceh perdió su infraestructura institucional al tsunami de 2004 y al largo conflicto civil que lo precedió. La reconstrucción post-2005 se reedificó alrededor de cooperativas de pequeños productores — particularmente KBQ Baburrayyan y Gayo Megah Berseri — que ahora anclan el canal de exportación especial. El modelo es frágil, dependiente de donantes."
+  },
+  {
+    "title": "El legado colonial holandés del café en Sumatra",
+    "body": "La Compañía Holandesa de las Indias Orientales comenzó el cultivo de café sumatrano en los 1690s; el eje de origen Java/Sumatra dominó el café europeo durante 150 años. El sistema colonial extrajo valor hacia Ámsterdam; los pequeños productores sumatranos no tuvieron equidad hasta las reformas del siglo XX. El residuo institucional — concentración de exportadores, infraestructura de procesamiento — aún da forma a cómo el café de Sumatra llega al mercado."
+  },
+  {
+    "title": "Tierras altas de Gayo: la esquina especial de Aceh",
+    "body": "Las tierras altas de Gayo se sientan a 1.200-1.600 m en la espina central de Aceh. Las variedades — variantes Catimor más Tim-Tim más antiguos — producen tazas notablemente más limpias que el Mandheling sureño. Los compradores especiales que persiguen café sumatrano de altura con acidez más aguda y menos del fondo terroso gravitan a Gayo. Los pequeños productores de la región están organizados alrededor de tres grandes cooperativas."
+  },
+  {
+    "title": "Mocha: el puerto cafetero original",
+    "body": "El puerto de Mocha en la costa del Mar Rojo de Yemen dio su nombre a la mercancía, la bebida, y (más tarde) la combinación de chocolate-café. Mocha fue el único puerto legal de exportación para el café yemení a través del siglo XVII. La decadencia siguió: sedimentación, competencia del café holandés indonesio, y política otomana terminaron el dominio de Mocha. El nombre sobrevivió como taquigrafía para la propia cultura cafetera."
+  },
+  {
+    "title": "Cultura cafetera yemení: qishr y más allá",
+    "body": "La cultura cafetera yemení precede y parcialmente difiere de la tradición global del espresso. Qishr — té de cáscara de café especiado con jengibre y cardamomo — es la bebida cotidiana; el grano en sí es mayormente exportado. El comercio mocha hizo el café occidental antes de que los yemeníes tuvieran acceso al volumen de granos que cultivaban. La inversión cultural es inusual entre los orígenes productores."
+  },
+  {
+    "title": "Variedades yemeníes heirloom: un museo genético",
+    "body": "La genética cafetera de Yemen es argumentablemente el reservorio menos mapeado de diversidad Arábica fuera de Etiopía. Las razas locales — Udaini, Dawairi, Tufahi — representan siglos de selección in-situ en parcelas de altura terraceadas. El viaje de catalogación varietal de la Misión Cafetera de Yemen 2024 identificó 38 cultivares distintos aún en cultivo. El valor genético como recurso a prueba de futuro es enorme."
+  },
+  {
+    "title": "Por qué el Yemen Mocha comparte ADN con Bourbon",
+    "body": "La variedad Bourbon — columna vertebral del café especial latinoamericano — se remonta a través del siglo XVII a stock yemení tomado a la isla Reunión y propagado por todo el mundo cafetero colonial. El análisis genético moderno confirma el linaje. Catar un Yemen Mocha junto a un Bourbon latinoamericano revela el parentesco: estructura compartida, diferente capa de terroir."
+  },
+  {
+    "title": "Haraz: agricultura terraceada a 1.800m+",
+    "body": "Las parcelas de café de las montañas Haraz son terrazas de piedra centenarias — estantes estrechos construidos a mano siguiendo los contornos, llevando suelo donde las pendientes naturales no lo sostendrían. La mayoría están sobre 1.800 m. El terraceo es un acto de labor patrimonial; abandonar una terraza significa erosión en dos temporadas. La economía cafetera y el paisaje terraceado son inseparables."
+  },
+  {
+    "title": "La crisis hídrica de Yemen y el futuro del café",
+    "body": "Yemen tiene entre las napas freáticas más estresadas de cualquier país productor. El cultivo de café de altura compite por agua con khat — el cultivo de hoja masticable cuyo precio-por-litro de uso supera sustancialmente al del café. Muchas antiguas terrazas de café se han convertido a khat en las últimas dos décadas. La aritmética del agua, no la agronomía, determinará si el café yemení escala."
+  },
+  {
+    "title": "Patios de secado yemeníes — natural secado al sol en altura",
+    "body": "El café yemení es casi exclusivamente procesado natural — cereza entera secada al sol en patios de azotea o camas de secado terraceadas. El aire seco de altura y la incidencia solar intensa conducen el curado lo suficientemente rápido para evitar el problema de pulpa de fermentación que aqueja al procesamiento natural en altitudes más bajas. El protocolo tradicional precede e informa al procesamiento natural especial moderno globalmente."
+  },
+  {
+    "title": "Mora, cacao, vino: el perfil de taza Mocha",
+    "body": "El Yemen Mocha cata vinoso, mermelada, rico en cacao — a veces marcado como fermentado más allá de la línea por catadores acostumbrados a perfiles de proceso lavado. El carácter es impulsado por variedad y proceso: genética heirloom más procesamiento natural secado al sol produce la firma profunda de fruta-y-cacao que ha sido la línea base de la taza yemení durante siglos. Es la memoria sensorial más profunda del café."
+  },
+  {
+    "title": "Catando un Yemen Mocha junto a un Yirgacheffe natural",
+    "body": "Una cata lado a lado de Yemen Mocha y Yirgacheffe natural revela el parecido familiar y la divergencia. Ambos procesados naturales, ambos variedades heritage, ambos enfocados en fruta. Yemen lee más pesado, más cacao-y-vino; Yirgacheffe lee más brillante, más floral. El parentesco genético e histórico mapea directamente sobre la primazón sensorial."
+  },
+  {
+    "title": "Pioneros del comercio directo llegando a Yemen",
+    "body": "Alcanzar el café yemení a escala productora requiere navegar un conflicto civil, logística fracturada, y restricciones bancarias. El puñado de importadores de comercio directo que lo manejan — Mocha Mill de Mokhtar Alkhanshali siendo el de más alto perfil — trabajan con compromisos de compra multianuales y prefinanciamiento. El modelo es frágil pero es el único camino para que el café de Yemen acceda al premio especial."
+  },
+  {
+    "title": "El resurgimiento especial de Burundi después de la guerra civil",
+    "body": "El sector cafetero de Burundi pasó la guerra civil de 1993-2005 efectivamente paralizado. El resurgimiento especial post-2008 ha llegado a través de organización cooperativa, construcción de beneficios apoyada por donantes, y la entrada del país en el programa Cup of Excellence en 2012. Los medios de vida de los productores han mejorado mensurablemente; la estabilidad política permanece como el factor limitante de tasa."
+  },
+  {
+    "title": "La red de beneficios de Burundi",
+    "body": "Burundi tiene aproximadamente 280 beneficios activos sirviendo a productores de pequeña escala. La mayoría son propiedad de federaciones cooperativas SOGESTAL u operadores privados; un subconjunto más pequeño son independientes enfocados en comercio directo. La infraestructura de la estación — y la elección de cuál estación entregar a — es la relación económica primaria del pequeño productor en la economía cafetera de Burundi."
+  },
+  {
+    "title": "Dominante en Bourbon: por qué importa el portafolio varietal de Burundi",
+    "body": "Burundi cultiva casi exclusivamente Bourbon y cultivares derivados de Bourbon. El monocultivo varietal — arriesgado desde un punto de vista de presión de enfermedad — produce la calidad de taza que define la especialidad burundesa: acidez balanceada, dulzura estructurada, fruta tropical contenida. La apuesta por Bourbon está siendo probada por el cambio climático y la presión de CBD; el compromiso es consciente."
+  },
+  {
+    "title": "Procesamiento en beneficios en Kayanza",
+    "body": "Los beneficios de Kayanza corren un protocolo lavado completo cercano a la referencia keniana: cerezas despulpadas fermentan 18-36 horas, lavado, fermentación seca otras 12 horas, lavado de nuevo, luego secado al sol en camas elevadas durante 14-21 días. El proceso es intensivo en mano de obra y se beneficia del clima fresco de altura de Burundi. La calidad de taza es consistentemente de cuartil superior del café lavado africano."
+  },
+  {
+    "title": "Experimentos anaeróbicos en Burundi — tres fincas",
+    "body": "Tres productores de Burundi (Long Miles Coffee, Heza, y Bukeye) corrieron experimentos de fermentación anaeróbica a lo largo de las temporadas 2024-2025. La fermentación en tanques sellados a altitud produjo tazas con carácter frutado significativamente elevado — fresa, papaya — al costo de algo de la acidez estructurada que define al café lavado burundés. La técnica es prometedora pero no el predeterminado."
+  },
+  {
+    "title": "El continuo de altitud Burundi-Ruanda",
+    "body": "Los distritos Kayanza de Burundi y Nyamasheke de Ruanda se sientan en la misma espina geológica — las tierras altas de África Central — a altitudes similares (1.500-2.100 m). Los perfiles de taza se solapan significativamente: ambos producen Bourbon lavado con acidez brillante, notas cítricas y de fruta tropical, y dulzura estructurada. La frontera geopolítica no mapea limpiamente a la distinción de terroir."
+  },
+  {
+    "title": "Cinturones de suelo volcánico de África central",
+    "body": "La actividad volcánica del Rift Albertino — la rama occidental del Rift Africano Oriental — creó el cinturón de suelo que corre desde Burundi a través de Ruanda, Uganda, y este de RDC. Los productos de erosión de basalto y toba son la base geológica bajo la mayoría del café especial de África central. Donde los suelos del rift se adelgazan, la calidad del café cae fiablemente."
+  },
+  {
+    "title": "Brillante, jugoso, cítrico: firmas de taza de Burundi",
+    "body": "El perfil de referencia de Burundi aterriza brillante y cítrico — naranja, pomelo, ralladura de limón — con dulzura estructurada y cuerpo medio. Las tazas están más cerca de Kenia en forma que de Etiopía, con menos del levantamiento floral y más de la columna ácida densa. Los compradores especiales consistentemente clasifican al Burundi lavado de cuartil superior contra el Kenia AA en niveles de precio similares."
+  },
+  {
+    "title": "Cup of Excellence Burundi 2025 — los lotes altos",
+    "body": "El Cup of Excellence Burundi 2025 vio a 28 lotes superar 87, con el lote superior — el Bukeye Anaerobic de Long Miles Coffee — puntuando 91.4. Los precios de cierre de subasta promediaron $19.40/lb en los 30 superiores, con el líder cerrando $84/lb. La participación de compradores internacionales fue la más fuerte desde el lanzamiento del programa Burundi en 2012."
+  },
+  {
+    "title": "De Bélgica colonial al presente especial: el arco de Burundi",
+    "body": "La economía cafetera de Burundi fue construida bajo administración colonial belga en los años 30, reestructurada bajo propiedad estatal Tutsi post-independencia a través de los 70, diezmada a través del conflicto civil de los 90, y reconstruida como una economía de exportación de cooperativa de pequeños productores en el período de reforma post-2005. Las capas institucionales son visibles en el mapa actual de beneficios."
+  }
 ]
