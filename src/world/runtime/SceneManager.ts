@@ -255,14 +255,21 @@ export class SceneManager {
     });
 
     this.snapshotUrl = options.snapshotUrl;
+    // Mount the HUD switchers IMMEDIATELY — they don't depend on the
+    // snapshot at all, and putting them up first means the language
+    // pill (and atmosphere pill) is visible + interactive while the
+    // scene is still building. Otherwise a slow buildScene leaves the
+    // user staring at the loader with no way to flip language.
+    this.ensureAtmosphereSwitcher();
+    this.ensureLanguageSwitcher();
     try {
       await this.fetchSnapshot(options.snapshotUrl, false, loader);
       loader.setMessage("assembling entities");
       await this.buildScene(loader);
       // Start the render loop only after the scene is fully built.
       this.refreshLoopState();
-      this.ensureAtmosphereSwitcher();
-      this.ensureLanguageSwitcher();
+      // Refresh switcher highlight against the post-snapshot atmosphere.
+      this.atmosphereSwitcher?.setActive(this.palette.activeAtmosphere ?? "none");
       await loader.hide();
     } catch (err) {
       loader.setMessage("world failed to load");
