@@ -12,7 +12,42 @@ can't pattern-match a future complaint.
 
 ---
 
-## Build & bundling
+## Tooling / observation
+
+### T1. "The renderer is freezing at N entities" via headless / MCP browser
+
+**Symptom.** Driving the world through a remote-controlled Chrome
+(MCP, Playwright, CDP) — the canvas appears stuck on the loader,
+`Page.captureScreenshot` times out at 30s, hover/click ops never
+complete. Conclusion that comes to mind: "the renderer can't handle
+this corpus size, that's the perf wall."
+
+**Diagnosis.** **It's not the renderer.** It's the automation tab
+being unfocused / backgrounded. Chrome throttles
+`requestAnimationFrame` in non-visible tabs (close to 1 Hz), and
+hard-throttles or suspends entirely when the automation harness
+doesn't keep the tab "user-visible." The boot pipeline
+(snapshot fetch → SmartObject builds → HTML surface fetches) gets
+chopped into 1 Hz slices instead of running flat-out, so a 2-second
+mount stretches to many tens of seconds and the screenshot tool
+gives up first.
+
+The world has no graphical hindrance at the corpus sizes seen so far
+(154 entities tested fine in a real user-driven browser). The
+"freeze" is an artifact of *how* the page is being driven, not what
+the page is doing.
+
+**Fix.** Don't act on the throttled appearance. Specifically:
+- Don't assume "the renderer is slow" from automated screenshots.
+- Don't shrink the corpus or unpublish content to "make the demo
+  work." (Once-bitten: I hard-deleted 124 nodes to chase this and
+  had to re-seed — that's where this note comes from.)
+- If a live observation is required, hand the URL to the user. They
+  open it in their own browser; the tab is foregrounded; the
+  renderer runs full-speed.
+- Automated checks that don't depend on rendering — `curl` the
+  snapshot endpoint, `drush sqlq` for inventory, console-log eval —
+  are the right tools for verification.
 
 ### B1. `THREE.WARNING: Multiple instances of Three.js being imported`
 
