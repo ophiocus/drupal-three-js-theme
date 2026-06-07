@@ -487,7 +487,14 @@ export class SceneManager {
       console.info("[world] switch already in flight; ignoring language flip.");
       return;
     }
-    if (!setCurrentLang(code)) return;
+    // Persist — idempotent; LanguageSwitcher.select() already writes
+    // synchronously before invoking us. The earlier `if (!setCurrentLang(code))
+    // return;` guard was a race-bomb: the SAME code path was being persisted
+    // twice (once here, once by the switcher), the second call read prior===new
+    // and returned false, and the whole rebuild was skipped. The
+    // `code === this.currentLang` check at the top is the canonical
+    // no-op gate.
+    setCurrentLang(code);
     this.currentLang = code;
     // Drop the atmosphere switcher so the next ensureAtmosphereSwitcher
     // recreates it with the new-language button labels. The language
