@@ -29,7 +29,7 @@ import { vantage } from "../vantage.js";
 import { WorldHud, type HudLabel } from "./hud/WorldHud.js";
 import { AtmosphereSwitcher } from "./hud/AtmosphereSwitcher.js";
 import { LanguageSwitcher } from "./hud/LanguageSwitcher.js";
-import { consumeUrlLang, getCurrentLang, withLangQuery } from "./hud/lang.js";
+import { consumeUrlLang, getCurrentLang, setCurrentLang, withLangQuery } from "./hud/lang.js";
 import { t as i18n, type Lang } from "./hud/i18n.js";
 import { CrossfadeOverlay } from "./hud/CrossfadeOverlay.js";
 import { StageEditor } from "./hud/StageEditor.js";
@@ -445,6 +445,50 @@ export class SceneManager {
    * baseline across several switches. The post-switch log prints the
    * live geometry / texture counts for exactly that check.
    */
+  /**
+   * Flip the active UI language in-place — no page reload.
+   *
+   * Embeddings + 3D positions are language-agnostic (per
+   * `SnapshotPublisher::applyTranslationOverlay`), so a language flip
+   * is structurally a snapshot re-fetch with new label content. We
+   * reuse the atmosphere-switch pipeline: persist the choice, fade
+   * out via the same CrossfadeOverlay, refetch with the new
+   * `?lang=` (added by `withLangQuery` reading the now-persisted
+   * value), rebuild the scene, refresh the atmosphere-switcher
+   * labels (they're translated), reveal. Visual result: the world
+   * gently breathes; the camera doesn't move; the labels change.
+   *
+   * The atmosphere-switcher is disposed-and-recreated to pick up the
+   * new translated button labels ("Forest" → "Bosque" etc.); the
+   * language pill itself just updates its highlight via setActive().
+   */
+  async switchLanguage(code: Lang): Promise<void> {
+    if (code === this.currentLang) return;
+    if (!this.snapshotUrl) {
+      console.warn("[world] switchLanguage() before mount(); ignoring.");
+      return;
+    }
+    if (this.switching) {
+      console.info("[world] switch already in flight; ignoring language flip.");
+      return;
+    }
+    if (!setCurrentLang(code)) return;
+    this.currentLang = code;
+    // Drop the atmosphere switcher so the next ensureAtmosphereSwitcher
+    // recreates it with the new-language button labels. The language
+    // switcher's identity-marker labels (EN / ES) don't translate, so
+    // we only need to refresh its active highlight.
+    this.atmosphereSwitcher?.dispose();
+    this.atmosphereSwitcher = null;
+    // Re-fetch the same snapshot — withLangQuery() will append the new
+    // language. switchAtmosphere(undefined) is the well-tested rebuild
+    // path; reusing it gives us the crossfade, the disposal pass, the
+    // camera-position preservation, and the loop pause for free.
+    await this.switchAtmosphere();
+    this.ensureAtmosphereSwitcher();
+    this.languageSwitcher?.setActive(code);
+  }
+
   async switchAtmosphere(name?: string): Promise<void> {
     if (!this.snapshotUrl) {
       console.warn("[world] switchAtmosphere() before mount(); ignoring.");
@@ -634,6 +678,14 @@ export class SceneManager {
         { code: "es", label: "ES" },
       ],
       initial: this.currentLang,
+      // SPA-style swap: persist the choice + rebuild the world-layer in
+      // place using the same crossfade pipeline switchAtmosphere uses.
+      // No page reload, no full document re-parse — just a soft refetch
+      // and rebuild so embeddings (language-agnostic) stay cached and
+      // 3D positions don't jitter.
+      onSelect: (code) => {
+        void this.switchLanguage(code as Lang);
+      },
     });
   }
 

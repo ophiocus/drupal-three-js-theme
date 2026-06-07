@@ -103,10 +103,12 @@ export class LanguageSwitcher {
       this.options.onSelect(code);
       return;
     }
-    // Default: reload so SceneManager re-fetches the snapshot in the
-    // new language. Don't bake `?lang=` into the URL — localStorage
-    // is the persistent truth now, and a URL param would re-seed on
-    // every reload, defeating the persistence guarantee.
+    // Fallback path for callers that don't supply onSelect (testing,
+    // headless docs probes). Reload as a last resort — the production
+    // path goes through SceneManager.switchLanguage instead, which does
+    // a soft SPA-style rebuild via the crossfade pipeline. No `?lang=`
+    // baked into the URL: localStorage is the persistent truth, and a
+    // URL param would re-seed every reload and defeat the persistence.
     window.location.reload();
   }
 
