@@ -45,17 +45,21 @@ services:
       - '@logger.channel.world_signature'
 
   # Snapshot publisher — assembles a corpus snapshot the renderer
-  # consumes. Pulls all descriptors from the gateway, lays out
-  # sectors on a deterministic circle, merges in world.palette
-  # config so the renderer can theme materials/lights/fog.
+  # consumes. Descriptors are rebuilt directly from MariaDB (each
+  # entity's field_world_signature) via DescriptorBuilder; the
+  # gateway/Atlas is NOT on the runtime read path. Layout, palette,
+  # interpretation, stage and asset payloads stitch on top.
   world_signature.snapshot_publisher:
     class: Drupal\world_signature\Service\SnapshotPublisher
     arguments:
-      - '@world_signature.world_search_client'
       - '@config.factory'
       - '@entity_type.manager'
       - '@world_signature.asset_snapshot_builder'
       - '@state'
+      - '@world_signature.entity_facts_reader'
+      - '@world_signature.descriptor_builder'
+      - '@plugin.manager.world_signature.metaphor'
+      - '@logger.channel.world_signature'
 
   # World manifesto — read-only API over the registry of item
   # types and component types. See docs/MANIFESTO.md.

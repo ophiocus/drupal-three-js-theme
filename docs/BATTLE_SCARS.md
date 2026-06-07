@@ -907,6 +907,78 @@ Commits: `ccf9a73` (introduced), `64c9fd8` (carried forward),
 then v0.4-fix removed the explicit-render calls when the
 loop-pause was lifted.
 
+### A7. Atlas on the runtime read path is a boundary violation
+
+**Symptom.** A single message in the Atlas dashboard — "Current IP
+Address not added. You will not be able to connect to databases from
+this address." — and the entire `/` page goes blank. The world
+"failed to load." The renderer dutifully reports
+`snapshot fetch failed: HTTP 502` and bails. Every entity remained
+visible in Drupal admin, every signature was intact on disk, the
+local DDEV stack was 100% green — and the app was unrenderable.
+
+**Diagnosis.** `SnapshotPublisher::buildSnapshot()` opened with
+`$this->client->findAll()` — pulling the entire descriptor corpus
+from the RESTHeart gateway, which proxies to Atlas. The local
+gateway answered `/ping` in 2ms because RESTHeart itself is a
+healthy Java process; but every Mongo-backed call timed out after
+15s because Atlas's IP allowlist had drifted off the workstation's
+current egress and the TCP connect to `*.sghk71.mongodb.net:27017`
+was silently dropped. Guzzle surfaced `cURL error 28`,
+`WorldController::snapshot` turned that into HTTP 502, the
+renderer's `fetchSnapshot` threw, and the whole boot pipeline
+collapsed.
+
+The architectural mistake is the dependency direction. MariaDB is
+the source of truth for the corpus (`field_world_signature` JSON on
+every participating node). Atlas is a *write+search* projection of
+that truth — populated by `drush world:publish` / `world:embed`,
+queried by editorial vector-search paths. A runtime read of "what's
+in the world right now" should never need to leave the local DB.
+Letting it do so subordinated the read SLA of every page view to the
+availability of a remote service.
+
+**Fix.** Rip Atlas off the runtime read path. `SnapshotPublisher`
+now rebuilds descriptors directly from Drupal: iterate published
+nodes whose `field_world_signature` is populated, decode the stored
+`Signature` JSON, and run the same `DescriptorBuilder` the write
+path uses. Same shape, same fields, same payload byte-count.
+Verified by stopping the RESTHeart container entirely and observing
+the snapshot still serve 200 OK in 271 ms.
+
+The gateway/Atlas client stays in the codebase — it just becomes
+opt-in, for the paths that actually need it: `drush world:publish`
+(write descriptors), `drush world:embed` (write embeddings + axes),
+and `WorldSearchClient::nearest` (vector search for "more like this"
+and pole-anchored projection). Editorial features that genuinely
+need Atlas degrade when Atlas is down, as they should. The render
+path doesn't.
+
+Cache invalidation also tightened: previously the snapshot tagged
+only `node_list:world` (just the active World node). Now it tags
+each participating bundle (`node_list:article`, `…:event`,
+`…:profile`), discovered from the metaphor plugin definitions so
+new metaphors extend the set automatically. Editing any
+participating node correctly busts the snapshot's cache.
+
+**Generalisation.** "Source of truth" is a directional property.
+If A is the truth and B is a projection of A, the read path SHOULD
+go to A — even when B is faster, even when "we already wrote to B,
+might as well read from B." Coupling the read SLA to the projection
+makes the projection's availability part of the contract, and you
+inherit every outage and every config drift the projection
+experiences. The asymmetry is the point: writes go A → B; reads
+go straight from A. Atlas as a read-through cache for descriptors
+would be acceptable; Atlas as the only place we look for them is
+not.
+
+Commit: the change that swapped `client->findAll()` for
+`loadDescriptorsFromDrupal()` in `SnapshotPublisher`. Also the
+prompt for this entry — the user's "Drupal should only request
+Atlas on content edits and editorial request, not runtime" was
+exactly right, and the fix was a 70-line PR that closes the entire
+class of outage permanently.
+
 ### A6. Direct `camera.position` writes lose to the per-frame damp
 
 **Pattern.** Once the animation loop is running, every frame's

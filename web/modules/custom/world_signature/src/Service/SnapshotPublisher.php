@@ -7,8 +7,11 @@ namespace Drupal\world_signature\Service;
 use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\State\StateInterface;
 use Drupal\node\NodeInterface;
+use Drupal\world_signature\Plugin\MetaphorPluginManager;
+use Drupal\world_signature\Signature\Signature;
 
 /**
  * Assembles a corpus snapshot the renderer consumes.
@@ -70,11 +73,14 @@ final class SnapshotPublisher {
   public const int INTERPRETATION_EMBEDDING_LIMIT = 400;
 
   public function __construct(
-    private readonly WorldSearchClient $client,
     private readonly ConfigFactoryInterface $configFactory,
     private readonly EntityTypeManagerInterface $entityTypeManager,
     private readonly AssetSnapshotBuilder $assetBuilder,
     private readonly StateInterface $state,
+    private readonly EntityFactsReader $factsReader,
+    private readonly DescriptorBuilder $descriptorBuilder,
+    private readonly MetaphorPluginManager $metaphorManager,
+    private readonly LoggerChannelInterface $logger,
   ) {}
 
   /**
@@ -98,7 +104,15 @@ final class SnapshotPublisher {
    * }
    */
   public function buildSnapshot(?string $atmosphereOverride = NULL, ?string $lang = NULL): array {
-    $descriptors = $this->client->findAll();
+    // Runtime read path is Drupal-native — MariaDB owns the truth
+    // (ARCHITECTURE.md §3, field_world_signature). Atlas/gateway only
+    // serves the WRITE path (`drush world:publish` / `world:embed`)
+    // and the EDITORIAL paths (vector search, nearest-neighbour). A
+    // transient Atlas outage must never black-hole the snapshot
+    // endpoint — root cause: 2026-06-06 IP-allowlist drift took the
+    // whole world down even though every descriptor was reproducible
+    // from MariaDB. See BATTLE_SCARS A7.
+    $descriptors = $this->loadDescriptorsFromDrupal();
 
     // ALPHA 1: the world's characteristics are declared as content.
     // Read the active World node; every value falls back to the
@@ -215,6 +229,16 @@ final class SnapshotPublisher {
     $cacheability->addCacheTags(['config:world_signature.stage']);
     // World content — editing the active World node invalidates the snapshot.
     $cacheability->addCacheTags(['node_list:world']);
+    // Participating-bundle list tag — editing any node carrying a
+    // signature must invalidate the snapshot, now that descriptors
+    // come from MariaDB rather than the gateway. The bundles are
+    // discovered from the metaphor plugin definitions so adding a
+    // new metaphor automatically extends the tag set.
+    foreach ($this->metaphorManager->getDefinitions() as $def) {
+      if (($def['entity_type'] ?? '') === 'node' && !empty($def['bundle'])) {
+        $cacheability->addCacheTags(['node_list:' . $def['bundle']]);
+      }
+    }
     // Phase 3 v1: state-driven freshness (world.lastEmbed) — State API
     // has no cache tags of its own, so we mint one. EmbedRunner
     // invalidates it after a successful embed so the next snapshot
@@ -235,6 +259,109 @@ final class SnapshotPublisher {
     ];
 
     return ['payload' => $payload, 'cacheability' => $cacheability];
+  }
+
+  /**
+   * Rebuild every participating descriptor directly from Drupal,
+   * with no gateway round-trip. Iterates all published nodes whose
+   * `field_world_signature` is populated, decodes the stored
+   * Signature JSON, and runs the same DescriptorBuilder the write
+   * path uses. Skips entities whose bundle has no metaphor plugin
+   * registered (matches the existing publish-path semantics).
+   *
+   * Tradeoffs vs. the old `client->findAll()` path:
+   * - Atlas no longer participates in the read path (correct: it's
+   *   a write+search store, not a runtime source of truth).
+   * - One more DB query (the field-exists filter), plus N entity
+   *   loads on a cold static cache — but every node was going to
+   *   be loaded anyway during the i18n overlay pass, so the only
+   *   real new cost is the signature JSON decode (cheap).
+   * - Embeddings: a node's embedding vector lives BOTH on the
+   *   field (after `world:embed` writes it) AND on the gateway.
+   *   We read the field, so the snapshot's embedding-ship path
+   *   (corpus ≤ INTERPRETATION_EMBEDDING_LIMIT) keeps working
+   *   for the inner-mind atmosphere's client-side projection.
+   *
+   * @return array<int, array<string, mixed>>
+   *   Same descriptor shape DescriptorBuilder::build returns.
+   */
+  private function loadDescriptorsFromDrupal(): array {
+    try {
+      $nodeStorage = $this->entityTypeManager->getStorage('node');
+    }
+    catch (\Throwable $e) {
+      $this->logger->error('Snapshot: node storage unavailable: @m', [
+        '@m' => $e->getMessage(),
+      ]);
+      return [];
+    }
+
+    // Published nodes carrying a populated signature. The
+    // field-exists clause skips bundles where field_world_signature
+    // is unattached (e.g. the `world` bundle itself) and entities
+    // not yet processed by `drush world:publish`.
+    $nids = $nodeStorage->getQuery()
+      ->accessCheck(FALSE)
+      ->condition('status', 1)
+      ->exists('field_world_signature')
+      ->execute();
+
+    if ($nids === []) {
+      return [];
+    }
+
+    $descriptors = [];
+    foreach ($nodeStorage->loadMultiple($nids) as $node) {
+      $entityType = $node->getEntityTypeId();
+      $bundle = $node->bundle();
+      $pluginId = sprintf('%s:%s', $entityType, $bundle);
+      if (!$this->metaphorManager->hasDefinition($pluginId)) {
+        // Field is populated but the bundle is no longer
+        // participating — orphaned data; skip cleanly.
+        continue;
+      }
+      $facts = $this->factsReader->read($node);
+      if ($facts === NULL) {
+        continue;
+      }
+      $sigField = $node->get('field_world_signature');
+      if ($sigField->isEmpty()) {
+        continue;
+      }
+      $raw = $sigField->value;
+      $decoded = is_string($raw) ? json_decode($raw, TRUE) : NULL;
+      if (!is_array($decoded)) {
+        $this->logger->warning(
+          'Snapshot: malformed signature JSON on @type/@id; skipping.',
+          ['@type' => $entityType, '@id' => $node->id()],
+        );
+        continue;
+      }
+      try {
+        $signature = Signature::fromArray($decoded);
+        $metaphor = $this->metaphorManager->createInstance($pluginId);
+        $descriptor = $this->descriptorBuilder->build(
+          $node,
+          $facts,
+          $signature,
+          $metaphor,
+        );
+      }
+      catch (\Throwable $e) {
+        $this->logger->warning(
+          'Snapshot: descriptor rebuild failed for @type/@id: @m',
+          [
+            '@type' => $entityType,
+            '@id' => $node->id(),
+            '@m' => $e->getMessage(),
+          ],
+        );
+        continue;
+      }
+      $descriptors[] = $descriptor;
+    }
+
+    return $descriptors;
   }
 
   /**
