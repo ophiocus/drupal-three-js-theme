@@ -94,6 +94,13 @@ interface Palette {
  */
 const MOBILE_BREAKPOINT_PX = 768;
 
+/** World-layer intro animation tuning. The world-layer (everything the
+ *  atmosphere builds — trees, orbs, zodiac, regions) starts compressed
+ *  at this scale and breathes out to 1.0 during reveals. Subtle enough
+ *  to read as motion-cushion, not enough to feel like a zoom effect. */
+const WORLD_INTRO_START_SCALE = 0.93;
+const WORLD_INTRO_DURATION_MS = 650;
+
 /** True when the viewport is in the mobile-layout band. */
 export function isMobileViewport(): boolean {
   return typeof window !== "undefined"
@@ -270,7 +277,15 @@ export class SceneManager {
       this.refreshLoopState();
       // Refresh switcher highlight against the post-snapshot atmosphere.
       this.atmosphereSwitcher?.setActive(this.palette.activeAtmosphere ?? "none");
-      await loader.hide();
+      // Same breath-in motion the atmosphere/language switch uses, run
+      // in parallel with the loader fading out. The user's first sight
+      // of the world is it inflating into place — softer than the
+      // previous "pop fully-built when the loader vanishes."
+      this.worldLayer?.scale.setScalar(WORLD_INTRO_START_SCALE);
+      await Promise.all([
+        loader.hide(),
+        this.breatheWorld(WORLD_INTRO_DURATION_MS),
+      ]);
     } catch (err) {
       loader.setMessage("world failed to load");
       // Leave the loader visible briefly so the user sees the error
@@ -535,9 +550,22 @@ export class SceneManager {
       fade.setColor(this.palette.background);
       this.atmosphereSwitcher?.setActive(this.palette.activeAtmosphere ?? "none");
       this.audio?.setAtmosphere(this.palette.activeAtmosphere ?? "none");
+      // Pre-shrink the just-built world-layer so the breath-in tween
+      // has somewhere to grow from. The cover is still opaque, so the
+      // user doesn't see the compressed state — just the expansion as
+      // the cover lifts.
+      this.worldLayer?.scale.setScalar(WORLD_INTRO_START_SCALE);
       this.refreshLoopState();
       this.renderer.render(this.scene, this.camera);
-      await fade.reveal();
+      // Reveal the cover and breathe the world out to full scale in
+      // parallel. The render loop is running again at this point so the
+      // tween animates frame-by-frame. End result: entities visibly
+      // inflate / land into place as the overlay clears, instead of
+      // popping at full size the instant the cover lifts.
+      await Promise.all([
+        fade.reveal(),
+        this.breatheWorld(WORLD_INTRO_DURATION_MS),
+      ]);
       const mem = this.renderer.info.memory;
       console.info(
         `[world] atmosphere switched → ${this.palette.activeAtmosphere ?? "none"} ` +
@@ -554,6 +582,45 @@ export class SceneManager {
       this.switching = false;
       this.atmosphereSwitcher?.setBusy(false);
     }
+  }
+
+  /**
+   * Animate the world-layer's scale from its current value up to 1.0
+   * over `durationMs`, using an ease-out cubic curve so the motion
+   * settles softly into place. No-ops when the world-layer doesn't
+   * exist (between teardown and build, or before mount completes).
+   * Returns a promise that resolves on the final tick.
+   *
+   * The render loop must be running for the tween to be visible —
+   * callers run `refreshLoopState()` before invoking this.
+   */
+  private breatheWorld(durationMs: number): Promise<void> {
+    const layer = this.worldLayer;
+    if (!layer) return Promise.resolve();
+    const startScale = layer.scale.x;
+    if (Math.abs(startScale - 1) < 1e-3) return Promise.resolve();
+    const startTime = performance.now();
+    return new Promise<void>((resolve) => {
+      const tick = (now: number) => {
+        if (!this.worldLayer) {
+          // The layer was disposed mid-tween (atmosphere re-switch);
+          // bail without trying to write to a dead reference.
+          resolve();
+          return;
+        }
+        const elapsed = now - startTime;
+        const t = Math.min(1, elapsed / durationMs);
+        const eased = 1 - Math.pow(1 - t, 3); // ease-out cubic
+        const s = startScale + (1 - startScale) * eased;
+        this.worldLayer.scale.setScalar(s);
+        if (t < 1) {
+          requestAnimationFrame(tick);
+        } else {
+          resolve();
+        }
+      };
+      requestAnimationFrame(tick);
+    });
   }
 
   /**
