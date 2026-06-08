@@ -31,7 +31,6 @@ import { AtmosphereSwitcher } from "./hud/AtmosphereSwitcher.js";
 import { LanguageSwitcher } from "./hud/LanguageSwitcher.js";
 import { consumeUrlLang, getCurrentLang, setCurrentLang, withLangQuery } from "./hud/lang.js";
 import { t as i18n, type Lang } from "./hud/i18n.js";
-import { CrossfadeOverlay } from "./hud/CrossfadeOverlay.js";
 import { StageEditor } from "./hud/StageEditor.js";
 import { AtmosphereAudio } from "./AtmosphereAudio.js";
 
@@ -112,6 +111,20 @@ const PROP_INTRO_DURATION_MS = 520;
 const PROP_INTRO_STAGGER_MS = 280;
 const PROP_OUTRO_DURATION_MS = 360;
 const PROP_OUTRO_STAGGER_MS = 200;
+
+/** Final scale the world-layer shrinks to during an outro. Has to
+ *  be > 0 so the lit geometry survives the dip; small enough that the
+ *  view is dominated by the sky/fog gradient at the swap moment. */
+const WORLD_OUTRO_END_SCALE = 0.06;
+const WORLD_OUTRO_DURATION_MS = 380;
+
+/** Envelope (sky + fog) tween duration during the intro phase. The
+ *  envelope crossfade is the SOLE visual continuity across teardown
+ *  — no cover overlay any more. World-layer shrinks first so the
+ *  screen is dominated by sky/fog at the swap moment; the lerp from
+ *  outgoing to incoming sky/fog then carries the actual atmosphere
+ *  change while props bloom in front of it. */
+const ENVELOPE_INTRO_DURATION_MS = 700;
 
 /** True when the viewport is in the mobile-layout band. */
 export function isMobileViewport(): boolean {
@@ -479,12 +492,13 @@ export class SceneManager {
    * Embeddings + 3D positions are language-agnostic (per
    * `SnapshotPublisher::applyTranslationOverlay`), so a language flip
    * is structurally a snapshot re-fetch with new label content. We
-   * reuse the atmosphere-switch pipeline: persist the choice, fade
-   * out via the same CrossfadeOverlay, refetch with the new
+   * reuse the atmosphere-switch pipeline: persist the choice, run
+   * the per-prop outro + world-layer shrink, refetch with the new
    * `?lang=` (added by `withLangQuery` reading the now-persisted
    * value), rebuild the scene, refresh the atmosphere-switcher
-   * labels (they're translated), reveal. Visual result: the world
-   * gently breathes; the camera doesn't move; the labels change.
+   * labels (they're translated), run the per-prop intro + envelope
+   * (sky+fog) crossfade. Visual result: the world gently breathes;
+   * the camera doesn't move; the labels change.
    *
    * The atmosphere-switcher is disposed-and-recreated to pick up the
    * new translated button labels ("Forest" → "Bosque" etc.); the
@@ -546,27 +560,31 @@ export class SceneManager {
     // restoring position avoids a dolly while the look-target damps.
     const stashedPos = this.camera.position.clone();
 
-    // v2 polish: a palette crossfade in place of the loader's hard cut —
-    // fade the world out to the OUTGOING palette background, rebuild
-    // behind the cover, then fade in on the new skin.
-    const fade = new CrossfadeOverlay({
-      color: this.palette.background,
-      namespace: "world-crossfade",
-    });
+    // Capture the OUTGOING envelope (sky + fog) so the intro can lerp
+    // continuously from "where the user last saw it" to the new
+    // atmosphere's values. There's no cover/sheet between scenes any
+    // more — the envelope colour IS the continuity.
+    const fromEnvelope = this.captureEnvelope();
 
     try {
-      // The render loop has to stay alive through the outro so each
-      // prop's rAF callback can advance. Resume it just long enough
-      // for the per-prop tween to run, then pause again for teardown.
+      // Render loop stays alive throughout — every tween (props,
+      // world-layer, envelope) is rAF-driven, and the only pause is the
+      // single-frame teardown step.
       this.refreshLoopState();
-      // OUTRO: run the cover fade-in and the per-prop shrink in
-      // parallel. As the cover hits ~half opacity the props are
-      // already most of the way down; by full opacity they're all
-      // collapsed and ready for teardown.
+      // OUTRO: props shrink, world-layer shrinks, and the envelope
+      // starts crossfading toward the incoming palette. They run in
+      // parallel; whichever finishes last wins. By the time we hit
+      // teardown the screen is dominated by a near-final sky/fog
+      // colour with a tiny sliver of world tucked at the centre.
       await Promise.all([
-        fade.cover(),
         this.outroAllProps(),
+        this.outroWorldLayer(WORLD_OUTRO_DURATION_MS, WORLD_OUTRO_END_SCALE),
       ]);
+      // Snapshot the envelope state RIGHT NOW (after outro settled —
+      // any in-flight envelope tween from a prior switch has finished)
+      // so the intro tween picks up smoothly. We don't run a separate
+      // outro-envelope leg; the intro tween covers the full distance
+      // post-build, while the visual quiet is masked by the tiny world.
       this.renderer.setAnimationLoop(null);
       this.loopRunning = false;
       this.teardownScene();
@@ -576,30 +594,27 @@ export class SceneManager {
       await this.fetchSnapshot(url, true);
       await this.buildScene();
       this.camera.position.copy(stashedPos);
-      // Recolour the cover to the INCOMING palette (invisible swap while
-      // opaque), update the toggle highlight, resume the loop, and paint
-      // one frame of the new scene under the cover so the reveal shows
-      // the world even if the loop is paused (tab defocused).
-      fade.setColor(this.palette.background);
       this.atmosphereSwitcher?.setActive(this.palette.activeAtmosphere ?? "none");
       this.audio?.setAtmosphere(this.palette.activeAtmosphere ?? "none");
+      // buildScene() already called applyPaletteBackground() which
+      // snapped scene.background + fog to the INCOMING palette in one
+      // step. Capture that incoming state as the tween target, then
+      // roll the envelope back to OUTGOING so the intro tween lerps
+      // continuously from where the user last saw the sky.
+      const toEnvelope = this.captureEnvelope();
+      this.restoreEnvelope(fromEnvelope);
       // Pre-shrink the just-built world-layer so the breath-in tween
-      // has somewhere to grow from. The cover is still opaque, so the
-      // user doesn't see the compressed state — just the expansion as
-      // the cover lifts.
+      // has somewhere to grow from.
       this.worldLayer?.scale.setScalar(WORLD_INTRO_START_SCALE);
       this.refreshLoopState();
       this.renderer.render(this.scene, this.camera);
-      // INTRO: reveal the cover, breathe the world-layer out, and run
-      // each prop's intro tween — all in parallel. The world-layer
-      // (ground, sky, scenery) is the global envelope; each prop's
-      // scale tween is the per-entity micro-motion that rides on top.
-      // The two compositions multiply: prop at 0.06 × world at 0.93 ≈
-      // 0.056 at t=0, prop at 1 × world at 1 = 1 at settle.
+      // INTRO: props bloom, world-layer breathes out, envelope crossfades
+      // from outgoing → incoming. All three run in parallel; the longest
+      // one (envelope at 700 ms) sets the floor on perceived length.
       await Promise.all([
-        fade.reveal(),
         this.breatheWorld(WORLD_INTRO_DURATION_MS),
         this.introAllProps(),
+        this.tweenEnvelope(fromEnvelope, toEnvelope, ENVELOPE_INTRO_DURATION_MS),
       ]);
       const mem = this.renderer.info.memory;
       console.info(
@@ -608,10 +623,11 @@ export class SceneManager {
       );
     } catch (err) {
       console.error("[world] atmosphere switch failed:", err);
-      // Best-effort: drop the cover + resume so a failed switch doesn't
-      // strand the user behind an opaque overlay on a frozen world.
-      fade.dispose();
+      // Best-effort: resume the loop and snap the envelope to the new
+      // palette so a failed switch doesn't strand the user staring at
+      // a half-tweened sky/fog blend.
       this.refreshLoopState();
+      this.applyPaletteBackground();
       throw err;
     } finally {
       this.switching = false;
@@ -653,6 +669,135 @@ export class SceneManager {
         } else {
           resolve();
         }
+      };
+      requestAnimationFrame(tick);
+    });
+  }
+
+  /**
+   * Shrink the world-layer scale from its current value down to
+   * `targetScale` over `durationMs` with ease-in cubic (accelerates
+   * into the contraction so the world "sucks in" rather than coasts).
+   * Mirrors `breatheWorld()` direction-reversed. The world-layer
+   * holds ground, sky scenery, posts, pads — everything except the
+   * SmartObject props, which run their own per-prop outro in
+   * parallel via `outroAllProps()`.
+   */
+  private outroWorldLayer(durationMs: number, targetScale: number): Promise<void> {
+    const layer = this.worldLayer;
+    if (!layer) return Promise.resolve();
+    const startScale = layer.scale.x;
+    if (Math.abs(startScale - targetScale) < 1e-3) return Promise.resolve();
+    const startTime = performance.now();
+    return new Promise<void>((resolve) => {
+      const tick = (now: number) => {
+        if (!this.worldLayer) {
+          resolve();
+          return;
+        }
+        const t = Math.min(1, (now - startTime) / durationMs);
+        const eased = t * t * t; // ease-in cubic
+        const s = startScale + (targetScale - startScale) * eased;
+        this.worldLayer.scale.setScalar(s);
+        if (t < 1) requestAnimationFrame(tick);
+        else resolve();
+      };
+      requestAnimationFrame(tick);
+    });
+  }
+
+  /**
+   * Snapshot the scene's current envelope state (sky background +
+   * fog) so the intro can lerp continuously across the teardown
+   * boundary. Returns a deep-cloned record — the live scene values
+   * may mutate afterwards (rebuild, palette re-apply).
+   */
+  private captureEnvelope(): {
+    bg: THREE.Color;
+    fogColor: THREE.Color;
+    fogNear: number;
+    fogFar: number;
+  } {
+    const sceneBg = this.scene.background instanceof THREE.Color
+      ? this.scene.background.clone()
+      : new THREE.Color(this.palette.background);
+    const fog = this.scene.fog instanceof THREE.Fog ? this.scene.fog : null;
+    return {
+      bg: sceneBg,
+      fogColor: fog ? fog.color.clone() : new THREE.Color(this.palette.fog.color),
+      fogNear: fog ? fog.near : this.palette.fog.near,
+      fogFar: fog ? fog.far : this.palette.fog.far,
+    };
+  }
+
+  /**
+   * Write a previously-captured envelope back onto the scene. Used
+   * after `buildScene()` runs `applyPaletteBackground()` — that sets
+   * bg+fog to the INCOMING palette in one step (a snap). We restore
+   * the OUTGOING envelope so the intro tween can lerp smoothly from
+   * outgoing to incoming.
+   */
+  private restoreEnvelope(env: ReturnType<SceneManager["captureEnvelope"]>): void {
+    this.scene.background = env.bg.clone();
+    this.scene.fog = new THREE.Fog(env.fogColor.clone(), env.fogNear, env.fogFar);
+  }
+
+  /** Bumped on each tweenEnvelope() call so an interrupted tween */
+  /** (re-entered switch) aborts its rAF callback on the next tick. */
+  private envelopeTweenToken = 0;
+
+  /**
+   * Smooth-lerp scene.background + scene.fog from `from` to `to`
+   * over `durationMs` using a smoothstep curve. Resolves on settle.
+   *
+   * This is the SOLE visual continuity across the teardown +
+   * rebuild boundary: there is no cover overlay any more, so the
+   * sky/fog gradient running through the swap is what the user
+   * actually sees morph between atmospheres. The world-layer
+   * shrinks to 0.06 so the screen is dominated by sky/fog during
+   * the swap; the lerp does the rest.
+   */
+  private tweenEnvelope(
+    from: ReturnType<SceneManager["captureEnvelope"]>,
+    to: ReturnType<SceneManager["captureEnvelope"]>,
+    durationMs: number,
+  ): Promise<void> {
+    const token = ++this.envelopeTweenToken;
+    const startTime = performance.now();
+    // Ensure scene.background + fog are live THREE.Color/Fog refs we
+    // can write into in place — clones of the `from` state.
+    if (!(this.scene.background instanceof THREE.Color)) {
+      this.scene.background = from.bg.clone();
+    } else {
+      this.scene.background.copy(from.bg);
+    }
+    if (!(this.scene.fog instanceof THREE.Fog)) {
+      this.scene.fog = new THREE.Fog(from.fogColor.clone(), from.fogNear, from.fogFar);
+    } else {
+      this.scene.fog.color.copy(from.fogColor);
+      this.scene.fog.near = from.fogNear;
+      this.scene.fog.far = from.fogFar;
+    }
+    return new Promise<void>((resolve) => {
+      const tick = (now: number) => {
+        if (token !== this.envelopeTweenToken) {
+          resolve();
+          return;
+        }
+        const t = Math.min(1, (now - startTime) / Math.max(1, durationMs));
+        // smoothstep — symmetric ease, reads as one continuous motion
+        // rather than a separate accelerate + decelerate.
+        const eased = t * t * (3 - 2 * t);
+        if (this.scene.background instanceof THREE.Color) {
+          this.scene.background.copy(from.bg).lerp(to.bg, eased);
+        }
+        if (this.scene.fog instanceof THREE.Fog) {
+          this.scene.fog.color.copy(from.fogColor).lerp(to.fogColor, eased);
+          this.scene.fog.near = from.fogNear + (to.fogNear - from.fogNear) * eased;
+          this.scene.fog.far = from.fogFar + (to.fogFar - from.fogFar) * eased;
+        }
+        if (t < 1) requestAnimationFrame(tick);
+        else resolve();
       };
       requestAnimationFrame(tick);
     });
