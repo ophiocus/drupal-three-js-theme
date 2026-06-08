@@ -53,6 +53,41 @@ export const SMART_OBJECT_INTRO_OUTRO_DEFAULTS = {
 /** Ease functions reused by intro/outro. */
 const easeOutCubic = (t: number): number => 1 - Math.pow(1 - t, 3);
 const easeInCubic = (t: number): number => t * t * t;
+/** Overshoots past 1 then settles — "pops" into place. */
+const easeOutBack = (t: number): number => {
+  const c1 = 1.70158;
+  const c3 = c1 + 1;
+  return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
+};
+/** Decaying bounce after overshoot — feels springy/biological. */
+const easeOutElastic = (t: number): number => {
+  if (t === 0 || t === 1) return t;
+  const c4 = (2 * Math.PI) / 3;
+  return Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * c4) + 1;
+};
+/** Fast snap with a soft tail. */
+const easeOutExpo = (t: number): number =>
+  t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+
+/**
+ * Per-prop entrance/exit "variant" — each is a small recipe that
+ * composes scale + optional positional/rotational deltas around the
+ * prop's home transform. Each prop picks ONE variant deterministically
+ * from its `staggerSeed`, so the choice is stable across reloads /
+ * atmosphere flips: the same tree always pops with the same recipe.
+ *
+ * Adding a new variant: append it to `INTRO_VARIANTS` (and the matching
+ * `OUTRO_VARIANTS`). The number is implicit — the picker hashes
+ * staggerSeed across `length`.
+ */
+export type TweenVariant =
+  | "scale-cubic"   // baseline: smooth scale 0.06→1
+  | "scale-back"    // scale with overshoot — pops in past 1 then settles
+  | "scale-elastic" // scale with bounce — biological feel
+  | "drop-in"       // scale + drop from above with gravity-ish ease
+  | "rise-in"       // scale + rise up from below
+  | "spin-in"       // scale + 1.25 rotations around Y
+  | "snap-in";      // very fast scale-expo, no spatial flourish
 
 export class SmartObject extends THREE.Group {
   /** Source descriptor's id, e.g. "node-12". */
@@ -97,55 +132,178 @@ export class SmartObject extends THREE.Group {
   }
 
   /**
-   * Run an entrance tween — scale from a small seed value to 1.0,
-   * eased-out. Resolves on settle (or immediately if disposed
-   * mid-tween, or if a newer tween supersedes this one).
+   * Catalog of intro recipes — each maps an eased `t ∈ [0,1]` to a
+   * scale value + optional positional and rotational deltas (relative
+   * to the prop's home pose at t=1). The recipe is chosen
+   * deterministically by entityId hash, so the same prop always
+   * intros the same way.
    *
-   * The render loop must be running for the tween to be visible
-   * — the caller is responsible for that. The prop's component
-   * `update()` calls keep firing throughout, so animated children
-   * (HTML surfaces, billboarded labels) compose naturally.
+   * Recipes are pure: no instance state, no rAF — they're plugged
+   * into the shared `runIntroTween` driver below which handles the
+   * timing, capture, and token-based abort.
+   */
+  private static readonly INTRO_RECIPES: ReadonlyArray<{
+    name: TweenVariant;
+    ease: (t: number) => number;
+    /** Returns (scale, dx, dy, dz, dRotY) at time `t` in [0,1]. */
+    frame: (t: number) => readonly [number, number, number, number, number];
+  }> = [
+    {
+      name: "scale-cubic",
+      ease: easeOutCubic,
+      frame: (e) => [0.06 + (1 - 0.06) * e, 0, 0, 0, 0],
+    },
+    {
+      name: "scale-back",
+      ease: easeOutBack,
+      frame: (e) => [0.06 + (1 - 0.06) * e, 0, 0, 0, 0],
+    },
+    {
+      name: "scale-elastic",
+      ease: easeOutElastic,
+      frame: (e) => [0.06 + (1 - 0.06) * e, 0, 0, 0, 0],
+    },
+    {
+      name: "drop-in",
+      ease: easeOutCubic,
+      // Falls from +18u above home, scale 0.4→1.
+      frame: (e) => [0.4 + (1 - 0.4) * e, 0, 18 * (1 - e), 0, 0],
+    },
+    {
+      name: "rise-in",
+      ease: easeOutCubic,
+      // Rises from −14u below home, scale 0.5→1.
+      frame: (e) => [0.5 + (1 - 0.5) * e, 0, -14 * (1 - e), 0, 0],
+    },
+    {
+      name: "spin-in",
+      ease: easeOutCubic,
+      // 1.25 rotations around Y while scaling 0.1→1.
+      frame: (e) => [0.1 + (1 - 0.1) * e, 0, 0, 0, (1 - e) * Math.PI * 2.5],
+    },
+    {
+      name: "snap-in",
+      ease: easeOutExpo,
+      frame: (e) => [0.06 + (1 - 0.06) * e, 0, 0, 0, 0],
+    },
+  ];
+
+  /** Outro recipes mirror intros: scale shrinks toward `scaleFrom`,
+   *  and any spatial offset returns to the displaced state (so the
+   *  prop visually retreats in a direction matched to how it
+   *  arrived). Picked by the SAME staggerSeed bucket, so a prop's
+   *  exit echoes its entrance. */
+  private static readonly OUTRO_RECIPES: ReadonlyArray<{
+    name: TweenVariant;
+    ease: (t: number) => number;
+    frame: (t: number) => readonly [number, number, number, number, number];
+  }> = [
+    {
+      name: "scale-cubic",
+      ease: easeInCubic,
+      frame: (e) => [1 - (1 - 0.06) * e, 0, 0, 0, 0],
+    },
+    {
+      name: "scale-back",
+      ease: easeInCubic,
+      frame: (e) => [1 - (1 - 0.06) * e, 0, 0, 0, 0],
+    },
+    {
+      name: "scale-elastic",
+      ease: easeInCubic,
+      frame: (e) => [1 - (1 - 0.06) * e, 0, 0, 0, 0],
+    },
+    {
+      name: "drop-in", // exit upward — reverse of drop entrance
+      ease: easeInCubic,
+      frame: (e) => [1 - (1 - 0.4) * e, 0, 18 * e, 0, 0],
+    },
+    {
+      name: "rise-in", // exit downward — reverse of rise entrance
+      ease: easeInCubic,
+      frame: (e) => [1 - (1 - 0.5) * e, 0, -14 * e, 0, 0],
+    },
+    {
+      name: "spin-in", // unspin away
+      ease: easeInCubic,
+      frame: (e) => [1 - (1 - 0.1) * e, 0, 0, 0, e * Math.PI * 2.5],
+    },
+    {
+      name: "snap-in",
+      ease: easeInCubic,
+      frame: (e) => [1 - (1 - 0.06) * e, 0, 0, 0, 0],
+    },
+  ];
+
+  /** Pick the variant index for this prop. Deterministic by entityId. */
+  private variantIndex(): number {
+    const seed = this.staggerSeed; // 0..<1
+    return Math.floor(seed * SmartObject.INTRO_RECIPES.length) % SmartObject.INTRO_RECIPES.length;
+  }
+
+  /** The chosen variant name, for diagnostics / tests. */
+  get tweenVariant(): TweenVariant {
+    return SmartObject.INTRO_RECIPES[this.variantIndex()]!.name;
+  }
+
+  /**
+   * Run an entrance tween. The recipe (scale curve, optional drop /
+   * rise / spin) is chosen deterministically by entityId hash, so
+   * the same prop always intros the same way. Resolves on settle, or
+   * early if disposed mid-tween / superseded by a newer tween.
+   *
+   * The render loop must be running for the tween to be visible.
    */
   intro(
     durationMs: number = SMART_OBJECT_INTRO_OUTRO_DEFAULTS.durationMs,
     delayMs = 0,
-    scaleFrom: number = SMART_OBJECT_INTRO_OUTRO_DEFAULTS.scaleFrom,
   ): Promise<void> {
-    return this.runScaleTween(scaleFrom, 1, durationMs, delayMs, easeOutCubic);
+    const recipe = SmartObject.INTRO_RECIPES[this.variantIndex()]!;
+    return this.runRecipeTween(recipe.frame, recipe.ease, durationMs, delayMs);
   }
 
   /**
-   * Run an exit tween — scale from the current scale down to a
-   * small seed value, eased-in. Resolves on settle. Intended to
-   * be awaited (or `Promise.all`-ed) before `dispose()` so the
-   * prop visibly contracts away rather than vanishing in one
-   * frame.
+   * Run an exit tween. The variant matches `intro` so a prop's exit
+   * echoes its entrance — a tree that DROPPED IN will RISE OUT, a
+   * spirit that SPUN IN will SPIN OUT. Resolves on settle.
    *
-   * `outro()` does NOT dispose the prop itself — the caller still
-   * runs the usual teardown afterwards. The shrunk state is the
+   * `outro()` does NOT dispose the prop — the caller still runs the
+   * usual teardown afterwards. The shrunk + displaced state is the
    * visual seam between "old scene leaving" and "world torn down."
    */
   outro(
     durationMs: number = SMART_OBJECT_INTRO_OUTRO_DEFAULTS.durationMs,
     delayMs = 0,
-    scaleTo: number = SMART_OBJECT_INTRO_OUTRO_DEFAULTS.scaleFrom,
   ): Promise<void> {
-    return this.runScaleTween(this.scale.x, scaleTo, durationMs, delayMs, easeInCubic);
+    const recipe = SmartObject.OUTRO_RECIPES[this.variantIndex()]!;
+    return this.runRecipeTween(recipe.frame, recipe.ease, durationMs, delayMs);
   }
 
-  private runScaleTween(
-    from: number,
-    to: number,
+  /**
+   * Shared rAF driver. Captures the prop's home position + rotation
+   * at the moment the tween starts so deltas accumulate from
+   * wherever the prop actually IS — not from a stale home value
+   * captured at construction.
+   */
+  private runRecipeTween(
+    frame: (t: number) => readonly [number, number, number, number, number],
+    ease: (t: number) => number,
     durationMs: number,
     delayMs: number,
-    ease: (t: number) => number,
   ): Promise<void> {
     const token = ++this.tweenToken;
-    // Seed the starting scale immediately so the very first frame
-    // after the caller resumes the loop shows the "from" state. If
-    // the parent layer is still hidden behind a cover overlay, the
-    // user never sees the snap.
-    this.scale.setScalar(from);
+    const homeX = this.position.x;
+    const homeY = this.position.y;
+    const homeZ = this.position.z;
+    const homeRotY = this.rotation.y;
+    // Seed the first frame so the very first render after caller
+    // resumes the loop shows the recipe's t=0 state.
+    {
+      const [s, dx, dy, dz, dr] = frame(ease(0));
+      this.scale.setScalar(s);
+      this.position.set(homeX + dx, homeY + dy, homeZ + dz);
+      this.rotation.y = homeRotY + dr;
+    }
     const startTime = performance.now() + Math.max(0, delayMs);
     return new Promise<void>((resolve) => {
       const tick = (now: number) => {
@@ -157,11 +315,22 @@ export class SmartObject extends THREE.Group {
           requestAnimationFrame(tick);
           return;
         }
-        const t = Math.min(1, (now - startTime) / Math.max(1, durationMs));
-        const s = from + (to - from) * ease(t);
+        const tRaw = Math.min(1, (now - startTime) / Math.max(1, durationMs));
+        const eT = ease(tRaw);
+        const [s, dx, dy, dz, dr] = frame(eT);
         this.scale.setScalar(s);
-        if (t < 1) requestAnimationFrame(tick);
-        else resolve();
+        this.position.set(homeX + dx, homeY + dy, homeZ + dz);
+        this.rotation.y = homeRotY + dr;
+        if (tRaw < 1) requestAnimationFrame(tick);
+        else {
+          // Snap to exact home pose to clear any floating-point drift
+          // from the eased trajectory — caller code that reads pose
+          // post-tween (camera centroids, click targets) expects
+          // canonical values.
+          this.position.set(homeX, homeY, homeZ);
+          this.rotation.y = homeRotY;
+          resolve();
+        }
       };
       requestAnimationFrame(tick);
     });

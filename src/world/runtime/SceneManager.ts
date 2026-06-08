@@ -129,6 +129,33 @@ const WORLD_OUTRO_DURATION_MS = 380;
  *  change while props bloom in front of it. */
 const ENVELOPE_INTRO_DURATION_MS = 700;
 
+/** Fraction of the outro that overlaps the intro. With 0.30 the new
+ *  scene's props start growing while the old scene's props are at
+ *  ~70% of their outro tween — both scenes co-exist in the scene
+ *  graph for the overlap window, then the outgoing slot disposes
+ *  when its outro settles. Set to 0 to restore strict sequential
+ *  (old fully out → swap → new in). */
+const SCENE_OVERLAP_FRACTION = 0.30;
+
+/** Slot tracking everything we need to keep alive AFTER detaching the
+ *  outgoing scene from the live state — until its outro tween settles
+ *  and we can dispose. Mirrors the four buckets `teardownScene` deals
+ *  with (smartObjects, atmosphere disposers, atmosphere updaters,
+ *  world-layer group), minus controllers (rebuilt on the new scene). */
+interface OutgoingSlot {
+  worldLayer: THREE.Group;
+  smartObjects: Map<string, SmartObject>;
+  atmosphereDisposers: (() => void)[];
+}
+
+/** setTimeout as a Promise — used by switchAtmosphere to delay the
+ *  intro start so it overlaps the tail of the outro. Resolves after
+ *  `ms` regardless of focus / throttling (setTimeout fires; rAF
+ *  callbacks inside the awaited intro then run when the loop ticks). */
+function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, Math.max(0, ms)));
+}
+
 /** True when the viewport is in the mobile-layout band. */
 export function isMobileViewport(): boolean {
   return typeof window !== "undefined"
@@ -199,6 +226,14 @@ export class SceneManager {
    * teardown before the group is freed. Mutable: cleared per switch.
    */
   private readonly atmosphereDisposers: (() => void)[] = [];
+  /**
+   * Outgoing scene held alive during the overlap window of a switch
+   * (see SCENE_OVERLAP_FRACTION). Carries its own worldLayer + smart
+   * objects + atmosphere disposers; the live scene runs alongside it.
+   * Cleared when the outgoing's outro tween settles and we dispose
+   * everything inside. NULL outside switch windows.
+   */
+  private outgoing: OutgoingSlot | null = null;
   private cardController: CardController | null = null;
   private biomeMixer: BiomeMixer | null = null;
   private cameraController: CameraController | null = null;
@@ -551,12 +586,11 @@ export class SceneManager {
       return;
     }
     this.switching = true;
-    this.atmosphereSwitcher?.setBusy(true);
-    // Pause the loop for the teardown / rebuild window. (The loop body
-    // is fully optional-chained, so a stray focus event re-starting it
-    // mid-rebuild renders behind the crossfade cover without error.)
-    this.renderer.setAnimationLoop(null);
-    this.loopRunning = false;
+    // Ensure the spinner is showing on the right pill. The switcher's
+    // own click handler already calls setPending(name) for click-driven
+    // switches; for code-driven switches (language flip, refresh hook,
+    // page-load atmosphere=) we set it here so feedback is consistent.
+    if (name) this.atmosphereSwitcher?.setPending(name);
 
     // Preserve exactly where the user is looking from. The rebuilt
     // CameraController re-seeds from the (unchanged) URL vantage, so
@@ -571,54 +605,85 @@ export class SceneManager {
 
     try {
       // Render loop stays alive throughout — every tween (props,
-      // world-layer, envelope) is rAF-driven, and the only pause is the
-      // single-frame teardown step.
+      // world-layer, envelope) is rAF-driven across BOTH the outgoing
+      // and incoming scenes during the overlap window.
       this.refreshLoopState();
-      // OUTRO: props shrink, world-layer shrinks, and the envelope
-      // starts crossfading toward the incoming palette. They run in
-      // parallel; whichever finishes last wins. By the time we hit
-      // teardown the screen is dominated by a near-final sky/fog
-      // colour with a tiny sliver of world tucked at the centre.
-      await Promise.all([
-        this.outroAllProps(),
-        this.outroWorldLayer(WORLD_OUTRO_DURATION_MS, WORLD_OUTRO_END_SCALE),
-      ]);
-      // Snapshot the envelope state RIGHT NOW (after outro settled —
-      // any in-flight envelope tween from a prior switch has finished)
-      // so the intro tween picks up smoothly. We don't run a separate
-      // outro-envelope leg; the intro tween covers the full distance
-      // post-build, while the visual quiet is masked by the tiny world.
-      this.renderer.setAnimationLoop(null);
-      this.loopRunning = false;
-      this.teardownScene();
+
+      // 1. DETACH outgoing — pop the live worldLayer + smartObjects
+      //    + atmosphere disposers into a side slot. After this call
+      //    `this.smartObjects` / `this.worldLayer` are empty and the
+      //    next `buildScene()` starts from a clean canvas. The detached
+      //    slot stays attached to the scene graph (we never removed
+      //    its worldLayer from `this.scene`), so it KEEPS RENDERING
+      //    until we explicitly dispose it.
+      const outgoing = this.detachOutgoing();
+      this.outgoing = outgoing;
+
+      // 2. START outgoing's outro in parallel with the build of the
+      //    new scene. Both run concurrently; the user sees the old
+      //    world shrinking and the new world spinning up.
+      const outroPromise = outgoing
+        ? Promise.all([
+            this.outroAllProps(outgoing.smartObjects.values()),
+            this.outroWorldLayer(outgoing.worldLayer, WORLD_OUTRO_DURATION_MS, WORLD_OUTRO_END_SCALE),
+          ]).then(() => undefined)
+        : Promise.resolve();
+
+      // 3. Tear down controllers + registry + camera bindings (these
+      //    are scene-global, not part of the outgoing's visual subtree).
+      //    The lights live on the outgoing's worldLayer so they stay
+      //    alive until disposeOutgoing runs.
+      this.teardownControllers();
+
+      // 4. Fetch the new snapshot + build the new scene. The
+      //    AtmosphereSwitcher already shows a spinner on the clicked
+      //    pill from the click handler — the user has immediate
+      //    feedback while this work runs.
       const url = name
         ? this.withQuery(this.snapshotUrl, "atmosphere", name)
         : this.snapshotUrl;
       await this.fetchSnapshot(url, true);
       await this.buildScene();
       this.camera.position.copy(stashedPos);
-      this.atmosphereSwitcher?.setActive(this.palette.activeAtmosphere ?? "none");
       this.audio?.setAtmosphere(this.palette.activeAtmosphere ?? "none");
-      // buildScene() already called applyPaletteBackground() which
-      // snapped scene.background + fog to the INCOMING palette in one
-      // step. Capture that incoming state as the tween target, then
-      // roll the envelope back to OUTGOING so the intro tween lerps
-      // continuously from where the user last saw the sky.
+
+      // 5. Envelope handover. buildScene() called applyPaletteBackground
+      //    which set bg+fog to the INCOMING palette as a snap. Capture
+      //    that as the tween TARGET, then roll the live envelope back
+      //    to the OUTGOING palette so the intro can lerp smoothly.
       const toEnvelope = this.captureEnvelope();
       this.restoreEnvelope(fromEnvelope);
-      // Pre-shrink the just-built world-layer so the breath-in tween
-      // has somewhere to grow from.
+
+      // 6. Pre-shrink the new world-layer so the breath-in has
+      //    somewhere to grow from. Props are pre-shrunk inside their
+      //    own intro() recipe seed step.
       this.worldLayer?.scale.setScalar(WORLD_INTRO_START_SCALE);
-      this.refreshLoopState();
       this.renderer.render(this.scene, this.camera);
-      // INTRO: props bloom, world-layer breathes out, envelope crossfades
-      // from outgoing → incoming. All three run in parallel; the longest
-      // one (envelope at 700 ms) sets the floor on perceived length.
-      await Promise.all([
-        this.breatheWorld(WORLD_INTRO_DURATION_MS),
-        this.introAllProps(),
-        this.tweenEnvelope(fromEnvelope, toEnvelope, ENVELOPE_INTRO_DURATION_MS),
-      ]);
+
+      // 7. Compute when the intro should start to land the configured
+      //    overlap with the outro. Delay = outro duration * (1 - overlap).
+      //    The outgoing's outro keeps animating during this delay.
+      const introStartDelay =
+        WORLD_OUTRO_DURATION_MS * (1 - SCENE_OVERLAP_FRACTION);
+      const introPromise = (async () => {
+        if (outgoing) await wait(introStartDelay);
+        await Promise.all([
+          this.breatheWorld(WORLD_INTRO_DURATION_MS),
+          this.introAllProps(),
+          this.tweenEnvelope(fromEnvelope, toEnvelope, ENVELOPE_INTRO_DURATION_MS),
+        ]);
+      })();
+
+      // 8. Wait for outro to settle, then dispose the outgoing slot.
+      await outroPromise;
+      this.disposeOutgoing(outgoing);
+      this.outgoing = null;
+
+      // 9. Wait for intro to settle.
+      await introPromise;
+
+      // 10. Flip the switcher highlight + restore label (clears spinner).
+      this.atmosphereSwitcher?.setActive(this.palette.activeAtmosphere ?? "none");
       const mem = this.renderer.info.memory;
       console.info(
         `[world] atmosphere switched → ${this.palette.activeAtmosphere ?? "none"} ` +
@@ -626,15 +691,17 @@ export class SceneManager {
       );
     } catch (err) {
       console.error("[world] atmosphere switch failed:", err);
-      // Best-effort: resume the loop and snap the envelope to the new
-      // palette so a failed switch doesn't strand the user staring at
-      // a half-tweened sky/fog blend.
+      // Best-effort recovery: dispose any orphan outgoing, restore
+      // palette, clear the spinner. A failed switch should not leave
+      // the user stranded.
+      this.disposeOutgoing(this.outgoing);
+      this.outgoing = null;
       this.refreshLoopState();
       this.applyPaletteBackground();
+      this.atmosphereSwitcher?.clearPending();
       throw err;
     } finally {
       this.switching = false;
-      this.atmosphereSwitcher?.setBusy(false);
     }
   }
 
@@ -678,30 +745,30 @@ export class SceneManager {
   }
 
   /**
-   * Shrink the world-layer scale from its current value down to
+   * Shrink a world-layer's scale from its current value down to
    * `targetScale` over `durationMs` with ease-in cubic (accelerates
    * into the contraction so the world "sucks in" rather than coasts).
-   * Mirrors `breatheWorld()` direction-reversed. The world-layer
-   * holds ground, sky scenery, posts, pads — everything except the
-   * SmartObject props, which run their own per-prop outro in
-   * parallel via `outroAllProps()`.
+   *
+   * Targets an explicit `THREE.Group` so the caller can outro the
+   * OUTGOING world-layer while the new one is already live. The
+   * tween captures `layer` by reference; if the caller removes the
+   * layer mid-tween (e.g. error path), the rAF callback still writes
+   * to a detached node — harmless, GC takes it.
    */
-  private outroWorldLayer(durationMs: number, targetScale: number): Promise<void> {
-    const layer = this.worldLayer;
-    if (!layer) return Promise.resolve();
+  private outroWorldLayer(
+    layer: THREE.Group,
+    durationMs: number,
+    targetScale: number,
+  ): Promise<void> {
     const startScale = layer.scale.x;
     if (Math.abs(startScale - targetScale) < 1e-3) return Promise.resolve();
     const startTime = performance.now();
     return new Promise<void>((resolve) => {
       const tick = (now: number) => {
-        if (!this.worldLayer) {
-          resolve();
-          return;
-        }
         const t = Math.min(1, (now - startTime) / durationMs);
         const eased = t * t * t; // ease-in cubic
         const s = startScale + (targetScale - startScale) * eased;
-        this.worldLayer.scale.setScalar(s);
+        layer.scale.setScalar(s);
         if (t < 1) requestAnimationFrame(tick);
         else resolve();
       };
@@ -807,23 +874,20 @@ export class SceneManager {
   }
 
   /**
-   * Fan an `intro()` tween across every currently-registered
-   * SmartObject. Each prop's delay is its deterministic
-   * `staggerSeed * PROP_INTRO_STAGGER_MS`, so the bloom-front of
-   * motion across the world reads as organic stagger rather than a
-   * single pulse. Promise resolves when the last (slowest) prop's
-   * tween settles. Awaiting it in `Promise.all` with `fade.reveal()`
-   * and `breatheWorld()` composes the three motions (cover, world
-   * envelope, per-prop bloom) into one continuous transition.
-   *
-   * No-ops when there are no props yet (very first frame of mount
-   * — `Promise.resolve()` doesn't slow the boot path).
+   * Fan an `intro()` tween across every prop in `props` (defaults to
+   * the live `smartObjects` map). Each prop's delay is its
+   * deterministic `staggerSeed * PROP_INTRO_STAGGER_MS`, so the
+   * bloom-front of motion across the world reads as organic stagger
+   * rather than a single pulse. The recipe each prop runs is its
+   * deterministic variant — scale, drop, rise, spin, etc.
    */
-  private introAllProps(): Promise<void> {
-    const props = Array.from(this.smartObjects.values());
-    if (props.length === 0) return Promise.resolve();
+  private introAllProps(
+    props: Iterable<SmartObject> = this.smartObjects.values(),
+  ): Promise<void> {
+    const arr = Array.from(props);
+    if (arr.length === 0) return Promise.resolve();
     return Promise.all(
-      props.map((obj) =>
+      arr.map((obj) =>
         obj.intro(
           PROP_INTRO_DURATION_MS,
           obj.staggerSeed * PROP_INTRO_STAGGER_MS,
@@ -833,18 +897,18 @@ export class SceneManager {
   }
 
   /**
-   * Fan an `outro()` tween across every registered SmartObject.
-   * The render loop must be running for the rAF callbacks to
-   * advance — callers run `refreshLoopState()` before invoking.
-   * Resolves once the last prop's exit tween settles, at which
-   * point all props sit at the seed scale (0.06) ready for
-   * `teardownScene()` to dispose them behind the now-opaque cover.
+   * Fan an `outro()` tween across `props` (defaults to live). Used
+   * with the outgoing slot's smartObjects during overlapped scene
+   * swaps so the OLD scene's exit tween runs alongside the NEW
+   * scene's intro.
    */
-  private outroAllProps(): Promise<void> {
-    const props = Array.from(this.smartObjects.values());
-    if (props.length === 0) return Promise.resolve();
+  private outroAllProps(
+    props: Iterable<SmartObject> = this.smartObjects.values(),
+  ): Promise<void> {
+    const arr = Array.from(props);
+    if (arr.length === 0) return Promise.resolve();
     return Promise.all(
-      props.map((obj) =>
+      arr.map((obj) =>
         obj.outro(
           PROP_OUTRO_DURATION_MS,
           obj.staggerSeed * PROP_OUTRO_STAGGER_MS,
@@ -854,12 +918,103 @@ export class SceneManager {
   }
 
   /**
+   * Detach the currently-live scene into an `OutgoingSlot` without
+   * disposing anything. The live `worldLayer` / `smartObjects` /
+   * `atmosphereDisposers` are cleared so a subsequent `buildScene()`
+   * starts from an empty canvas; the outgoing keeps its references
+   * alive for its outro to animate against.
+   *
+   * Returns null when there's nothing to detach (very first mount,
+   * or repeat call within the same switch).
+   */
+  private detachOutgoing(): OutgoingSlot | null {
+    if (!this.worldLayer || this.smartObjects.size === 0) {
+      // Nothing visible to outro — caller proceeds straight to build.
+      return null;
+    }
+    const slot: OutgoingSlot = {
+      worldLayer: this.worldLayer,
+      smartObjects: new Map(this.smartObjects),
+      atmosphereDisposers: this.atmosphereDisposers.slice(),
+    };
+    // Pop the outgoing's atmosphere updaters off the live tick list —
+    // they reference geometry the outgoing owns (pollen, motes,
+    // zodiac); leaving them in would have them keep mutating things
+    // we're about to dispose. (The visible cost is the outgoing's
+    // background motion freezes; for a ~100 ms overlap window the
+    // eye is on the incoming scene anyway.)
+    this.atmosphereUpdaters.length = 0;
+    this.atmosphereDisposers.length = 0;
+    this.smartObjects.clear();
+    this.worldLayer = null;
+    this.ambientLight = null;
+    return slot;
+  }
+
+  /**
+   * Fully dispose an outgoing slot — its props, its world-layer
+   * subtree, and the atmosphere-owned Points disposers it held.
+   * Called when the outro tween settles. Idempotent against null.
+   */
+  private disposeOutgoing(slot: OutgoingSlot | null): void {
+    if (!slot) return;
+    for (const obj of slot.smartObjects.values()) {
+      obj.dispose();
+      obj.removeFromParent();
+    }
+    slot.smartObjects.clear();
+    for (const dispose of slot.atmosphereDisposers) dispose();
+    slot.atmosphereDisposers.length = 0;
+    this.scene.remove(slot.worldLayer);
+    slot.worldLayer.traverse((o) => {
+      if (o instanceof THREE.Mesh) {
+        o.geometry.dispose();
+        const mat = o.material;
+        if (Array.isArray(mat)) mat.forEach((m) => m.dispose());
+        else mat.dispose();
+      }
+    });
+  }
+
+  /**
+   * Tear down only the scene-global controllers + registry + HUD
+   * labels — leave the worldLayer + smartObjects + atmosphere
+   * disposers alone. Used by `switchAtmosphere` when the outgoing
+   * world-layer + smartObjects have been detached into an
+   * `OutgoingSlot` and should keep running their outro tweens; the
+   * controllers were bound to old node refs and must be reset for
+   * the rebuilt scene to acquire fresh bindings.
+   */
+  private teardownControllers(): void {
+    this.worldHud?.clear();
+    this.sectorLabels = [];
+    this.entityLabels = [];
+    this.compassLabels = [];
+    this.assetCache.flush();
+    this.pointerNavigator?.dispose();
+    this.pointerNavigator = null;
+    this.cardController?.dispose();
+    this.cardController = null;
+    this.cameraController?.dispose();
+    this.cameraController = null;
+    this.biomeMixer = null;
+    this.registry = null;
+    this.atmosphereLayout = null;
+  }
+
+  /**
    * Tear down everything buildScene() created, returning to a clean
    * baseline (only renderer / scene / camera survive). Three buckets:
    * SmartObjects (component-aware dispose), the world-layer group
    * (Mesh geometry+material), and the atmosphere Points (via the
    * disposers). Controllers are disposed so their bound listeners
    * detach before rebuild.
+   *
+   * Retained for the disposal path (`SceneManager.dispose`) and any
+   * external caller that needs the full original semantics.
+   * `switchAtmosphere` uses the split `detachOutgoing` /
+   * `teardownControllers` / `disposeOutgoing` flow instead so the
+   * outgoing scene can keep animating during the overlap window.
    */
   private teardownScene(): void {
     // 1. SmartObjects — component-aware dispose, then drop from scene.

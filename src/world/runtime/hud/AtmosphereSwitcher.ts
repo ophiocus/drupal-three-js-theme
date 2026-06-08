@@ -37,12 +37,45 @@ export interface AtmosphereSwitcherOptions {
   lang?: Lang;
 }
 
+/** Singleton style injection — the spinner keyframes plus a tiny
+ *  helper class. Idempotent: if the <style> with this id is already
+ *  in the DOM (because two switchers were ever instantiated, or HMR
+ *  re-evaluated this module) we keep the existing one. */
+const SPINNER_STYLE_ID = "world-atmosphere-switcher-spinner";
+function ensureSpinnerStyle(): void {
+  if (document.getElementById(SPINNER_STYLE_ID)) return;
+  const el = document.createElement("style");
+  el.id = SPINNER_STYLE_ID;
+  el.textContent = `
+@keyframes world-atmosphere-switcher-spin {
+  to { transform: rotate(360deg); }
+}
+.world-atmosphere-switcher-spinner {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  border: 1.5px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  vertical-align: middle;
+  animation: world-atmosphere-switcher-spin 0.85s linear infinite;
+}
+`;
+  document.head.appendChild(el);
+}
+
 export class AtmosphereSwitcher {
   private readonly root: HTMLDivElement;
   private readonly buttons = new Map<string, HTMLButtonElement>();
+  /** Original label text per button, so `setPending → clearPending` */
+  /** can restore the exact contents the user saw before the spinner. */
+  private readonly labels = new Map<string, string>();
   private active: string;
+  /** Name of the pill currently showing a spinner, or null. */
+  private pending: string | null = null;
 
   constructor(private readonly options: AtmosphereSwitcherOptions) {
+    ensureSpinnerStyle();
     this.active = options.initial;
 
     this.root = document.createElement("div");
@@ -78,9 +111,16 @@ export class AtmosphereSwitcher {
       btn.style.cssText = this.buttonCss(opt.name === this.active);
       btn.addEventListener("click", () => {
         if (opt.name === this.active) return;
+        if (this.pending) return; // another switch already in flight
+        // Show the spinner BEFORE we hand off to onSelect — the caller
+        // (SceneManager.switchAtmosphere) does heavy async work before
+        // the new scene is mounted, and the user needs immediate
+        // feedback that the click registered.
+        this.setPending(opt.name);
         this.options.onSelect(opt.name);
       });
       this.buttons.set(opt.name, btn);
+      this.labels.set(opt.name, opt.label);
       this.root.appendChild(btn);
     }
 
@@ -111,19 +151,71 @@ export class AtmosphereSwitcher {
     document.body.appendChild(this.root);
   }
 
-  /** Re-highlight the active atmosphere (call after a switch settles). */
+  /** Re-highlight the active atmosphere (call after a switch settles).
+   *  Also clears the pending spinner — the switch completed, restore
+   *  the label and re-enable the row. */
   setActive(name: string): void {
     this.active = name;
+    this.clearPending();
     for (const [key, btn] of this.buttons) {
       btn.style.cssText = this.buttonCss(key === name);
     }
   }
 
-  /** Disable / re-enable the whole row while a switch is in flight. */
+  /**
+   * Swap the named pill's label for a spinning glyph and disable the
+   * row. Visual feedback that the click was received and a switch is
+   * in progress — the new scene's preload (snapshot fetch + atmosphere
+   * module dynamic import + buildScene) happens during this window.
+   *
+   * Idempotent: calling twice with the same name is a no-op; calling
+   * with a different name moves the spinner. `setActive` clears it.
+   */
+  setPending(name: string): void {
+    if (this.pending === name) return;
+    if (this.pending) this.restoreLabel(this.pending);
+    this.pending = name;
+    const btn = this.buttons.get(name);
+    if (btn) {
+      btn.innerHTML = '<span class="world-atmosphere-switcher-spinner" aria-hidden="true"></span>';
+      btn.setAttribute("aria-busy", "true");
+    }
+    // Dim the row + lock interaction, same as the old setBusy(true).
+    this.root.style.opacity = "0.85";
+    this.root.style.pointerEvents = "none";
+    for (const b of this.buttons.values()) b.disabled = true;
+  }
+
+  /** Restore labels and re-enable the row. */
+  clearPending(): void {
+    if (this.pending) {
+      this.restoreLabel(this.pending);
+      const btn = this.buttons.get(this.pending);
+      btn?.removeAttribute("aria-busy");
+      this.pending = null;
+    }
+    this.root.style.opacity = "1";
+    this.root.style.pointerEvents = "auto";
+    for (const b of this.buttons.values()) b.disabled = false;
+  }
+
+  /** Legacy entry point — still used by SceneManager's error path.
+   *  Implemented in terms of clearPending for symmetry. */
   setBusy(busy: boolean): void {
-    this.root.style.opacity = busy ? "0.5" : "1";
-    this.root.style.pointerEvents = busy ? "none" : "auto";
-    for (const btn of this.buttons.values()) btn.disabled = busy;
+    if (!busy) this.clearPending();
+    else {
+      this.root.style.opacity = "0.5";
+      this.root.style.pointerEvents = "none";
+      for (const btn of this.buttons.values()) btn.disabled = true;
+    }
+  }
+
+  private restoreLabel(name: string): void {
+    const btn = this.buttons.get(name);
+    const label = this.labels.get(name);
+    if (btn && label !== undefined) {
+      btn.textContent = label;
+    }
   }
 
   dispose(): void {
