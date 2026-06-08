@@ -48,3 +48,5 @@ Thumbs.db
 # Drupal scaffold-managed per-site state (default settings template
 # + DDEV bridge file regenerated on every composer install).
 /web/sites/default/
+# Per-machine diagnostics (watchdog logs, pidfiles)
+.local/
