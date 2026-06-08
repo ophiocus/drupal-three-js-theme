@@ -45,8 +45,51 @@ final class SignatureWriter {
       return FALSE;
     }
 
+    // Embedding preservation. The SignatureExtractor never produces a
+    // semantic.embedding — it's the corpus-wide world:embed pass that
+    // mints those vectors. A plain re-extraction (entity_update, seed
+    // re-run, content edit) would therefore wipe the existing
+    // embedding even when the source text is unchanged. Guard against
+    // that: when the entity already carries an embedding AND the new
+    // signature's semanticHash matches the existing one (same source
+    // text → same embedding still valid), carry the existing
+    // embedding + modelVersion + embeddedAt across.
+    //
+    // When the hash DIFFERS, the embedding genuinely becomes stale
+    // and we let the null overwrite stand — the next world:embed
+    // catches up.
+    $payload = $signature->toArray();
+    $existingRaw = $entity->get('field_world_signature')->isEmpty()
+      ? NULL
+      : $entity->get('field_world_signature')->value;
+    if (is_string($existingRaw) && $existingRaw !== '') {
+      $existing = json_decode($existingRaw, TRUE);
+      $existingEmb = $existing['semantic']['embedding'] ?? NULL;
+      $existingHash = $existing['semantic']['semanticHash'] ?? NULL;
+      $incomingHash = $payload['semantic']['semanticHash'] ?? NULL;
+      $hasIncomingEmb = isset($payload['semantic']['embedding'])
+        && is_array($payload['semantic']['embedding'])
+        && count($payload['semantic']['embedding']) > 0;
+      if (
+        !$hasIncomingEmb
+        && is_array($existingEmb)
+        && count($existingEmb) > 0
+        && is_string($existingHash)
+        && $existingHash !== ''
+        && $existingHash === $incomingHash
+      ) {
+        $payload['semantic']['embedding'] = $existingEmb;
+        $payload['semantic']['modelVersion'] = $existing['semantic']['modelVersion'] ?? NULL;
+        $payload['semantic']['embeddedAt'] = $existing['semantic']['embeddedAt'] ?? NULL;
+        $this->logger->debug(
+          'Preserved existing embedding for @type/@id (hash match).',
+          ['@type' => $entity->getEntityTypeId(), '@id' => $entity->id()],
+        );
+      }
+    }
+
     $json = json_encode(
-      $signature->toArray(),
+      $payload,
       JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE,
     );
 
