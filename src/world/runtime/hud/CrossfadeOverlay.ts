@@ -28,16 +28,33 @@ export interface CrossfadeOverlayOptions {
   fadeMs?: number;
   /** CSS class, so instances/apps don't collide. Defaults to "world-crossfade". */
   namespace?: string;
+  /**
+   * Peak opacity of the cover at full `cover()` — `0` to `1`. Default
+   * `0.55`. The cover used to drive to `1` (a full opaque sheet), which
+   * read as "fade to black" on dark atmospheres because the palette
+   * colour completely replaced the canvas. With per-prop outro/intro
+   * tweens carrying the visual transition, the cover only needs to be
+   * a wash that softens the camera/palette/light swap behind it — the
+   * world stays partially visible the whole time. Pass `1` to restore
+   * the old fully-opaque behaviour (e.g., for debugging seams).
+   */
+  peakOpacity?: number;
 }
 
 const DEFAULT_FADE_MS = 350;
+const DEFAULT_PEAK_OPACITY = 0.55;
 
 export class CrossfadeOverlay {
   private readonly el: HTMLDivElement;
   private readonly fadeMs: number;
+  private readonly peakOpacity: number;
 
   constructor(options: CrossfadeOverlayOptions) {
     this.fadeMs = options.fadeMs ?? DEFAULT_FADE_MS;
+    // Clamp to [0, 1] — a peak below 0 or above 1 silently breaks the
+    // opacity transition; clamping fails closed to "still visible."
+    const requested = options.peakOpacity ?? DEFAULT_PEAK_OPACITY;
+    this.peakOpacity = Math.max(0, Math.min(1, requested));
     this.el = document.createElement("div");
     this.el.className = options.namespace ?? "world-crossfade";
     this.el.setAttribute("aria-hidden", "true");
@@ -53,14 +70,14 @@ export class CrossfadeOverlay {
     document.body.appendChild(this.el);
   }
 
-  /** Fade to fully opaque (hide the world). Resolves after the fade. */
+  /** Fade up to `peakOpacity` (default 0.55 — a wash, not a black sheet). */
   async cover(): Promise<void> {
     // Force a reflow so the freshly-inserted node's opacity:0 is
-    // committed before we flip to 1 — the transition then fires. Using
-    // a reflow (not requestAnimationFrame) keeps this working even when
+    // committed before we flip — the transition then fires. Using a
+    // reflow (not requestAnimationFrame) keeps this working even when
     // the tab is briefly throttled; rAF can stall in a hidden tab.
     void this.el.offsetHeight;
-    this.el.style.opacity = "1";
+    this.el.style.opacity = String(this.peakOpacity);
     await this.wait(this.fadeMs);
   }
 
