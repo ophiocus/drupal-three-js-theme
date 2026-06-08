@@ -101,6 +101,18 @@ const MOBILE_BREAKPOINT_PX = 768;
 const WORLD_INTRO_START_SCALE = 0.93;
 const WORLD_INTRO_DURATION_MS = 650;
 
+/** Per-prop entrance/exit tuning. Each SmartObject scales 0.06→1 on
+ *  intro and 1→0.06 on outro, with a deterministic per-entity delay
+ *  derived from its id hash, so the wave-front of motion across the
+ *  world reads as organic stagger rather than a single uniform pulse.
+ *  - Duration: how long one prop's tween takes.
+ *  - Stagger:  spread between fastest prop (delay=0) and slowest
+ *              (delay=staggerMs). Total wall time ≈ duration + stagger. */
+const PROP_INTRO_DURATION_MS = 520;
+const PROP_INTRO_STAGGER_MS = 280;
+const PROP_OUTRO_DURATION_MS = 360;
+const PROP_OUTRO_STAGGER_MS = 200;
+
 /** True when the viewport is in the mobile-layout band. */
 export function isMobileViewport(): boolean {
   return typeof window !== "undefined"
@@ -285,6 +297,7 @@ export class SceneManager {
       await Promise.all([
         loader.hide(),
         this.breatheWorld(WORLD_INTRO_DURATION_MS),
+        this.introAllProps(),
       ]);
     } catch (err) {
       loader.setMessage("world failed to load");
@@ -542,7 +555,20 @@ export class SceneManager {
     });
 
     try {
-      await fade.cover();
+      // The render loop has to stay alive through the outro so each
+      // prop's rAF callback can advance. Resume it just long enough
+      // for the per-prop tween to run, then pause again for teardown.
+      this.refreshLoopState();
+      // OUTRO: run the cover fade-in and the per-prop shrink in
+      // parallel. As the cover hits ~half opacity the props are
+      // already most of the way down; by full opacity they're all
+      // collapsed and ready for teardown.
+      await Promise.all([
+        fade.cover(),
+        this.outroAllProps(),
+      ]);
+      this.renderer.setAnimationLoop(null);
+      this.loopRunning = false;
       this.teardownScene();
       const url = name
         ? this.withQuery(this.snapshotUrl, "atmosphere", name)
@@ -564,14 +590,16 @@ export class SceneManager {
       this.worldLayer?.scale.setScalar(WORLD_INTRO_START_SCALE);
       this.refreshLoopState();
       this.renderer.render(this.scene, this.camera);
-      // Reveal the cover and breathe the world out to full scale in
-      // parallel. The render loop is running again at this point so the
-      // tween animates frame-by-frame. End result: entities visibly
-      // inflate / land into place as the overlay clears, instead of
-      // popping at full size the instant the cover lifts.
+      // INTRO: reveal the cover, breathe the world-layer out, and run
+      // each prop's intro tween — all in parallel. The world-layer
+      // (ground, sky, scenery) is the global envelope; each prop's
+      // scale tween is the per-entity micro-motion that rides on top.
+      // The two compositions multiply: prop at 0.06 × world at 0.93 ≈
+      // 0.056 at t=0, prop at 1 × world at 1 = 1 at settle.
       await Promise.all([
         fade.reveal(),
         this.breatheWorld(WORLD_INTRO_DURATION_MS),
+        this.introAllProps(),
       ]);
       const mem = this.renderer.info.memory;
       console.info(
@@ -628,6 +656,53 @@ export class SceneManager {
       };
       requestAnimationFrame(tick);
     });
+  }
+
+  /**
+   * Fan an `intro()` tween across every currently-registered
+   * SmartObject. Each prop's delay is its deterministic
+   * `staggerSeed * PROP_INTRO_STAGGER_MS`, so the bloom-front of
+   * motion across the world reads as organic stagger rather than a
+   * single pulse. Promise resolves when the last (slowest) prop's
+   * tween settles. Awaiting it in `Promise.all` with `fade.reveal()`
+   * and `breatheWorld()` composes the three motions (cover, world
+   * envelope, per-prop bloom) into one continuous transition.
+   *
+   * No-ops when there are no props yet (very first frame of mount
+   * — `Promise.resolve()` doesn't slow the boot path).
+   */
+  private introAllProps(): Promise<void> {
+    const props = Array.from(this.smartObjects.values());
+    if (props.length === 0) return Promise.resolve();
+    return Promise.all(
+      props.map((obj) =>
+        obj.intro(
+          PROP_INTRO_DURATION_MS,
+          obj.staggerSeed * PROP_INTRO_STAGGER_MS,
+        ),
+      ),
+    ).then(() => undefined);
+  }
+
+  /**
+   * Fan an `outro()` tween across every registered SmartObject.
+   * The render loop must be running for the rAF callbacks to
+   * advance — callers run `refreshLoopState()` before invoking.
+   * Resolves once the last prop's exit tween settles, at which
+   * point all props sit at the seed scale (0.06) ready for
+   * `teardownScene()` to dispose them behind the now-opaque cover.
+   */
+  private outroAllProps(): Promise<void> {
+    const props = Array.from(this.smartObjects.values());
+    if (props.length === 0) return Promise.resolve();
+    return Promise.all(
+      props.map((obj) =>
+        obj.outro(
+          PROP_OUTRO_DURATION_MS,
+          obj.staggerSeed * PROP_OUTRO_STAGGER_MS,
+        ),
+      ),
+    ).then(() => undefined);
   }
 
   /**
