@@ -23,16 +23,21 @@
 import * as THREE from "../../../toolbox/three.js";
 import type { CorpusSnapshot } from "../../types.js";
 import type { SurrealZodiac, ZodiacPlacement } from "../atmospheres/inner-mind/zodiac.js";
+import { listAtmosphereKeys } from "../atmospheres/registry.js";
 import { type Lang, t } from "./i18n.js";
 
 const STORAGE_KEY = "world.stage.placements.v0";
 const ANGLE_SENSITIVITY = 0.005;   // rad per pixel of horizontal drag
 const HEIGHT_SENSITIVITY = 0.5;    // y units per pixel of vertical drag (inverted)
 
-/** Atmospheres the Phase 3 v2 "default atmosphere" dropdown offers. Mirrors
- *  WorldConfigEditor::ALLOWED_ATMOSPHERES on the server — keep in sync when
- *  a skin is added. The server validates, so this is just UX. */
-const ATMOSPHERE_CHOICES: readonly string[] = ["none", "forest", "inner-mind"];
+/** Choices the Phase 3 v2 "default atmosphere" dropdown offers — every
+ *  registered atmosphere plus a leading `none` (the no-atmosphere
+ *  default world). Derived from the registry so a 3rd / 4th / Nth
+ *  atmosphere extends the dropdown automatically. The server validates
+ *  against its own ALLOWED_ATMOSPHERES list, so this is just UX. */
+function atmosphereChoices(): readonly string[] {
+  return ["none", ...listAtmosphereKeys()];
+}
 
 /**
  * The freshness summary the panel renders (Phase 3 v0). Sourced from the
@@ -474,7 +479,7 @@ export class StageEditor {
     const atmosphereDirty = this.pendingAtmosphere !== this.activeAtmosphere;
     const tintsDirty = this.tintsDirty();
     const dirty = atmosphereDirty || tintsDirty;
-    const options = ATMOSPHERE_CHOICES.map((a) => {
+    const options = atmosphereChoices().map((a) => {
       const selected = a === this.pendingAtmosphere ? " selected" : "";
       return `<option value="${escapeHtml(a)}"${selected}>${escapeHtml(a)}</option>`;
     }).join("");

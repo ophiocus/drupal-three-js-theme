@@ -31,8 +31,11 @@ import { AtmosphereSwitcher } from "./hud/AtmosphereSwitcher.js";
 import { LanguageSwitcher } from "./hud/LanguageSwitcher.js";
 import { consumeUrlLang, getCurrentLang, setCurrentLang, withLangQuery } from "./hud/lang.js";
 import { t as i18n, type Lang } from "./hud/i18n.js";
-import { StageEditor } from "./hud/StageEditor.js";
 import { AtmosphereAudio } from "./AtmosphereAudio.js";
+import {
+  listAtmosphereKeys,
+  loadAtmosphere,
+} from "./atmospheres/registry.js";
 
 interface BootOptions {
   snapshotUrl: string;
@@ -990,11 +993,17 @@ export class SceneManager {
       return;
     }
     this.audio = new AtmosphereAudio();
+    // Pills are derived from the central atmosphere registry — adding a
+    // 3rd / 4th / Nth atmosphere extends the switcher automatically,
+    // no edit here required. The i18n label key is conventional:
+    // `switcher.atmosphere.<key>`. A missing translation falls back to
+    // the raw key (i18n's default behaviour) so unrecognized atmospheres
+    // are visible-but-ugly rather than invisible.
     this.atmosphereSwitcher = new AtmosphereSwitcher({
-      atmospheres: [
-        { name: "forest",     label: i18n(this.currentLang, "switcher.atmosphere.forest") },
-        { name: "inner-mind", label: i18n(this.currentLang, "switcher.atmosphere.inner-mind") },
-      ],
+      atmospheres: listAtmosphereKeys().map((key) => ({
+        name: key,
+        label: i18n(this.currentLang, `switcher.atmosphere.${key}`),
+      })),
       initial: active,
       lang: this.currentLang,
       onSelect: (name) => {
@@ -1505,96 +1514,57 @@ export class SceneManager {
   }
 
   /**
-   * Lazy-import an atmosphere by name and register its
-   * builders. Atmospheres become separate Vite chunks
-   * (parallel to the HtmlSurface chunks), so unused
-   * atmospheres never bloat the main bundle. Unknown
-   * atmosphere names log a warning and proceed without
-   * registering — the world still renders with the defaults.
+   * Register the named atmosphere's contribution to the active scene.
+   *
+   * Generic — knows no atmosphere by name. The catalog lives in
+   * `atmospheres/registry.ts`; this method asks it for a module by
+   * key, runs the module's hooks in canonical order
+   * (registerBuilders → computeLayout → setupEnvironment), and
+   * pushes any disposer into the atmosphere disposer queue.
+   *
+   * Adding a 3rd / 4th / Nth atmosphere requires zero edits here —
+   * see `atmospheres/registry.ts` for the recipe.
+   *
+   * Unknown atmosphere names log a warning and proceed without
+   * registering; the world still renders with the default builders
+   * (sector pads, generic primitives) — useful when a server-side
+   * `activeAtmosphere` references a key the client doesn't ship yet.
    */
   private async registerAtmosphere(name: string): Promise<void> {
     if (!this.registry) return;
+    const mod = await loadAtmosphere(name);
+    if (!mod) {
+      console.warn(`[world] unknown atmosphere "${name}"; running with defaults.`);
+      return;
+    }
     try {
-      switch (name) {
-        case "forest": {
-          const mod = await import("./atmospheres/forest/index.js");
-          mod.registerForestAtmosphere(this.registry);
-          // Environment setup (scenery, particles, atmosphere-wide
-          // visual elements) attaches into the disposable world-layer
-          // and returns a disposer for its Points (pollen). Atmospheres
-          // without env work simply don't export setupXEnvironment; the
-          // duck-typed call no-ops cleanly.
-          if (this.snapshot && this.worldLayer) {
-            const dispose = mod.setupForestEnvironment?.(
-              this.worldLayer,
-              this.snapshot,
-              (fn) => this.atmosphereUpdaters.push(fn),
-            );
-            if (dispose) this.atmosphereDisposers.push(dispose);
-          }
-          break;
-        }
-        case "inner-mind": {
-          // The "acid trip" skin — abstract procedural geometry +
-          // a hue-cycling environment. A stub proving the world
-          // switcher; real inner-mind is BETA 1. Its updater mutates
-          // scene.background/fog, so it takes the scene as well as the
-          // disposable world-layer root for its motes.
-          const mod = await import("./atmospheres/inner-mind/index.js");
-          mod.registerInnerMindAtmosphere(this.registry);
-          // Interpretation engine: inner-mind projects the embeddings
-          // into its own 3D layout (overrides taxonomy placement).
-          if (this.snapshot) {
-            this.atmosphereLayout = mod.computeLayout?.(this.snapshot) ?? null;
-          }
-          if (this.snapshot && this.worldLayer) {
-            const result = mod.setupInnerMindEnvironment?.(
-              this.scene,
-              this.worldLayer,
-              this.snapshot,
-              (fn) => this.atmosphereUpdaters.push(fn),
-              this.atmosphereLayout,
-            );
-            if (result) {
-              this.atmosphereDisposers.push(result.dispose);
-              // Phase 2 (TOOLBOX_AND_STAGE.md): in-canvas stage editor
-              // bound to the zodiac. Marker projection runs per frame
-              // via an atmosphere updater; the disposer tears the DOM
-              // down on switch alongside the rest of the atmosphere.
-              const editor = new StageEditor({
-                zodiac: result.zodiac,
-                canvas: this.canvas,
-                camera: this.camera,
-                snapshot: this.snapshot,
-                activeAtmosphere: this.palette.activeAtmosphere ?? "none",
-                // Phase 3 v2.1: seed the tint pickers with the effective
-                // palette values (post-overlay). The server's scope-aware
-                // writer lands changes on the active atmosphere's overlay
-                // when one is active, base palette otherwise.
-                paletteTints: {
-                  background: this.palette.background,
-                  fogColor: this.palette.fog.color,
-                  groundColor: this.palette.ground.color,
-                },
-                // Phase 3 v1: after a successful re-embed, ask the
-                // scene manager to re-fetch the snapshot + rebuild —
-                // the new editor instance will read the fresh
-                // world.lastEmbed via the freshly-stamped snapshot.
-                onRefresh: () => this.switchAtmosphere(),
-                lang: this.currentLang,
-              });
-              this.atmosphereUpdaters.push(() => editor.update());
-              this.atmosphereDisposers.push(() => editor.dispose());
-            }
-          }
-          break;
-        }
-        default:
-          console.warn(`[world] unknown atmosphere "${name}"; running with defaults.`);
+      mod.registerBuilders(this.registry);
+      if (mod.computeLayout && this.snapshot) {
+        this.atmosphereLayout = mod.computeLayout(this.snapshot) ?? null;
+      }
+      if (mod.setupEnvironment && this.snapshot && this.worldLayer) {
+        const env = mod.setupEnvironment({
+          scene: this.scene,
+          root: this.worldLayer,
+          snapshot: this.snapshot,
+          registerUpdater: (fn) => this.atmosphereUpdaters.push(fn),
+          layout: this.atmosphereLayout,
+          camera: this.camera,
+          canvas: this.canvas,
+          currentLang: this.currentLang,
+          activeAtmosphere: this.palette.activeAtmosphere ?? "none",
+          paletteTints: {
+            background: this.palette.background,
+            fogColor: this.palette.fog.color,
+            groundColor: this.palette.ground.color,
+          },
+          onRefresh: () => this.switchAtmosphere(),
+        });
+        this.atmosphereDisposers.push(env.dispose);
       }
     } catch (err) {
       console.warn(
-        `[world] failed to load atmosphere "${name}"; running with defaults. Cause:`,
+        `[world] failed to set up atmosphere "${name}"; running with defaults. Cause:`,
         err,
       );
     }

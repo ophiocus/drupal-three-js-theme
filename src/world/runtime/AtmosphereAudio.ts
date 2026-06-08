@@ -2,10 +2,13 @@
 //
 // Zero asset files: every bed is synthesised live with the Web Audio
 // API (same ethos as the renderer's primitive geometry — no .mp3 to
-// ship or license). Two beds today:
-//   - forest:     looping noise through a slow-swept lowpass — "wind".
-//   - inner-mind: detuned saw drones + octave shimmer under a slow
-//                 filter sweep — the "trip" pad.
+// ship or license). The per-atmosphere builders live with their
+// atmosphere modules (forest/audio.ts, inner-mind/audio.ts, …); this
+// file is a generic lifecycle wrapper that asks the atmosphere
+// registry for whichever bed is active.
+//
+// Adding a 3rd / 4th / Nth soundscape: export `buildSoundscape` from
+// the new atmosphere module. AtmosphereAudio picks it up automatically.
 //
 // Autoplay etiquette: browsers block audio until a user gesture, and
 // surprise ambient sound is rude. So this stays SILENT until enable()
@@ -13,12 +16,8 @@
 // AudioContext; setAtmosphere() crossfades beds on a switch; disable()
 // fades out and suspends.
 
-interface Soundscape {
-  /** Per-bed gain (0..1), ramped for fades; feeds the master gain. */
-  gain: GainNode;
-  /** Stop + disconnect every node in this bed. */
-  stop: () => void;
-}
+import { loadAtmosphere } from "./atmospheres/registry.js";
+import type { Soundscape } from "./atmospheres/types.js";
 
 export interface AtmosphereAudioOptions {
   /** Master ceiling — kept low; ambient, not foreground. Default 0.18. */
@@ -62,7 +61,7 @@ export class AtmosphereAudio {
         /* resume can reject if not from a gesture — caller handles UI */
       }
     }
-    this.startSoundscape(atmosphere);
+    void this.startSoundscape(atmosphere);
   }
 
   /** Turn audio off — fade out, then suspend the device. */
@@ -85,7 +84,7 @@ export class AtmosphereAudio {
     if (!this._enabled) return;
     this.fadeOutAndStop(this.current);
     this.current = null;
-    this.startSoundscape(atmosphere);
+    void this.startSoundscape(atmosphere);
   }
 
   /** Full teardown — close the context. */
@@ -113,18 +112,31 @@ export class AtmosphereAudio {
     this.master.connect(this.ctx.destination);
   }
 
-  private startSoundscape(name: string): void {
+  /**
+   * Resolve the atmosphere's soundscape via the registry, start it,
+   * fade it in. Async because atmosphere modules are lazy-loaded;
+   * the load is cached by the registry so the second call to the
+   * same atmosphere is synchronous.
+   *
+   * Race-guard: between the `await loadAtmosphere` resolving and
+   * `startSoundscape` proceeding, the user can have flipped to
+   * another atmosphere (or disabled). We re-check `currentName` and
+   * `_enabled` afterwards and drop the freshly-built bed if either
+   * has moved on. Cheap — building a Web Audio graph then tearing
+   * it down within ms costs nothing user-visible.
+   */
+  private async startSoundscape(name: string): Promise<void> {
     if (!this.ctx || !this.master) return;
-    const sc =
-      name === "forest"
-        ? this.buildForest(this.ctx, this.master)
-        : name === "inner-mind"
-          ? this.buildInnerMind(this.ctx, this.master)
-          : null;
-    if (!sc) {
-      this.current = null;
+    const mod = await loadAtmosphere(name);
+    if (!mod || !mod.buildSoundscape) {
+      // Atmosphere has no bed (or unknown name) — silence is fine.
+      if (this.currentName === name) this.current = null;
       return;
     }
+    // Re-check state — the user may have switched while we awaited.
+    if (!this._enabled || this.currentName !== name) return;
+    if (!this.ctx || !this.master) return;
+    const sc = mod.buildSoundscape(this.ctx, this.master);
     const now = this.ctx.currentTime;
     sc.gain.gain.setValueAtTime(0, now);
     sc.gain.gain.linearRampToValueAtTime(1, now + this.fadeSeconds);
@@ -138,100 +150,5 @@ export class AtmosphereAudio {
     sc.gain.gain.setValueAtTime(sc.gain.gain.value, now);
     sc.gain.gain.linearRampToValueAtTime(0, now + this.fadeSeconds);
     setTimeout(() => sc.stop(), this.fadeSeconds * 1000 + 80);
-  }
-
-  /** Forest: looping noise → lowpass with a slow LFO sweep (wind). */
-  private buildForest(ctx: AudioContext, master: GainNode): Soundscape {
-    const gain = ctx.createGain();
-    gain.gain.value = 0;
-    gain.connect(master);
-
-    const noise = ctx.createBufferSource();
-    noise.buffer = this.noiseBuffer(ctx, 3);
-    noise.loop = true;
-
-    const lp = ctx.createBiquadFilter();
-    lp.type = "lowpass";
-    lp.frequency.value = 500;
-    lp.Q.value = 0.6;
-    noise.connect(lp);
-    lp.connect(gain);
-
-    const lfo = ctx.createOscillator();
-    lfo.frequency.value = 0.07;
-    const lfoGain = ctx.createGain();
-    lfoGain.gain.value = 240;
-    lfo.connect(lfoGain);
-    lfoGain.connect(lp.frequency);
-
-    noise.start();
-    lfo.start();
-    return {
-      gain,
-      stop: () => {
-        try { noise.stop(); } catch { /* already stopped */ }
-        try { lfo.stop(); } catch { /* already stopped */ }
-        for (const n of [noise, lp, lfo, lfoGain, gain]) n.disconnect();
-      },
-    };
-  }
-
-  /** Inner-mind: detuned saw drones + octave shimmer under a slow sweep. */
-  private buildInnerMind(ctx: AudioContext, master: GainNode): Soundscape {
-    const gain = ctx.createGain();
-    gain.gain.value = 0;
-    gain.connect(master);
-
-    const lp = ctx.createBiquadFilter();
-    lp.type = "lowpass";
-    lp.frequency.value = 600;
-    lp.Q.value = 4;
-    lp.connect(gain);
-
-    const base = 82.4; // E2
-    const o1 = ctx.createOscillator();
-    o1.type = "sawtooth";
-    o1.frequency.value = base;
-    const o2 = ctx.createOscillator();
-    o2.type = "sawtooth";
-    o2.frequency.value = base * 1.005; // slight detune → beating
-    const o3 = ctx.createOscillator();
-    o3.type = "sine";
-    o3.frequency.value = base * 2; // octave shimmer
-    const o3g = ctx.createGain();
-    o3g.gain.value = 0.3;
-    o3.connect(o3g);
-    o1.connect(lp);
-    o2.connect(lp);
-    o3g.connect(lp);
-
-    const lfo = ctx.createOscillator();
-    lfo.frequency.value = 0.05;
-    const lfoGain = ctx.createGain();
-    lfoGain.gain.value = 450;
-    lfo.connect(lfoGain);
-    lfoGain.connect(lp.frequency);
-
-    o1.start();
-    o2.start();
-    o3.start();
-    lfo.start();
-    return {
-      gain,
-      stop: () => {
-        for (const o of [o1, o2, o3, lfo]) {
-          try { o.stop(); } catch { /* already stopped */ }
-        }
-        for (const n of [o1, o2, o3, o3g, lp, lfo, lfoGain, gain]) n.disconnect();
-      },
-    };
-  }
-
-  private noiseBuffer(ctx: AudioContext, seconds: number): AudioBuffer {
-    const len = Math.floor(ctx.sampleRate * seconds);
-    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
-    const data = buf.getChannelData(0);
-    for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
-    return buf;
   }
 }
