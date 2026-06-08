@@ -88,6 +88,54 @@ export function projectAnchored(
 }
 
 /**
+ * Deterministic Fibonacci-sphere fallback for when no embeddings are
+ * available — used by `computeLayout` so the inner-mind atmosphere
+ * still LOOKS 3D (entities scattered on a sphere) rather than
+ * collapsing back to the forest's flat sector ring.
+ *
+ * Spacing the points on the unit sphere via the golden-angle sequence
+ * gives a visually-pleasing isotropic distribution with no clumps. We
+ * shuffle the assignment by an entity-id hash so semantically-similar
+ * ids don't end up neighbours — without this, alphabetical adjacency
+ * (`node-100` next to `node-101`) would read as meaningful when it
+ * isn't.
+ */
+export function fibonacciSphere(
+  ids: readonly string[],
+  targetRadius: number,
+): Map<string, Vec3> {
+  const out = new Map<string, Vec3>();
+  const n = ids.length;
+  if (n === 0) return out;
+  // Stable shuffle: pair each id with a hashed index then sort.
+  const indexed = ids.map((id) => ({ id, sort: hashId(id) }));
+  indexed.sort((a, b) => a.sort - b.sort);
+  const phi = Math.PI * (Math.sqrt(5) - 1); // golden angle
+  for (let i = 0; i < n; i++) {
+    const y = 1 - (i / Math.max(1, n - 1)) * 2;       // -1..1
+    const r = Math.sqrt(Math.max(0, 1 - y * y));      // radius at this y
+    const theta = phi * i;
+    const x = Math.cos(theta) * r;
+    const z = Math.sin(theta) * r;
+    out.set(indexed[i]!.id, {
+      x: x * targetRadius,
+      y: y * targetRadius,
+      z: z * targetRadius,
+    });
+  }
+  return out;
+}
+
+/** djb2 hash → unsigned 32-bit int. Used to shuffle id ordering. */
+function hashId(s: string): number {
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) {
+    h = ((h * 33) ^ s.charCodeAt(i)) & 0xffffffff;
+  }
+  return h >>> 0;
+}
+
+/**
  * Project L2-normalized embeddings to a 3D cloud whose farthest point
  * sits ~`targetRadius` from its centroid, centred on the origin.
  */

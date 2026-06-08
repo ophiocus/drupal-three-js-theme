@@ -22,7 +22,7 @@ import { EventAsRing } from "./EventAsRing.js";
 import { AcidMotes } from "./motes.js";
 import { SurrealZodiac } from "./zodiac.js";
 import { FuzzyRegions } from "./regions.js";
-import { projectAnchored, projectMds3D } from "./projection.js";
+import { fibonacciSphere, projectAnchored, projectMds3D } from "./projection.js";
 import { buildInnerMindSoundscape } from "./audio.js";
 import { StageEditor } from "../../hud/StageEditor.js";
 
@@ -42,23 +42,41 @@ function registerBuilders(registry: SmartObjectRegistry): void {
  * run), in which case SceneManager falls back to taxonomy placement.
  */
 function computeLayout(snapshot: CorpusSnapshot): Map<string, Vec3> | null {
+  const targetRadius = snapshot.world.radius * 0.55;
+  const baseY = snapshot.world.overviewHeight * 0.6;
+
   const embeddings = new Map<string, number[]>();
   for (const e of Object.values(snapshot.entities)) {
     const emb = e.signature?.semantic?.embedding;
     if (Array.isArray(emb) && emb.length > 0) embeddings.set(e.id, emb);
   }
-  if (embeddings.size < 2) return null;
 
-  const targetRadius = snapshot.world.radius * 0.55;
-  const anchors = snapshot.world.interpretationAxes;
-  let cloud = anchors && anchors.axes.length > 0
-    ? projectAnchored(embeddings, anchors.axes, targetRadius)
-    : new Map<string, Vec3>();
-  if (cloud.size === 0) {
-    cloud = projectMds3D(embeddings, targetRadius);
+  let cloud: Map<string, Vec3>;
+  if (embeddings.size >= 2) {
+    // Embedded path — the real interpretation layout. Anchored axes
+    // when they're shipped + meaningful (a neural model has run
+    // world:embed Pass 4); MDS-3D otherwise (always works).
+    const anchors = snapshot.world.interpretationAxes;
+    cloud = anchors && anchors.axes.length > 0
+      ? projectAnchored(embeddings, anchors.axes, targetRadius)
+      : new Map<string, Vec3>();
+    if (cloud.size === 0) {
+      cloud = projectMds3D(embeddings, targetRadius);
+    }
+    applyTemporalShift(cloud, snapshot);
+  } else {
+    // No embeddings yet (world:embed hasn't run, was wiped, or
+    // strippedat the INTERPRETATION_EMBEDDING_LIMIT). Still give the
+    // user a distinctively 3D layout — a Fibonacci sphere on the
+    // entity ids — so the inner-mind atmosphere reads as "different
+    // universe" rather than "forest with abstract assets." This is a
+    // structural placeholder, not a meaningful frame: positions
+    // carry no semantics, just an isotropic 3D arrangement.
+    const ids = Object.keys(snapshot.entities);
+    if (ids.length === 0) return null;
+    cloud = fibonacciSphere(ids, targetRadius);
   }
-  applyTemporalShift(cloud, snapshot);
-  const baseY = snapshot.world.overviewHeight * 0.6;
+
   const out = new Map<string, Vec3>();
   for (const [id, p] of cloud) {
     out.set(id, { x: p.x, y: p.y + baseY, z: p.z });
