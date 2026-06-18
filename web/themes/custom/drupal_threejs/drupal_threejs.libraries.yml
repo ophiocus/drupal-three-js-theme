@@ -1,18 +1,15 @@
-# `version:` is auto-stamped by drupal_threejs_library_info_alter
-# in drupal_threejs.theme — it computes md5 of dist/world.bundle.js
-# and appends a 12-char hash, so `?v=0.2.x.<hash>` changes exactly
-# when the bundle content does. The string below is the fallback
-# used if the bundle is missing (fresh install pre-build).
+# Theme's world library: page-shell CSS only.
+#
+# The renderer bundle itself lives in the world_signature module
+# (contrib shape — the module is the standalone deliverable, the
+# theme is optional). Sites without drupal_threejs can attach
+# world_signature/world directly via a block plugin or a custom
+# page template.
 world:
-  version: 0.2.1
-  js:
-    dist/world.bundle.js:
-      minified: true
-      attributes:
-        type: module
-        defer: true
+  version: 1.0.x
   css:
     base:
       css/world.css: {}
   dependencies:
+    - world_signature/world
     - core/drupal

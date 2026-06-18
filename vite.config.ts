@@ -31,12 +31,15 @@ export default defineConfig({
     dedupe: ["three"],
   },
   build: {
-    // Build into the theme so libraries.yml can reference the
-    // bundle via a theme-relative path. The whole dist/ tree is
-    // gitignored; engineers run `ddev npm run build` after a
-    // fresh clone.
-    outDir: "web/themes/custom/drupal_threejs/dist",
-    emptyOutDir: true,
+    // Build into the world_signature module's js/ — that's where
+    // the renderer ships in the contrib shape (the theme is
+    // optional, the module is the standalone deliverable). The
+    // emitted files (world.bundle.js + .map) are gitignored;
+    // engineers run `ddev npm run build` after a fresh clone.
+    outDir: "web/modules/custom/world_signature/js",
+    // We do NOT empty the output dir — asset-hover.js lives there
+    // as a hand-authored library script and must not be wiped.
+    emptyOutDir: false,
     sourcemap: true,
     rollupOptions: {
       input: {

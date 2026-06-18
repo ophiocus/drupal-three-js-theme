@@ -1,0 +1,30 @@
+{#
+/**
+ * @file
+ * /admin/world landing page — orientation card with one entry per tab.
+ *
+ * Available variables:
+ * - tabs: array of { key, label, description, url } entries (Url
+ *   objects already resolved by the controller).
+ *
+ * Kept deliberately simple — site administrators land here and pick
+ * which role they're playing today. Each tab's real work happens
+ * downstream of its own form/controller.
+ */
+#}
+<div class="world-admin-landing" style="max-width:64rem;margin:0 auto;padding:1rem 0;">
+  <p style="opacity:0.7;max-width:42rem;margin:0 0 1.5rem;">
+    {{ 'Pick the surface you need. Each tab targets one operator role; you can switch between them at will.'|t }}
+  </p>
+  <div class="world-admin-landing__grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));gap:1rem;">
+    {% for tab in tabs %}
+      <a href="{{ tab.url }}" class="world-admin-landing__card"
+         style="display:block;padding:1.25rem 1.5rem;border:1px solid var(--color--gray-20, #d0d5dd);border-radius:0.5rem;text-decoration:none;color:inherit;background:var(--color--white, #fff);transition:border-color 160ms;"
+         onmouseover="this.style.borderColor='var(--color--primary-50, #1d4ed8)'"
+         onmouseout="this.style.borderColor='var(--color--gray-20, #d0d5dd)'">
+        <h3 style="margin:0 0 0.25rem;font-size:1.05rem;">{{ tab.label }}</h3>
+        <p style="margin:0;font-size:0.875rem;opacity:0.7;line-height:1.4;">{{ tab.description }}</p>
+      </a>
+    {% endfor %}
+  </div>
+</div>

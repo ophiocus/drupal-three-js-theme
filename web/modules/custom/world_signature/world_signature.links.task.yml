@@ -1,0 +1,26 @@
+# Local tabs along the top of /admin/world so the four role surfaces
+# read as siblings in the same workspace, not as separate admin pages.
+
+world_signature.admin.scenes_tab:
+  title: 'Scenes'
+  route_name: world_signature.admin.scenes
+  base_route: world_signature.admin.landing
+  weight: 10
+
+world_signature.admin.content_tab:
+  title: 'Content'
+  route_name: world_signature.admin.content
+  base_route: world_signature.admin.landing
+  weight: 20
+
+world_signature.admin.assets_tab:
+  title: 'Assets'
+  route_name: world_signature.admin.assets
+  base_route: world_signature.admin.landing
+  weight: 30
+
+world_signature.admin.rules_tab:
+  title: 'Rules'
+  route_name: world_signature.admin.rules
+  base_route: world_signature.admin.landing
+  weight: 40

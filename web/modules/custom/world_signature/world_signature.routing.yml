@@ -142,3 +142,49 @@ world_signature.sector:
   requirements:
     _access: 'TRUE'
     termId: '[0-9]+'
+# /admin/world routes — the four role-targeted tabs (Arc 1+).
+#
+# Kept in a separate file from world_signature.routing.yml so the
+# runtime endpoints (/world/snapshot, /world/card, /world/admin/embed)
+# remain plainly visible without the admin chrome adding noise.
+# Drupal merges all *.routing.yml files in the module directory.
+
+world_signature.admin.landing:
+  path: '/admin/world'
+  defaults:
+    _controller: '\Drupal\world_signature\Controller\AdminWorldController::landing'
+    _title: 'World'
+  requirements:
+    _permission: 'administer world signature'
+
+world_signature.admin.scenes:
+  path: '/admin/world/scenes'
+  defaults:
+    _controller: '\Drupal\world_signature\Controller\AdminWorldController::scenes'
+    _title: 'Scenes'
+  requirements:
+    _permission: 'administer world signature'
+
+world_signature.admin.content:
+  path: '/admin/world/content'
+  defaults:
+    _form: '\Drupal\world_signature\Form\AdminContentForm'
+    _title: 'Content'
+  requirements:
+    _permission: 'administer world signature'
+
+world_signature.admin.assets:
+  path: '/admin/world/assets'
+  defaults:
+    _controller: '\Drupal\world_signature\Controller\AdminWorldController::assets'
+    _title: 'Assets'
+  requirements:
+    _permission: 'administer world signature'
+
+world_signature.admin.rules:
+  path: '/admin/world/rules'
+  defaults:
+    _controller: '\Drupal\world_signature\Controller\AdminWorldController::rules'
+    _title: 'Rules'
+  requirements:
+    _permission: 'administer world signature'

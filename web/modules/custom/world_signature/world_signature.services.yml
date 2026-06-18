@@ -80,6 +80,15 @@ services:
       - '@file_url_generator'
       - '@logger.channel.world_signature'
 
+  # Read-only snapshot of the embedding pipeline's state.
+  # Backs the /admin/world/content banner + the transparency drawer.
+  world_signature.embedding_freshness:
+    class: Drupal\world_signature\Service\EmbeddingFreshness
+    arguments:
+      - '@entity_type.manager'
+      - '@plugin.manager.world_signature.metaphor'
+      - '@state'
+
   # ─── BETA 2: embedding-driven semantic layout ──────────────────
   # Local TF-IDF provider — dependency-free, deterministic, no keys.
   # The dev/demo embedder; produces lexical-proximity vectors.

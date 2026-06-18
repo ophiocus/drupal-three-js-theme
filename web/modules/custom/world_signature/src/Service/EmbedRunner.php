@@ -186,6 +186,170 @@ final class EmbedRunner {
     ];
   }
 
+  // ─── Batch-driven API ─────────────────────────────────────────────────
+  // Three public methods that mirror the phases inside run(), so a
+  // Drupal Batch can drive the pipeline with progress + cancel + the
+  // session not timing out. The corpus-wide IDF stays consistent
+  // because prepare() embeds the FULL corpus in one shot; writeOne()
+  // just spends the prepared vector against a single descriptor;
+  // finalize() runs the anchor-axis pass + bookkeeping.
+
+  /**
+   * Phase 1 + 2: gather entities + embed the whole corpus once. The
+   * returned payload is JSON-serialisable so a Drupal batch can stash
+   * it in `$context['results']` across operations.
+   *
+   * `descriptors` is the ordered list of ids to drive `writeOne` over;
+   * the caller can also filter it to a subset (delta — only re-write
+   * the entities flagged pending) before iterating.
+   *
+   * @return array{
+   *   work: array<string, array{entityType: string, entityId: string}>,
+   *   vectors: array<string, float[]>,
+   *   descriptors: array<int, string>,
+   *   modelVersion: string,
+   *   dimensions: int,
+   *   embeddedAt: int,
+   * }
+   */
+  public function prepareBatchContext(): array {
+    $participating = $this->collectParticipatingBundles();
+    if ($participating === []) {
+      throw new \RuntimeException('No metaphor plugins registered. Nothing to embed.');
+    }
+
+    $corpus = [];
+    $work = [];
+    foreach ($participating as $entityType => $bundles) {
+      $storage = $this->entityTypeManager->getStorage($entityType);
+      $query = $storage->getQuery()->accessCheck(FALSE);
+      $bundleKey = $this->entityTypeManager->getDefinition($entityType)->getKey('bundle');
+      if ($bundleKey) {
+        $query->condition($bundleKey, $bundles, 'IN');
+      }
+      foreach ($query->execute() as $id) {
+        $entity = $storage->load($id);
+        if ($entity === NULL) {
+          continue;
+        }
+        $facts = $this->factsReader->read($entity);
+        if ($facts === NULL) {
+          continue;
+        }
+        $descriptorId = $this->descriptorBuilder->descriptorId($entityType, (string) $id);
+        $corpus[$descriptorId] = $this->descriptorBuilder->embeddingText($entity, $facts);
+        // Stash the lightweight identification only — full entity +
+        // facts are re-loaded inside writeOne so the batch context
+        // stays small enough to serialise across requests.
+        $work[$descriptorId] = [
+          'entityType' => $entityType,
+          'entityId' => (string) $id,
+        ];
+      }
+    }
+
+    if ($corpus === []) {
+      throw new \RuntimeException('Corpus is empty. Nothing to embed.');
+    }
+
+    $result = $this->embeddingManager->embedCorpus($corpus);
+    return [
+      'work' => $work,
+      'vectors' => $result['vectors'],
+      'descriptors' => array_keys($work),
+      'modelVersion' => $result['modelVersion'],
+      'dimensions' => $result['dimensions'],
+      'embeddedAt' => time(),
+    ];
+  }
+
+  /**
+   * Phase 3 — write a single descriptor's signature + upsert to the
+   * gateway. Reloads the entity from the batch context's bare ids so
+   * the cross-request serialisation cost stays small.
+   *
+   * Returns TRUE on success, FALSE on no-vector or thrown error
+   * (logged). Caller increments its own written/error counters.
+   */
+  public function writeOneFromContext(array $context, string $descriptorId): bool {
+    $w = $context['work'][$descriptorId] ?? NULL;
+    $vector = $context['vectors'][$descriptorId] ?? NULL;
+    if (!is_array($w) || !is_array($vector) || $vector === []) {
+      return FALSE;
+    }
+    try {
+      $storage = $this->entityTypeManager->getStorage($w['entityType']);
+      $entity = $storage->load($w['entityId']);
+      if ($entity === NULL) {
+        return FALSE;
+      }
+      $facts = $this->factsReader->read($entity);
+      if ($facts === NULL) {
+        return FALSE;
+      }
+      $base = $this->extractor->extract($facts);
+      $semantic = new SignatureSemantic(
+        embedding: $vector,
+        modelVersion: $context['modelVersion'],
+        embeddedAt: $context['embeddedAt'],
+        semanticHash: $base->semantic->semanticHash,
+      );
+      $signature = new Signature(
+        $base->structural,
+        $base->temporal,
+        $base->relational,
+        $semantic,
+      );
+      $this->writer->write($entity, $signature);
+      $pluginId = sprintf('%s:%s', $w['entityType'], $entity->bundle());
+      $metaphor = $this->metaphorManager->createInstance($pluginId);
+      $descriptor = $this->descriptorBuilder->build($entity, $facts, $signature, $metaphor);
+      $this->searchClient->upsert($descriptor);
+      return TRUE;
+    }
+    catch (\Throwable $e) {
+      $this->logger->error(sprintf('%s embed failed: %s', $descriptorId, $e->getMessage()));
+      return FALSE;
+    }
+  }
+
+  /**
+   * Phase 4 + bookkeeping. Runs the anchor-axis pass, stamps State,
+   * busts the snapshot cache. Returns the same shape `run()` returns
+   * so the batch's finished callback can flash the same summary.
+   *
+   * @return array{
+   *   embedded: int,
+   *   errors: int,
+   *   modelVersion: string,
+   *   dimensions: int,
+   *   embeddedAt: int,
+   * }
+   */
+  public function finalizeBatch(array $context, int $written, int $errors): array {
+    $modelVersion = $context['modelVersion'];
+    $embeddedAt = $context['embeddedAt'];
+    $dimensions = $context['dimensions'];
+    $axesByAtmosphere = $this->embedAnchorAxes($modelVersion, $embeddedAt);
+    $this->state->set('world_signature.last_embed', [
+      'at' => $embeddedAt,
+      'modelVersion' => $modelVersion,
+      'dimensions' => $dimensions,
+      'embedded' => $written,
+    ]);
+    if ($axesByAtmosphere !== []) {
+      $this->state->set(self::STATE_INTERPRETATION_AXES, $axesByAtmosphere);
+    }
+    Cache::invalidateTags(['world_signature:embed']);
+    return [
+      'embedded' => $written,
+      'errors' => $errors,
+      'modelVersion' => $modelVersion,
+      'dimensions' => $dimensions,
+      'embeddedAt' => $embeddedAt,
+    ];
+  }
+
   /**
    * For every atmosphere whose interpretation profile uses
    * `anchors` (or `hybrid`), embed each axis's two prose poles,

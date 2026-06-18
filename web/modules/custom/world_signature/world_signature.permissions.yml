@@ -13,3 +13,12 @@
   title: 'Edit world signature (re-embed, stage placements, world rules)'
   description: 'Grants access to the in-canvas Stage editor''s admin actions (re-embed corpus; later: save stage placements, world config, interpretation profile). Distinct from "administer site" — editors should hold this.'
   restrict access: false
+
+# `/admin/world` and its four tabs (Scenes / Content / Assets / Rules).
+# Site-administrator scope: changes the renderer's structural surface
+# (scene definitions, embedding pipeline, asset catalog, mapping rules)
+# rather than just placing or re-embedding content.
+'administer world signature':
+  title: 'Administer World (admin landing, embeddings, assets, rules)'
+  description: 'Grants access to the /admin/world landing and its tabs. Site-administrator scope — changes affect every visitor''s view of the world.'
+  restrict access: true

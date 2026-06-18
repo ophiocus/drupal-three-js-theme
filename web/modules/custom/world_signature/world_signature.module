@@ -49,15 +49,25 @@ function world_signature_entity_insert(EntityInterface $entity): void {
 /**
  * Implements hook_entity_update().
  *
- * Skip the re-entry case — when SignatureWriter saves the entity
- * to persist `field_world_signature`, hook_entity_update fires
- * again. The static guard prevents an infinite loop.
+ * Two side effects, both gated on the SignatureWriter re-entry guard
+ * so they don't fire during the writer's own entity save:
+ *
+ * 1. Enqueue an extract_signature job — async signature refresh.
+ * 2. Mark the entity dirty in EmbeddingFreshness when its computed
+ *    embeddingText would produce a different semanticHash than the
+ *    currently-stored one. This is the auto-stale signal the Content
+ *    tab's banner counts under "Pending" — the operator never has to
+ *    discover which nodes need re-embedding.
+ *
+ * No-op for entities whose bundle has no metaphor (the cheap
+ * registry check inside _world_signature_enqueue gates step 1 too).
  */
 function world_signature_entity_update(EntityInterface $entity): void {
   if (SignatureWriter::$writing) {
     return;
   }
   _world_signature_enqueue($entity, 'update');
+  _world_signature_flag_dirty_if_text_changed($entity);
 }
 
 /**
@@ -95,4 +105,102 @@ function _world_signature_enqueue(EntityInterface $entity, string $op): void {
     'enqueued_at' => \Drupal::time()->getRequestTime(),
   ]);
   $queue->enqueueJob($job);
+}
+
+/**
+ * Compare the entity's new embeddingText against the existing
+ * signature's semanticHash; flag dirty when they differ. Cheap —
+ * one entity load (the caller already has the entity), one facts
+ * read, one descriptor.embeddingText computation, one sha-256.
+ */
+function _world_signature_flag_dirty_if_text_changed(EntityInterface $entity): void {
+  if (!$entity->hasField('field_world_signature')) {
+    return;
+  }
+  $manager = \Drupal::service('plugin.manager.world_signature.metaphor');
+  $pluginId = sprintf('%s:%s', $entity->getEntityTypeId(), $entity->bundle());
+  if (!$manager->hasDefinition($pluginId)) {
+    return;
+  }
+  $factsReader = \Drupal::service('world_signature.entity_facts_reader');
+  $facts = $factsReader->read($entity);
+  if ($facts === NULL) {
+    return;
+  }
+  // Compute the same semanticHash SignatureExtractor would, without
+  // running the full extractor. The hash is the hash of the
+  // embeddingText that DescriptorBuilder feeds the embedder.
+  $builder = \Drupal::service('world_signature.descriptor_builder');
+  $newText = $builder->embeddingText($entity, $facts);
+  $newHash = hash('sha256', $newText);
+
+  // Existing semanticHash, if any.
+  $sigField = $entity->get('field_world_signature');
+  if ($sigField->isEmpty()) {
+    // No prior signature — extractor will populate; not "dirty" in
+    // the auto-stale sense (it'll show up as "missing" instead).
+    return;
+  }
+  $decoded = json_decode((string) $sigField->value, TRUE);
+  $oldHash = $decoded['semantic']['semanticHash'] ?? NULL;
+  $existingEmb = $decoded['semantic']['embedding'] ?? NULL;
+  $hasExistingEmb = is_array($existingEmb) && count($existingEmb) > 0;
+
+  // Only flag dirty if there IS an embedding to invalidate AND the
+  // text changed. Without an embedding, the entity already shows as
+  // missing — no need to double-count it as dirty.
+  if ($hasExistingEmb && $oldHash !== $newHash) {
+    \Drupal::service('world_signature.embedding_freshness')
+      ->markDirty($entity->getEntityTypeId(), (string) $entity->id());
+  }
+}
+
+/**
+ * Implements hook_library_info_alter().
+ *
+ * Cache-bust the `world` library's bundle URL automatically by
+ * computing a content hash of js/world.bundle.js and using it as
+ * the version string. Drupal renders this as `?v=<hash>`. The hash
+ * changes only when the bundle content actually changes, so
+ * browsers refetch exactly when they need to and never when they
+ * don't.
+ *
+ * Replaces the v0.2.x "remember to bump libraries.yml version"
+ * manual discipline. (Same logic that used to live in
+ * drupal_threejs.theme — moved here when the bundle moved into the
+ * module for the contrib shape.)
+ *
+ * Falls back to libraries.yml's `version:` value if the bundle
+ * doesn't exist yet (fresh install pre-build).
+ */
+function world_signature_library_info_alter(array &$libraries, string $extension): void {
+  if ($extension !== 'world_signature' || !isset($libraries['world'])) {
+    return;
+  }
+  $module_path = \Drupal::service('extension.list.module')->getPath('world_signature');
+  $bundle_path = DRUPAL_ROOT . '/' . $module_path . '/js/world.bundle.js';
+  if (!is_readable($bundle_path)) {
+    return;
+  }
+  $hash = @md5_file($bundle_path);
+  if ($hash === FALSE) {
+    return;
+  }
+  $libraries['world']['version'] = '1.0.x.' . substr($hash, 0, 12);
+}
+
+/**
+ * Implements hook_theme().
+ *
+ * Templates for the /admin/world surface live under
+ * `templates/admin/`. Other module templates register here as
+ * they're added.
+ */
+function world_signature_theme(array $existing, string $type, string $theme, string $path): array {
+  return [
+    'world_admin_landing' => [
+      'variables' => ['tabs' => []],
+      'template' => 'admin/world-admin-landing',
+    ],
+  ];
 }

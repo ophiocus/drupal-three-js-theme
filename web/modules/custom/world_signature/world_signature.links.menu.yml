@@ -1,0 +1,33 @@
+# Top-level "World" entry under /admin, plus four child tabs.
+# Sites can re-arrange in the menu UI; this is the default position.
+
+world_signature.admin.landing:
+  title: 'World'
+  description: 'Scenes, content embeddings, assets and rules for the 3D world renderer.'
+  route_name: world_signature.admin.landing
+  parent: system.admin
+  weight: 50
+
+world_signature.admin.scenes:
+  title: 'Scenes'
+  parent: world_signature.admin.landing
+  route_name: world_signature.admin.scenes
+  weight: 10
+
+world_signature.admin.content:
+  title: 'Content'
+  parent: world_signature.admin.landing
+  route_name: world_signature.admin.content
+  weight: 20
+
+world_signature.admin.assets:
+  title: 'Assets'
+  parent: world_signature.admin.landing
+  route_name: world_signature.admin.assets
+  weight: 30
+
+world_signature.admin.rules:
+  title: 'Rules'
+  parent: world_signature.admin.landing
+  route_name: world_signature.admin.rules
+  weight: 40

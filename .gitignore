@@ -3,6 +3,10 @@ node_modules/
 dist/
 .vite/
 coverage/
+# Renderer bundle built into the module's js/ — release tarballs
+# ship it pre-built; local dev rebuilds overwrite these.
+/web/modules/custom/world_signature/js/world.bundle.js
+/web/modules/custom/world_signature/js/world.bundle.js.map
 
 # PHPUnit cache
 .phpunit.cache/
