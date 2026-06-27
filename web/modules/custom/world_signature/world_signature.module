@@ -173,6 +173,26 @@ function _world_signature_flag_dirty_if_text_changed(EntityInterface $entity): v
  * Falls back to libraries.yml's `version:` value if the bundle
  * doesn't exist yet (fresh install pre-build).
  */
+/**
+ * Implements hook_page_attachments_alter().
+ *
+ * One-shot front-page first-visit hint, fired by the onboarding
+ * wizard via the `world_signature.first_visit_pending` State flag.
+ * When set, this hook injects a drupalSettings boolean the renderer
+ * reads on boot to display a welcome overlay; the flag is then
+ * cleared so a refresh or a second visit doesn't re-trigger.
+ * Operators can re-arm the overlay later from the Scenes tab
+ * (future).
+ */
+function world_signature_page_attachments_alter(array &$attachments): void {
+  $state = \Drupal::state();
+  if (!$state->get('world_signature.first_visit_pending')) {
+    return;
+  }
+  $attachments['#attached']['drupalSettings']['worldSignature']['firstVisit'] = TRUE;
+  $state->delete('world_signature.first_visit_pending');
+}
+
 function world_signature_library_info_alter(array &$libraries, string $extension): void {
   if ($extension !== 'world_signature' || !isset($libraries['world'])) {
     return;
@@ -199,7 +219,7 @@ function world_signature_library_info_alter(array &$libraries, string $extension
 function world_signature_theme(array $existing, string $type, string $theme, string $path): array {
   return [
     'world_admin_landing' => [
-      'variables' => ['tabs' => []],
+      'variables' => ['tabs' => [], 'banner' => NULL],
       'template' => 'admin/world-admin-landing',
     ],
   ];

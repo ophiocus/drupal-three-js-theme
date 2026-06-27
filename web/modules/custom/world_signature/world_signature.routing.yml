@@ -157,6 +157,22 @@ world_signature.admin.landing:
   requirements:
     _permission: 'administer world signature'
 
+world_signature.admin.onboarding:
+  path: '/admin/world/onboarding'
+  defaults:
+    _form: '\Drupal\world_signature\Form\OnboardingForm'
+    _title: 'Set up your world'
+  requirements:
+    _permission: 'administer world signature'
+
+world_signature.admin.dismiss_banner:
+  path: '/admin/world/dismiss-banner'
+  defaults:
+    _controller: '\Drupal\world_signature\Controller\AdminWorldController::dismissBanner'
+  requirements:
+    _permission: 'administer world signature'
+    _csrf_token: 'TRUE'
+
 world_signature.admin.scenes:
   path: '/admin/world/scenes'
   defaults:

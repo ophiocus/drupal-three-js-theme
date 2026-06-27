@@ -89,6 +89,18 @@ services:
       - '@plugin.manager.world_signature.metaphor'
       - '@state'
 
+  # Demo corpus installer — reads demo_content/corpus.yml, creates
+  # taxonomy terms + nodes, triggers an embed pass. Called by the
+  # first-run wizard's batch step (and by a future drush command).
+  world_signature.demo_content_installer:
+    class: Drupal\world_signature\Service\DemoContentInstaller
+    arguments:
+      - '@entity_type.manager'
+      - '@config.factory'
+      - '@world_signature.embed_runner'
+      - '@extension.list.module'
+      - '@logger.channel.world_signature'
+
   # ─── BETA 2: embedding-driven semantic layout ──────────────────
   # Local TF-IDF provider — dependency-free, deterministic, no keys.
   # The dev/demo embedder; produces lexical-proximity vectors.

@@ -4,6 +4,7 @@
 // which the theme's libraries.yml ships to the browser.
 
 import { SceneManager } from "./world/runtime/SceneManager.js";
+import { maybeShowFirstVisitOverlay } from "./world/runtime/hud/FirstVisitOverlay.js";
 
 async function boot(): Promise<void> {
   const canvas = document.querySelector<HTMLCanvasElement>(
@@ -31,6 +32,11 @@ async function boot(): Promise<void> {
   } catch (error) {
     console.error("[world] mount failed:", error);
   }
+
+  // First-visit overlay — only mounts when the onboarding wizard
+  // flagged it via drupalSettings AND localStorage hasn't seen it.
+  // Idempotent and gated; safe to call unconditionally.
+  maybeShowFirstVisitOverlay();
 
   // Expose for debugging at the JS console while we're in ALPHA.
   // Removed in v0.0.2 once Vantage + Card runtime own URL routing.

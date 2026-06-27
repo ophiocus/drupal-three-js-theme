@@ -6,6 +6,7 @@ namespace Drupal\world_signature\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Url;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 
 /**
  * `/admin/world` — the operator landing for the four role-targeted tabs.
@@ -28,12 +29,52 @@ use Drupal\Core\Url;
  */
 final class AdminWorldController extends ControllerBase {
 
-  /** Landing — one-line orientation + a card per tab. */
-  public function landing(): array {
+  /**
+   * Landing — first-run wizard redirect or the orientation card grid.
+   *
+   * First-run detection: onboarding hasn't been marked complete in
+   * State (`world_signature.onboarding_completed_at` unset). Sends
+   * the operator straight to `/admin/world/onboarding`. After the
+   * wizard runs once, this path renders the standard four-card
+   * landing, optionally with a "Looking good — try these next"
+   * customization banner across the top (dismissable).
+   */
+  public function landing(): array|RedirectResponse {
+    $state = \Drupal::state();
+    if (!$state->get('world_signature.onboarding_completed_at')) {
+      return new RedirectResponse(Url::fromRoute('world_signature.admin.onboarding')->toString());
+    }
     return [
       '#theme' => 'world_admin_landing',
       '#tabs' => self::tabSummaries(),
+      '#banner' => $this->buildCustomizationBanner($state),
       '#cache' => ['max-age' => 0],
+    ];
+  }
+
+  /** Dismiss the customization banner — flag + redirect back. */
+  public function dismissBanner(): RedirectResponse {
+    \Drupal::state()->set('world_signature.onboarding_banner_dismissed', TRUE);
+    return new RedirectResponse(Url::fromRoute('world_signature.admin.landing')->toString());
+  }
+
+  /**
+   * Build the post-onboarding customization banner. Returns NULL when
+   * the operator has dismissed it, so the template can render only the
+   * orientation grid in steady state.
+   */
+  private function buildCustomizationBanner(\Drupal\Core\State\StateInterface $state): ?array {
+    if ($state->get('world_signature.onboarding_banner_dismissed')) {
+      return NULL;
+    }
+    return [
+      'message' => $this->t('Setup complete. Tune the world from any of the surfaces below.'),
+      'ctas' => [
+        ['label' => $this->t('Upload custom 3D models'), 'url' => Url::fromRoute('world_signature.admin.assets')],
+        ['label' => $this->t('Customize how content maps to scene'), 'url' => Url::fromRoute('world_signature.admin.rules')],
+        ['label' => $this->t('Author a new scene'), 'url' => Url::fromRoute('world_signature.admin.scenes')],
+      ],
+      'dismiss_url' => Url::fromRoute('world_signature.admin.dismiss_banner'),
     ];
   }
 

@@ -1,0 +1,244 @@
+# Demo corpus for the World Signature first-run wizard.
+#
+# Five topic terms + 12 articles + 6 profiles + 4 events. Texts are
+# topic-distinctive so the TF-IDF embedder produces visible clusters
+# in the inner-mind atmosphere. Profiles bridge two topics so the
+# constellation isn't perfectly partitioned — readable mental model:
+# clusters that touch, not isolated islands.
+#
+# Imported by Drupal\world_signature\Service\DemoContentInstaller.
+# After import the installer triggers an embed pass so signatures
+# carry vectors from the first front-page render.
+
+topics:
+  - slug: art
+    name: Art
+  - slug: science
+    name: Science
+  - slug: philosophy
+    name: Philosophy
+  - slug: technology
+    name: Technology
+  - slug: society
+    name: Society
+
+articles:
+  # Art (3)
+  - topic: art
+    title: "The Persistence of Light: How Composition Shapes Memory"
+    body: |
+      Painters spend their careers wrestling with a paradox: every brushstroke is
+      finite, yet the experience they evoke must feel inexhaustible. The structures
+      most likely to persist in memory are not the most ornate but the most
+      compositionally resolved — those whose internal proportions reach a stable
+      balance the viewer's eye keeps returning to. The pull of a Vermeer interior
+      is not in its surface detail but in its containment: a window, a wall, a
+      figure arranged so the gaze cannot fall idle. Memory borrows that geometry.
+
+  - topic: art
+    title: "Sculpture in the Age of Digital Form"
+    body: |
+      Three-dimensional thinking has migrated from clay studios to procedural
+      pipelines. The sculptor of 2026 alternates between physical maquette and
+      generative mesh, treating each as a draft of the other. What this shift has
+      done to material intuition remains open: a generation trained on subtractive
+      stone-carving understands negative space differently from one trained on
+      additive Boolean union. Yet the discipline's core question — when does form
+      become inevitable? — survives the medium.
+
+  - topic: art
+    title: "On the Limits of Abstraction"
+    body: |
+      Color, line, and composition reach a threshold beyond which they cease to
+      invite interpretation. The abstract canvas that succeeds is one whose
+      ambiguity points; the one that fails is one whose ambiguity hides. Mark
+      Rothko understood the distinction. So did Agnes Martin. The strict grid and
+      the wash of pigment occupy the same conceptual room: a refusal of narrative
+      so total it forces the viewer back onto the experience of looking itself.
+
+  # Science (3)
+  - topic: science
+    title: "Patterns Hidden in Statistical Noise"
+    body: |
+      Every experiment lives downstream of an inference: which fluctuations matter,
+      which do not. A century of statistical methodology has refined the question
+      but not dissolved it. The discovery of the cosmic microwave background was
+      initially mistaken for pigeon droppings on an antenna; the gravitational-wave
+      signal at LIGO emerges only when correlated noise across two detectors falls
+      to vanishing probability. Pattern recognition under uncertainty remains the
+      practitioner's hardest craft.
+
+  - topic: science
+    title: "The Measurement Problem Revisited"
+    body: |
+      A century after quantum mechanics formalised observer-dependence, the
+      question of what counts as a measurement remains unresolved. Decoherence
+      theory explains how quantum superposition appears to collapse without
+      invoking conscious observation, but the threshold between a quantum system
+      and its classical environment shifts with the apparatus. Each new precision
+      experiment redraws the line.
+
+  - topic: science
+    title: "Climate Models and the Bounds of Prediction"
+    body: |
+      Long-range forecasts trade granularity for confidence. A century-out
+      temperature projection carries error bars wider than the predicted change
+      itself; a five-year regional forecast inverts the ratio. The art of climate
+      modelling is choosing which ensemble of physical assumptions to commit to,
+      knowing that no single run captures the system's full dynamics.
+
+  # Philosophy (2)
+  - topic: philosophy
+    title: "Time, Memory, and the Self"
+    body: |
+      Personal identity is not a static substance but a continuity of remembered
+      experience. Locke argued the point three centuries ago; cognitive science
+      now traces its biological substrate in hippocampal indexing. What persists
+      between the self of yesterday and the self of tomorrow is neither the body
+      nor the soul but a thread of remembered context — and that thread is
+      thinner, more reconstructive, than introspection suggests.
+
+  - topic: philosophy
+    title: "On the Possibility of Universal Ethics"
+    body: |
+      Can moral claims travel between cultures without reducing to consensus? The
+      twentieth century's argument between universalists and relativists never
+      fully resolved. What progress there has been comes not from finding shared
+      principles but from refining the conditions under which competing principles
+      can coexist. The pluralist position concedes the question and asks a better
+      one: what institutional designs make moral disagreement productive?
+
+  # Technology (2)
+  - topic: technology
+    title: "The Cost of Abstraction in Software Systems"
+    body: |
+      Every layer of indirection trades clarity for portability. The web stack
+      that lets a developer ignore hardware also denies them the leverage to
+      respond to it; the framework that smooths a thousand decisions hides the
+      thousand-and-first. The mature engineer learns to read the cost ledger of
+      each abstraction in advance, accepting the trade only when its benefits
+      justify the obscured machinery beneath.
+
+  - topic: technology
+    title: "Algorithmic Curation and the Erosion of Surprise"
+    body: |
+      Recommendation engines optimise for engagement. Engagement maps to
+      predictability; predictability maps to a narrower content distribution per
+      user over time. The visible consequence is filter bubbles. The invisible
+      consequence is a slow loss of the capacity for surprise — the cognitive
+      training that came from accidental encounter with the unfamiliar, now
+      systematically routed around.
+
+  # Society (2)
+  - topic: society
+    title: "Cities as Living Networks"
+    body: |
+      Urban form emerges from millions of small decisions: where a shopkeeper
+      hangs a sign, where a pedestrian crosses against the light, where a
+      planning ordinance bends to a developer's request. The aggregate is
+      neither designed nor accidental but evolved. The healthiest cities are
+      those whose evolutionary pressures stay distributed across many actors
+      rather than collapsed into a few.
+
+  - topic: society
+    title: "The Decline of Civic Memory"
+    body: |
+      Public spaces once carried inscriptions, statues, plaques that anchored
+      shared history. The twentieth century replaced many of them with abstract
+      sculpture and corporate plaza furniture; the twenty-first added screens.
+      What has been lost is not the past itself but the daily, ambient reminder
+      that the past existed and that decisions made in it shape the present.
+      Civic memory needs surfaces to live on.
+
+profiles:
+  - title: "Maya Chen"
+    body: |
+      Curator and writer based in Lisbon. Her work focuses on the intersection of
+      contemporary painting and the recent history of abstraction, with essays
+      published in Frieze, ArtForum, and The Burlington Magazine. Chen co-edited
+      the 2024 anthology "Pigment as Argument" and is presently preparing a
+      monograph on the late work of Helen Frankenthaler.
+    themes: [art]
+
+  - title: "Dr. Rafael Ortiz"
+    body: |
+      Experimental physicist and author. His research focuses on precision tests
+      of fundamental symmetries, with results published in Physical Review Letters
+      and Nature. Ortiz's popular essays — collected in "The Edge of Inference"
+      (2023) — argue for a renewed dialogue between working scientists and the
+      philosophical community on the foundations of measurement.
+    themes: [science]
+
+  - title: "Helena Voss"
+    body: |
+      Philosopher of mind, Vienna. Voss's work treats personal identity as a
+      continuity-of-narrative problem rather than a substance question. Her
+      monograph "Threads of Remembered Selves" (2022) drew on three decades of
+      teaching at the University of Vienna and remains in print across five
+      languages. Visiting fellow at the École Normale Supérieure 2024-2025.
+    themes: [philosophy]
+
+  - title: "Asad Karim"
+    body: |
+      Software engineer and essayist. After two decades building distributed
+      systems at scale, Karim turned to writing about the discipline's lived
+      practice. His blog, The Inflection, has accumulated an unusual readership
+      of both senior engineers and humanities scholars. The collected volume
+      "Programming as a Liberal Art" (2025) gathers his most-circulated essays.
+    themes: [technology]
+
+  - title: "Imani Owens"
+    body: |
+      Urban historian, Detroit. Owens's research traces how mid-century planning
+      decisions still shape lived experience in American cities decades later.
+      Her book "Streets That Remember" (2024) won the Bancroft Prize for its
+      braided treatment of policy and oral history. She directs the Civic Memory
+      Project at the Detroit Public Library.
+    themes: [society]
+
+  - title: "Dr. Lin Wei"
+    body: |
+      Cognitive scientist and philosopher, working at the boundary between
+      neuroscience and the philosophy of mind. Lin's lab at Tsinghua University
+      has produced influential work on the neural correlates of autobiographical
+      memory; his philosophical writing on what those findings mean — most
+      recently the essay "The Self in Plural Time" (2024) — circulates as widely
+      among philosophers as neuroscientists.
+    themes: [science, philosophy]
+
+events:
+  - topic: art
+    title: "Annual Symposium on Visual Form"
+    body: |
+      Three-day gathering of practitioners and scholars working at the boundary
+      of painting, sculpture, and procedural form. Programme includes panels on
+      composition theory, generative-pipeline ethics, and the curatorial
+      treatment of digital-first work. Hosted at the Pinacoteca Comunale; open
+      to the public on the closing afternoon.
+
+  - topic: science
+    title: "The Future of Inference: A Workshop on Bayesian Methods"
+    body: |
+      Two-day technical workshop on contemporary Bayesian statistical methods,
+      with emphasis on hierarchical modelling under sparse data. Aimed at
+      working researchers in the natural and social sciences. Sessions include
+      hands-on labs in PyMC and Stan alongside theoretical talks on prior
+      construction and model checking.
+
+  - topic: philosophy
+    title: "The Great Questions: Open Lectures on Personal Identity"
+    body: |
+      A four-evening public lecture series on the philosophy of personal
+      identity, drawing speakers from Vienna, Oxford, and Tsinghua. Topics
+      range from the classical Lockean memory criterion through contemporary
+      narrative theories to the implications of recent cognitive neuroscience.
+      Free admission; lecture transcripts published quarterly.
+
+  - topic: society
+    title: "State of the Civic Commons: A Forum"
+    body: |
+      Annual forum on the health of public space in mid-sized American cities.
+      Brings together planners, journalists, civic-tech practitioners, and
+      community organisers for two days of structured dialogue. Forum
+      proceedings are published as the Civic Commons Review; the 2026 edition
+      focuses on how data-driven urban governance reshapes public-square use.
