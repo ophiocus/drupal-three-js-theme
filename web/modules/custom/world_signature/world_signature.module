@@ -19,6 +19,7 @@ declare(strict_types=1);
 use Drupal\advancedqueue\Entity\Queue;
 use Drupal\advancedqueue\Job;
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\world_signature\Service\SignatureWriter;
 
 /**
@@ -114,7 +115,11 @@ function _world_signature_enqueue(EntityInterface $entity, string $op): void {
  * read, one descriptor.embeddingText computation, one sha-256.
  */
 function _world_signature_flag_dirty_if_text_changed(EntityInterface $entity): void {
-  if (!$entity->hasField('field_world_signature')) {
+  // hook_entity_update fires for config entities too (EntityViewDisplay,
+  // EntityFormDisplay, etc., saved during module installs and field
+  // additions). Those don't have hasField(); guard before touching it.
+  if (!$entity instanceof FieldableEntityInterface
+    || !$entity->hasField('field_world_signature')) {
     return;
   }
   $manager = \Drupal::service('plugin.manager.world_signature.metaphor');
