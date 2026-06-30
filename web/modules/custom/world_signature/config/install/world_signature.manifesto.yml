@@ -151,6 +151,39 @@ component_types:
       - chat_bubble
       - placard
 
+  camera_pose:
+    label: 'Camera pose'
+    description: 'A vantage in the world — position, look-at, lens fov, dwell time, plus the transition easing the camera takes to arrive. Origin: the legacy VirtuaBooth camera-pose system, ported into shared vocabulary so any property can author cinematic moves without code.'
+    value_schema:
+      type: mapping
+      keys:
+        position: 'sequence<float, 3> — world-space [x,y,z]'
+        look_at: 'sequence<float, 3> — world-space [x,y,z] target'
+        fov: 'float — vertical field of view in degrees'
+        dwell_ms: 'integer — how long the camera holds this pose before yielding to user navigation'
+        transition: 'mapping<easing: string, duration_ms: integer>'
+    examples:
+      - establishing
+      - close_up
+      - over_shoulder
+      - configurator
+
+  composite_lane:
+    label: 'Composite lane'
+    description: 'One lane of a multi-lane action composite — a (target_item, target_slot, offset_ms) tuple that says "when this composite fires, trigger that named slot on that item, offset N ms from the composite''s zero time." A metaphor.world.shot composes N lanes to choreograph camera + part animations + light cues + sound in parallel.'
+    value_schema:
+      type: mapping
+      keys:
+        target_item: 'string — id of a manifesto item_type instance (e.g. commerce.product.rpi5)'
+        target_slot: 'string — name of a slot on that item (e.g. configurator_open, idle)'
+        offset_ms: 'integer — start time relative to composite zero'
+        duration_ms: 'integer — override the slot''s native duration (0 = use slot default)'
+    examples:
+      - camera_dolly_in
+      - fan_whir_up
+      - case_lid_close
+      - rim_light_flare
+
 
 # ─── Item types ─────────────────────────────────────────────────────
 # Kinds of things the world contains. Each declares which component
@@ -271,6 +304,19 @@ item_types:
       - { type: html_surface, name: spec_sheet }
       - { type: trigger_event, name: vantage }
       - { type: trigger_event, name: configurator_open }
+    status: planned
+
+  - id: 'metaphor.world.shot'
+    label: 'World shot (cinematic composite)'
+    description: 'A named cinematic moment in the world: one camera_pose + N composite_lanes + optional sound cue + a trigger that fires it. Replaces ad-hoc per-property camera/animation orchestration (originally hard-coded in the legacy VirtuaBooth IIFE engine) with manifesto-authored composites. A property authors shots via config; the renderer reads them from the snapshot and choreographs at runtime.'
+    instance_cardinality: per-instance
+    config_object: 'world_signature.shot.{instanceId}'
+    components:
+      - { type: camera_pose, name: pose }
+      - { type: composite_lane, name: lane }
+      - { type: sound_slot, name: cue }
+      - { type: trigger_event, name: enter }
+      - { type: trigger_event, name: exit }
     status: planned
 
   - id: 'metaphor.commerce.configurable_item'

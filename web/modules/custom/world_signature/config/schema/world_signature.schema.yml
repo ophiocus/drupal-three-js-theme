@@ -376,6 +376,84 @@ world_signature.commerce.product.*:
       sequence:
         type: string
 
+world_signature.shot.*:
+  type: config_object
+  label: 'World shot (cinematic composite) instance'
+  mapping:
+    label:
+      type: label
+      label: 'Human-readable label for this shot'
+    pose:
+      type: mapping
+      label: 'Camera pose the shot vantages to'
+      mapping:
+        position:
+          type: sequence
+          label: 'World-space [x,y,z]'
+          sequence:
+            type: float
+        look_at:
+          type: sequence
+          label: 'World-space [x,y,z] target'
+          sequence:
+            type: float
+        fov:
+          type: float
+          label: 'Vertical field of view in degrees'
+        dwell_ms:
+          type: integer
+          label: 'How long the camera holds this pose before yielding (0 = no auto-yield)'
+        transition:
+          type: mapping
+          label: 'Easing the camera takes to arrive'
+          mapping:
+            easing:
+              type: string
+              label: 'linear | ease-in | ease-out | ease-in-out | spring'
+            duration_ms:
+              type: integer
+              label: 'Transition duration'
+    lanes:
+      type: sequence
+      label: 'Ordered composite lanes that fire when the shot is entered'
+      sequence:
+        type: mapping
+        mapping:
+          target_item:
+            type: string
+            label: 'Id of a manifesto item_type instance (e.g. commerce.product.rpi5)'
+          target_slot:
+            type: string
+            label: 'Name of a slot on that item (animation_slot, sound_slot, light_emitter, ...)'
+          offset_ms:
+            type: integer
+            label: 'Start time relative to composite zero'
+          duration_ms:
+            type: integer
+            label: 'Override the slot native duration (0 = use slot default)'
+    cue:
+      type: mapping
+      label: 'Optional sound cue at composite zero'
+      mapping:
+        source:
+          type: string
+        volume:
+          type: float
+        loop:
+          type: boolean
+        spatial:
+          type: boolean
+    triggers:
+      type: mapping
+      label: 'How the shot is fired and ended'
+      mapping:
+        enter:
+          type: string
+          label: 'Event source (user_click | proximity | vantage | search-match | schedule)'
+        exit:
+          type: string
+          label: 'Event source for ending the shot early (user_navigate | escape | timeout)'
+
 world_signature.commerce.configurable_item.*:
   type: config_object
   label: 'Commerce configurable item instance'
