@@ -184,6 +184,22 @@ component_types:
       - case_lid_close
       - rim_light_flare
 
+  binding_slot:
+    label: 'Field binding'
+    description: 'Wires a sibling slot to a live Drupal field so the rendered value tracks data, not config. Origin: the legacy VirtuaBooth configurator card''s color picker — the user changes a value, a field updates, the material tint follows. Property-agnostic: any property can author a binding_slot to point any color/texture/animation slot at any compatible field on the bound entity.'
+    value_schema:
+      type: mapping
+      keys:
+        target_slot: 'string — name of the sibling slot whose value this binding overrides at render time (e.g. accent, tint, diffuse)'
+        field_name: 'string — Drupal field machine name on the bound entity (e.g. field_brand_color, field_finish)'
+        target_property: 'string — which leaf of the field item to read (e.g. value, target_id, entity.field_hex.value)'
+        transform: 'enum: passthrough | hex | rgb | normalize_0_1 — coerce the raw field value into the sibling slot''s expected shape'
+        default: 'variant — fallback used when the field is empty or absent'
+    examples:
+      - accent_from_brand_color
+      - tint_from_variation_finish
+      - diffuse_from_uploaded_texture
+
 
 # ─── Item types ─────────────────────────────────────────────────────
 # Kinds of things the world contains. Each declares which component
@@ -304,6 +320,7 @@ item_types:
       - { type: html_surface, name: spec_sheet }
       - { type: trigger_event, name: vantage }
       - { type: trigger_event, name: configurator_open }
+      - { type: binding_slot, name: accent_binding }
     status: planned
 
   - id: 'metaphor.world.shot'
@@ -334,4 +351,5 @@ item_types:
       - { type: sound_slot, name: equip }
       - { type: trigger_event, name: equip }
       - { type: trigger_event, name: dequip }
+      - { type: binding_slot, name: tint_binding }
     status: planned

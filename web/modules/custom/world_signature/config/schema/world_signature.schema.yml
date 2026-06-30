@@ -375,6 +375,25 @@ world_signature.commerce.product.*:
       label: 'Ordered list of configurable_item instance ids attachable to this product'
       sequence:
         type: string
+    accent_binding:
+      type: mapping
+      label: 'Optional field binding — when present, the live field value overrides the static accent'
+      mapping:
+        target_slot:
+          type: string
+          label: 'Slot whose value this binding overrides (always "accent" for this item type)'
+        field_name:
+          type: string
+          label: 'Drupal field machine name on the bound entity'
+        target_property:
+          type: string
+          label: 'Field leaf to read'
+        transform:
+          type: string
+          label: 'passthrough | hex | rgb | normalize_0_1'
+        default:
+          type: string
+          label: 'Fallback used when the field is empty'
 
 world_signature.shot.*:
   type: config_object
@@ -538,3 +557,22 @@ world_signature.commerce.configurable_item.*:
         dequip:
           type: string
           label: 'Event source (e.g. user_click on parent stall)'
+    tint_binding:
+      type: mapping
+      label: 'Optional field binding — when present, the live field value overrides the static tint'
+      mapping:
+        target_slot:
+          type: string
+          label: 'Slot whose value this binding overrides (always "tint" for this item type)'
+        field_name:
+          type: string
+          label: 'Drupal field machine name on the bound entity'
+        target_property:
+          type: string
+          label: 'Field leaf to read'
+        transform:
+          type: string
+          label: 'passthrough | hex | rgb | normalize_0_1'
+        default:
+          type: string
+          label: 'Fallback used when the field is empty'
