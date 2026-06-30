@@ -254,3 +254,38 @@ item_types:
       - { type: animation_slot, name: dismiss }
       - { type: light_emitter, name: rim }
     status: planned
+
+  - id: 'metaphor.commerce.product'
+    label: 'Commerce product (stall metaphor)'
+    description: 'A commerce_product rendered as a stall in the world marketplace. The product is the destination URI vantages to; its configurator card is the primary HTML surface; configurable_items snap into named anchors on it. Authored by the virtuabooth module; an editorial property may also enable it to host shop content in its world.'
+    instance_cardinality: singleton-per-bundle
+    config_object: 'world_signature.commerce.product.{instanceId}'
+    components:
+      - { type: color_slot, name: accent }
+      - { type: color_slot, name: stall_ground }
+      - { type: texture_slot, name: stall_floor }
+      - { type: hitbox, name: activation }
+      - { type: animation_slot, name: vantage_arrive }
+      - { type: animation_slot, name: configurator_open }
+      - { type: sound_slot, name: ambient }
+      - { type: html_surface, name: spec_sheet }
+      - { type: trigger_event, name: vantage }
+      - { type: trigger_event, name: configurator_open }
+    status: planned
+
+  - id: 'metaphor.commerce.configurable_item'
+    label: 'Commerce configurable item (part metaphor)'
+    description: 'A configurable add-on attachable to a metaphor.commerce.product. Each instance carries its own GLB, its own animation clips (e.g. case_top_hexagons), its own tintable color slot, and its equip/dequip trigger events. The card-runtime three-state model treats equip = bloom. Origin: the legacy VirtuaBooth fan / box / sd_card hard-coded models, recast as Commerce-backed first-class items.'
+    instance_cardinality: per-instance
+    config_object: 'world_signature.commerce.configurable_item.{instanceId}'
+    components:
+      - { type: color_slot, name: tint }
+      - { type: texture_slot, name: diffuse }
+      - { type: hitbox, name: activation }
+      - { type: animation_slot, name: idle }
+      - { type: animation_slot, name: equip }
+      - { type: animation_slot, name: dequip }
+      - { type: sound_slot, name: equip }
+      - { type: trigger_event, name: equip }
+      - { type: trigger_event, name: dequip }
+    status: planned

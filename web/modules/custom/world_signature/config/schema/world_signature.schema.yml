@@ -284,3 +284,179 @@ world_signature.palette:
                 type: string
               default:
                 type: string
+
+# ─── Commerce metaphors (R2 — virtuabooth pivot) ──────────────────
+# Two wildcard config_object families authored by world_signature so
+# the schema is in place wherever the metaphors are enabled (the
+# virtuabooth module ships the concrete plugins + per-instance
+# config). Both shapes mirror their item_type's components in the
+# manifesto.
+
+world_signature.commerce.product.*:
+  type: config_object
+  label: 'Commerce product stall instance'
+  mapping:
+    label:
+      type: label
+      label: 'Human-readable label for this instance'
+    product_id:
+      type: string
+      label: 'Commerce product id this instance binds to (string for portability across SKU schemes)'
+    accent:
+      type: string
+      label: 'Brand accent colour (CSS hex)'
+    stall_ground:
+      type: string
+      label: 'Stall ground colour (CSS hex)'
+    stall_floor:
+      type: mapping
+      label: 'Stall floor texture'
+      mapping:
+        path:
+          type: string
+        repeat:
+          type: sequence
+          sequence:
+            type: float
+        wrap:
+          type: string
+    vantage_arrive:
+      type: mapping
+      label: 'Camera-arrival flourish animation'
+      mapping:
+        clip:
+          type: string
+        duration_ms:
+          type: integer
+        easing:
+          type: string
+        loop:
+          type: boolean
+    configurator_open:
+      type: mapping
+      label: 'Configurator-open animation'
+      mapping:
+        clip:
+          type: string
+        duration_ms:
+          type: integer
+        easing:
+          type: string
+        loop:
+          type: boolean
+    ambient:
+      type: mapping
+      label: 'Ambient stall sound'
+      mapping:
+        source:
+          type: string
+        volume:
+          type: float
+        loop:
+          type: boolean
+        spatial:
+          type: boolean
+    spec_sheet:
+      type: mapping
+      label: 'HTML spec-sheet surface'
+      mapping:
+        content_ref:
+          type: string
+        width_px:
+          type: integer
+        height_px:
+          type: integer
+        transparent_background:
+          type: boolean
+        refresh:
+          type: string
+    configurable_items:
+      type: sequence
+      label: 'Ordered list of configurable_item instance ids attachable to this product'
+      sequence:
+        type: string
+
+world_signature.commerce.configurable_item.*:
+  type: config_object
+  label: 'Commerce configurable item instance'
+  mapping:
+    label:
+      type: label
+      label: 'Human-readable label for this part'
+    parent_product:
+      type: string
+      label: 'world_signature.commerce.product.* instance id this part attaches to'
+    anchor:
+      type: string
+      label: 'Named anchor on the parent product where this part snaps'
+    asset:
+      type: mapping
+      label: 'Source asset reference (resolved via threed_assets)'
+      mapping:
+        media_uuid:
+          type: string
+          label: 'Media entity UUID for the GLB (preferred — threed_assets owns the media)'
+        path:
+          type: string
+          label: 'Fallback URL path if media_uuid is unavailable'
+    tint:
+      type: string
+      label: 'Part tint colour (CSS hex)'
+    diffuse:
+      type: mapping
+      label: 'Diffuse texture override'
+      mapping:
+        path:
+          type: string
+        repeat:
+          type: sequence
+          sequence:
+            type: float
+        wrap:
+          type: string
+    idle:
+      type: mapping
+      label: 'Idle animation clip'
+      mapping:
+        clip:
+          type: string
+        duration_ms:
+          type: integer
+        easing:
+          type: string
+        loop:
+          type: boolean
+    equip:
+      type: mapping
+      label: 'Equip animation clip'
+      mapping:
+        clip:
+          type: string
+        duration_ms:
+          type: integer
+        easing:
+          type: string
+        loop:
+          type: boolean
+    dequip:
+      type: mapping
+      label: 'Dequip animation clip'
+      mapping:
+        clip:
+          type: string
+        duration_ms:
+          type: integer
+        easing:
+          type: string
+        loop:
+          type: boolean
+    triggers:
+      type: mapping
+      label: 'Trigger event bindings'
+      mapping:
+        equip:
+          type: string
+          label: 'Event source (e.g. user_click on the part)'
+        dequip:
+          type: string
+          label: 'Event source (e.g. user_click on parent stall)'
