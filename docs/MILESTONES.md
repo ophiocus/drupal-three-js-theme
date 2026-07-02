@@ -10,15 +10,15 @@ one. A tier is "done" when an editor / visitor / operator can
 actually use the capability without holding a `drush` shell open
 on the side.
 
-| Tier | Claim | Status |
+| Tier | Claim | Status (June 2026) |
 | --- | --- | --- |
 | **MVP** | Full navigation and display of live site content. | ~ current, modulo mobile |
 | **ALPHA 1** | World rules + models retrieved exclusively from Drupal content types. | **substantially advanced** — `world` content type holds world characteristics (publisher reads the active World node); A.2 endpoint, A.3 client cache + component, A.4 article/profile/event builders all shipped. Scenery hook-up + monuments (Track B) + admin affordances (A.5) + ingestion leech→card pipeline remain. |
-| **ALPHA 2** | Asset ↔ content relations editable in Drupal admin. | not started |
-| **ALPHA 3** | World rules editable per "skin" in Drupal admin. | not started — atmospheres are TS code today |
-| **BETA 1** | Multiple skins (forest, inner mind, …) interchangeable per property. | **advanced** — a second skin (`inner-mind` stub) + a **live in-place switcher** (`switchAtmosphere`, leak-verified) + authored `drush world:switch` all ship. Remaining: the *real* inner-mind design pass (the stub is deliberately crude) + per-property binding + switch UX. |
-| **BETA 2** | Large corpora handled via LLM-driven spatial retrofit. | **pipeline shipped** — embedding (local TF-IDF + remote neural seam) → MDS projection → semantic positions in the snapshot. `drush world:embed` + `world:relayout`. Remaining: real neural model in production, layout-stability under corpus growth (Procrustes), semantic search UI. |
-| **RC1** | All stable: mobile, accessibility, perf, multi-tenant proven, deploy, tests. | not started |
+| **ALPHA 2** | Asset ↔ content relations editable in Drupal admin. | **partial — stub UI landed.** `/admin/world/assets` route now exists as a titled stub inside the Arc 1 admin landing (`b7e2aca`, Arc 2 will render the coverage matrix + bulk ops). Data shape has always supported the milestone. |
+| **ALPHA 3** | World rules editable per "skin" in Drupal admin. | **partial — client-side registry shipped, admin surface pending.** `AtmosphereModule` interface + `atmospheres/registry.ts` (`a1c211d`) make adding an N-th theme a single directory + one line — but the "editable in Drupal admin" claim is only the `/admin/world/scenes` stub today. Full authoring (palette + interpretation + stage + transition options bound to config) is Arc 2. |
+| **BETA 1** | Multiple skins (forest, inner mind, …) interchangeable per property. | **advanced** — a second skin (`inner-mind`, no longer a stub) + a **live in-place switcher** all ship. Transition polish suite (`e6ecaf3`, `240b4e3`, `03280e7`, `e11561b`) delivered per-prop intro/outro variants, 30 % dual-scene overlap, envelope crossfade, and a pill spinner during preload. Remaining: per-property binding + inner-mind visual depth. |
+| **BETA 2** | Large corpora handled via LLM-driven spatial retrofit. | **pipeline shipped + operator-visible.** Embedding (local TF-IDF + remote neural seam) → MDS projection → semantic positions in the snapshot. **New in Arc 1:** `/admin/world/content` freshness banner + one-button batched refresh + auto-stale dirty-tracking (`b7e2aca`). SignatureWriter preserves existing embeddings on signature re-extract (`9fe7f80`); Inner-mind falls back to Fibonacci sphere when no embeddings present (`bf138bd`). Remaining: real neural model in production, Procrustes layout stability, semantic search UI. |
+| **RC1** | All stable: mobile, accessibility, perf, multi-tenant proven, deploy, tests. | **install recipe delivered ahead of schedule.** Arc 1.5 (`6fdf1dd`) ships a full Day-0 onboarding — wizard, 27-entity demo corpus + `DemoContentInstaller`, first-visit welcome overlay, customization banner. Renderer bundle moved into the module (`b7e2aca`) so `world_signature` stands alone with no theme dependency for JS delivery. Mobile, accessibility, multi-tenant proof, perf budgets, API versioning, test coverage all still open. |
 
 ---
 
@@ -119,14 +119,16 @@ with a click, and trust the world to update next render.
 ### What's missing — A.5
 
 - **`/admin/world/assets`** view grouped atmosphere → slot →
-  asset, with the live one highlighted.
+  asset, with the live one highlighted. **June 2026 status:** stub
+  route landed as part of the Arc 1 admin scaffold (`b7e2aca`);
+  the coverage matrix + bulk-ops implementation is Arc 2.
 - **"Mark live"** action that auto-demotes siblings — preserves
   the "one live per (atmosphere, slot) cell" invariant without
   depending on editor hand-discipline.
-- **Slot ↔ builder binding UI.** Today `atmospheres/forest/mappings.yml`
-  hand-edits the bundle → slot mapping. For editor self-service
-  this becomes either a config-entity or a per-binding content type
-  with an admin form.
+- **Slot ↔ builder binding UI.** Today the mapping lives in the
+  atmosphere modules (registered via `registerBuilders`). The
+  `/admin/world/rules` stub is the intended editorial home
+  (Arc 3).
 - **Per-node asset overrides** (optional, post-MVP). "This one
   article is a baobab, not the default oak." Adds a `field_asset_override`
   reference on the article bundle.
@@ -155,15 +157,32 @@ glb is a Drupal asset); "how pollen falls" is code (physics). Pick
 conservatively — over-abstracting the rules surface costs more
 than it saves.
 
+### What's shipped (June 2026)
+
+- **Client-side atmosphere registry** (`atmospheres/registry.ts`,
+  commit `a1c211d`) — every atmosphere consumer (SceneManager,
+  AtmosphereSwitcher, AtmosphereAudio, StageEditor) reads the
+  registry. Adding a new atmosphere = one directory under
+  `atmospheres/<key>/` + one `registerAtmosphereLoader` line.
+  This is code-side pluggability — the "editable in Drupal
+  admin" claim (below) still requires the admin surface.
+
 ### What's missing
 
-- **`atmosphere` (or `skin`) content type** with the fields above.
-- **Atmosphere registry** that reads atmosphere nodes at snapshot
-  time instead of importing `atmospheres/<name>/mappings.yml` files.
+- **`atmosphere` (or `skin`) content type** with fields for palette,
+  interpretation, stage, transition options — persisted to config
+  and read by the client-side registry.
+- **Registry bridge that reads atmosphere content-entities** at
+  snapshot time. Today the registry is populated statically from
+  the module's TS code.
 - **Admin clone / fork** affordance — "duplicate this atmosphere,
   rename, tune."
 - **Property → atmosphere binding** — a property's homepage node
   carries a field selecting its active atmosphere.
+- **Transition options in config** — outro/intro durations, overlap
+  fraction, tween variants enabled/disabled. Live in
+  `SceneManager` constants today; the Scenes tab (Arc 2) will
+  bind them.
 
 ---
 
@@ -193,6 +212,16 @@ running them interchangeably on the same install.
   world-layer group seam). `docs/feature-requests/world-switcher.md`.
 - **Authored switch** — `drush world:switch <none|forest|inner-mind>`
   flips the active World node's `field_world_atmosphere`.
+- **Transition polish suite (June 2026)** — the "hard cut behind a
+  cover overlay" era is over. Per-prop intro/outro with 7
+  deterministic variants (scale-cubic, scale-back, scale-elastic,
+  drop-in, rise-in, spin-in, snap-in) picked by entityId hash
+  (`e11561b`); 30 % dual-scene overlap where the outgoing world
+  continues its outro while the incoming builds (`e6ecaf3`);
+  envelope tween of `scene.background` + fog replaces the DOM
+  cover — no flat-colour sheet in the middle of the transition
+  (`240b4e3`); pill spinner during preload (`e6ecaf3`). Both
+  language and atmosphere switches use the same pipeline.
 
 ### What's missing
 
@@ -239,6 +268,22 @@ Search becomes "fly to where this idea lives."
   the whole map is the remaining refinement.
 - ⏳ **Smooth transitions** — a new article animating into its place
   without nudging neighbors. Not started.
+- ✅ **Operator-visible pipeline (Arc 1, June 2026 — `b7e2aca`)** —
+  `/admin/world/content` renders a freshness banner (total /
+  embedded / stale / missing / dirty) and a one-button
+  `Refresh embeddings (N pending)` action driven by Drupal's
+  Batch API. `hook_entity_update` auto-flags entities dirty when
+  their computed `embeddingText` hash differs from the stored
+  `semanticHash` — the operator never has to know which nodes need
+  re-embedding.
+- ✅ **Embedding preservation** (`9fe7f80`) — `SignatureWriter`
+  carries the existing embedding across a signature re-extract
+  when the semanticHash matches; a plain content re-seed no longer
+  wipes previously-computed vectors.
+- ✅ **3D fallback with no embeddings** (`bf138bd`) — Inner-mind's
+  `computeLayout` falls back to a Fibonacci sphere on entity ids
+  when < 2 entities carry embeddings. Fresh sandboxes read as a
+  distinctly 3D cloud even before `world:embed` has ever run.
 
 **b) Semantic navigation:** ⏳ all not started.
 
@@ -283,9 +328,20 @@ can adopt the theme without reading the BATTLE_SCARS file.
   offset honored by lateral shift math.
 - **Multi-tenant proof** — Atlas via RESTHeart across two
   properties end-to-end. One client = unproven architecture.
-- **Theme install recipe** — `composer require ...` + `drush en
-  world_signature` + `drush world:scaffold` style one-shot, so
-  adopting the theme isn't "copy the project repo."
+- **Theme install recipe — DONE (Arc 1.5, June 2026 — `6fdf1dd`).**
+  A third-party who does `composer require drupal/world_signature`
+  + `drush en world_signature` lands at `/admin/world`, gets
+  redirected to `/admin/world/onboarding`, picks a scene, opts into
+  the demo corpus, sees a batched install-with-progress, and
+  arrives on `/` with a formal welcome overlay guiding the three
+  navigation primitives. `DemoContentInstaller` reads the bundled
+  `demo_content/corpus.yml` (5 topics, 12 articles, 6 profiles, 4
+  events with topic-distinctive prose) + runs an embed pass so
+  positional layout works from frame 1. The renderer bundle moved
+  into the module (`b7e2aca`) so there's no theme dependency for
+  JS delivery. Remaining polish: neutralise `world_seed` into a
+  contrib-appropriate demo (currently Tecnocratica-coffee-flavored,
+  useful in the dev sandbox but not shipped).
 - **Production deploy verified** — `dist/world.bundle.js` artifact
   through SSDnodes/Traefik/GHCR end-to-end.
 - **API versioning** — `/world/snapshot/full v1 → v2` migration

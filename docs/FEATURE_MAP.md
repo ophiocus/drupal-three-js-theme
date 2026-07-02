@@ -67,7 +67,7 @@ current as work lands.
 | Turntable preview field + teaser **autoplay-on-hover** (`field_asset_turntable` **mp4**, core Video formatter, `asset_hover` JS) | ✅ |
 | glTF transform + turntable **rendering** — `asset_workshop/` headless toolkit (separate from module): `transform` (gltf-transform optimize+recenter) + `turntable` (Chromium+model-viewer → **mp4**). Both verified. | ✅ external |
 | Animation catalogue / playback (`GltfInspector`, AnimationComponent) | ○ proposed |
-| Admin "Mark live" UI + `/admin/world/assets` (A.5) | ○ |
+| Admin "Mark live" UI + `/admin/world/assets` (A.5) | ◐ stub route landed (Arc 1, `b7e2aca`); coverage matrix + bulk ops in Arc 2 |
 
 ## E. Layout intelligence
 
@@ -81,6 +81,8 @@ current as work lands.
 | `drush world:embed` / `world:relayout` / `world:layout-mode` | ✅ |
 | Procrustes alignment (stable re-layout under corpus growth) | ○ |
 | Animated layout transitions | ○ |
+| Fibonacci-sphere fallback when no embeddings present (inner-mind) | ✅ (`bf138bd`) |
+| SignatureWriter embedding preservation on re-extract | ✅ (`9fe7f80`) |
 
 ## F. Editorial / admin control
 
@@ -89,8 +91,12 @@ current as work lands.
 | **`world` content type** — world characteristics (vantage geometry, sector radii, atmosphere) declared as editable content; `SnapshotPublisher` reads the active World node, constants as fallback | ✅ |
 | Palette / atmosphere config-as-code (World node's atmosphere overrides it) | ✅ |
 | Signature extraction pipeline (8-axis, queue-driven) | ✅ |
-| Admin edits asset↔content relations + slot bindings (ALPHA 2) | ○ |
-| World rules editable per skin in admin (ALPHA 3 — "skins as data") | ○ |
+| `/admin/world` landing + 4 role-targeted tabs (Scenes / Content / Assets / Rules) | ◐ landing + Content tab shipped (Arc 1, `b7e2aca`); Scenes/Assets/Rules are stubs |
+| Content tab: freshness banner + one-button batched embed refresh + auto-stale tracking | ✅ (Arc 1, `b7e2aca`) |
+| First-run onboarding wizard at `/admin/world/onboarding` (scene picker + demo corpus install + welcome overlay) | ✅ (Arc 1.5, `6fdf1dd`) |
+| Bundled demo corpus (5 topics / 12 articles / 6 profiles / 4 events) + `DemoContentInstaller` service | ✅ (Arc 1.5, `6fdf1dd`) |
+| Admin edits asset↔content relations + slot bindings (ALPHA 2) | ○ stub route landed (Arc 2 will fill it) |
+| World rules editable per skin in admin (ALPHA 3 — "skins as data") | ○ stub route landed (Arc 2 will fill it) |
 
 ## G. Atmospheres / skins
 
@@ -98,9 +104,14 @@ current as work lands.
 | --- | --- |
 | Forest atmosphere (builders, scenery, pollen, palette) | ✅ |
 | Lazy-import atmosphere registry | ✅ |
-| **World switcher** (forest ↔ inner-mind) — v1 reload-based shipped (`drush world:switch`); live in-place teardown/rebuild is v1.5. Plan: `docs/feature-requests/world-switcher.md` | ◐ |
-| **inner-mind atmosphere** — abstract procedural acid-trip stub (crystal/orb/ring + hue-cycle env + acid palette) | ✅ stub |
-| Second skin ("inner mind" — the real BETA 1 metaphor, asset-backed) | ○ |
+| **N-theme scalable registry** (`AtmosphereModule` interface + central catalog; adding a new theme = one directory + one line) | ✅ (`a1c211d`) |
+| **World switcher** (forest ↔ inner-mind) — live in-place teardown/rebuild, leak-verified, single-URL bundle | ✅ |
+| **inner-mind atmosphere** — procedural crystal/orb/ring + surreal zodiac (12 emissive archetypes in outer orbit) + hue-cycle env + MDS-3D layout + Fibonacci-sphere fallback when no embeddings | ✅ |
+| Per-prop intro/outro tweens with 7 deterministic variants (scale-cubic / scale-back / scale-elastic / drop-in / rise-in / spin-in / snap-in) | ✅ (`e11561b`) |
+| 30 % dual-scene overlap during atmosphere/language switches | ✅ (`e6ecaf3`) |
+| Envelope tween (scene.background + fog) replaces the DOM crossfade cover | ✅ (`240b4e3`) |
+| Pill spinner on clicked atmosphere pill during preload | ✅ (`e6ecaf3`) |
+| Per-atmosphere procedural soundscape (Web Audio) — module-owned via registry | ✅ |
 | Per-property atmosphere switching | ⏸ |
 
 ## H. Conversational layer
@@ -121,12 +132,13 @@ current as work lands.
 
 | Feature | Status |
 | --- | --- |
-| RESTHeart → Atlas gateway (single tenant) | ✅ |
+| RESTHeart → Atlas gateway (single tenant, write + search only — runtime read path is Drupal-native) | ✅ (Atlas cut off the runtime read path, `0d59538`) |
 | Multi-tenant proven across ≥2 properties | ○ |
-| Theme install recipe (`composer require` + one-shot scaffold) | ○ |
+| Theme install recipe (`composer require` + first-run wizard + demo corpus + welcome overlay) | ✅ (Arc 1.5, `6fdf1dd`) |
+| Module owns the renderer bundle (theme-independent JS delivery) | ✅ (Arc 1, `b7e2aca`) |
 | Production deploy of `dist/` bundle through CI verified | ○ |
 | Versioned snapshot API (v1→v2 migration story) | ○ |
-| Graceful failure (gateway down, Atlas timeout, .glb 404) | ◐ |
+| Graceful failure (gateway down, Atlas timeout, .glb 404) — runtime survives Atlas outage now that reads are Drupal-native | ✅ (`0d59538`, documented as BATTLE_SCARS A7) |
 
 ## K. Quality bars (cross-cutting, RC1)
 
@@ -152,18 +164,21 @@ current as work lands.
 
 ## Completeness by tier (synthesis)
 
-| Tier | Claim | State |
+| Tier | Claim | State (June 2026) |
 | --- | --- | --- |
 | **MVP** | Navigate + read live content | ✅ (mobile pending verification) |
 | **ALPHA 1** | World models from Drupal content types | ◐ pipeline shipped; monuments + scenery + admin UI remain |
-| **ALPHA 2** | Edit asset↔content relations in admin | ○ |
-| **ALPHA 3** | Author whole skins as data, not code | ○ |
-| **BETA 1** | Two interchangeable metaphors | ○ |
-| **BETA 2** | Meaning determines geography | ◐ pipeline shipped; stability + search remain |
-| **RC1** | Production-grade across all quality bars | ○ |
+| **ALPHA 2** | Edit asset↔content relations in admin | ◐ stub route landed; coverage matrix + bulk ops in Arc 2 |
+| **ALPHA 3** | Author whole skins as data, not code | ◐ client-side registry shipped; admin surface pending Arc 2 |
+| **BETA 1** | Two interchangeable metaphors | ✅ forest + inner-mind interchangeable via live in-place switcher; per-property binding + inner-mind visual depth remain |
+| **BETA 2** | Meaning determines geography | ◐ pipeline shipped + operator-visible via Content tab; stability (Procrustes) + search UI remain |
+| **RC1** | Production-grade across all quality bars | ◐ install recipe + operator UI delivered ahead of schedule; mobile / accessibility / multi-tenant / API versioning / test coverage still open |
 
-**One-line read:** the engine and its two hardest ideas —
-document-in-situ navigation and meaning-as-geography — are load-bearing
-and demoable. Between here and 1.0: editorial self-service (ALPHA 2/3),
-a second skin (BETA 1), the productization quality bars (RC1), and
-chatvatar as the one big deferred *capability* (not polish).
+**One-line read (June 2026):** the engine and its three hardest
+ideas — document-in-situ navigation, meaning-as-geography, and
+theme-agnostic scene pluggability — are all load-bearing. Between
+here and 1.0: editorial self-service in admin (Arcs 2 + 3), the
+productization quality bars (RC1), and chatvatar as the one big
+deferred *capability* (not polish). The Day-0 third-party install
+already works cleanly (`composer require` → wizard → populated
+world → welcome overlay).

@@ -9,7 +9,262 @@ and the date range of the work.
 
 ---
 
-## i18n polish & docs (May 2026 — head: `<this commit>`)
+## Arc 1.5 — Day-0 onboarding wizard (June 2026 — head: `6fdf1dd`)
+
+A third-party who just `composer require`'d the module no longer sees
+an empty world. Three pieces cover the "install → first render" gap.
+
+- **`/admin/world/onboarding`** — two-step FormBase wizard with a
+  batched hand-off. Step 1: pick a scene (Forest / Inner-mind /
+  Custom) — three card-shaped radio options; formal-product copy.
+  Step 2: install demo corpus (recommended) vs. continue empty.
+  On finish, Drupal's Batch API takes over the demo import + embed
+  pass with progress + Stop link.
+- **`demo_content/corpus.yml` + `DemoContentInstaller` service** —
+  hand-authored 27-entity corpus across 5 generic topics
+  (Art / Science / Philosophy / Technology / Society): 5 taxonomy
+  terms, 12 articles, 6 profiles (with one bridging two topics so
+  the constellation reads as touching clusters), 4 events. Texts
+  are topic-distinctive so TF-IDF produces visible inner-mind
+  clusters. Installer is idempotent by (bundle, title); re-running
+  upserts cleanly. After entities land the installer runs the Arc 1
+  batch-API prepare → writeOne → finalize path.
+- **`FirstVisitOverlay` HUD** — one-shot formal welcome shown on `/`
+  after onboarding completes. Gated on
+  `drupalSettings.worldSignature.firstVisit` (injected by a new
+  `hook_page_attachments_alter`, consumed on first render) AND a
+  `world.firstVisit.seen` localStorage flag. Modal card with three
+  signposts (Scene / Language / Content) and a Got it dismiss.
+  Backdrop click + Escape also dismiss.
+
+Plus a **customization banner** on `/admin/world` post-onboarding —
+"Setup complete. Tune the world from any of the surfaces below" with
+CTAs to Assets / Rules / Scenes and a CSRF-protected Dismiss route.
+
+First-run detection in `AdminWorldController::landing`: when
+`world_signature.onboarding_completed_at` is unset in State, redirect
+to `/admin/world/onboarding` before rendering the landing.
+
+Verified end-to-end: `/admin/world` cold state redirects, wizard
+lands Step 1, installer runs 27 entities + embed in ~10 s, snapshot
+serves all entities with embeddings, customization banner renders,
+`firstVisit` flag consumed once.
+
+## Arc 1 — /admin/world landing + Content tab + module owns the renderer (June 2026 — head: `b7e2aca`)
+
+The operator UI foundation. Collapses what would have been multiple
+sub-modules into a single `world_signature` module with one landing
+under `/admin/world` and four role-targeted tabs.
+
+- **`/admin/world` landing** — new `AdminWorldController` with
+  landing + Scenes / Content / Assets / Rules routes. Landing
+  renders a 4-card orientation grid via a new `world_admin_landing`
+  theme hook + twig template. Menu link `system.admin > World` +
+  local-task tabs so the four pills read as siblings.
+- **`administer world signature` permission** — admin-scope; coexists
+  with the existing `edit world signature` (editor-scope).
+- **Content tab — freshness banner + one-button refresh.** New
+  `EmbeddingFreshness` service aggregates counts
+  (total / embedded / stale / missing / dirty) + a per-entity-type
+  pending list + dirty bookkeeping in State. New `AdminContentForm`
+  renders banner cards + a primary `Refresh embeddings (N pending)`
+  and a secondary `Force full re-embed`. Refresh uses Drupal's
+  Batch API — gather + corpus-embed once in `batchPrepare`;
+  `writeOneFromContext` runs per-descriptor in chunks of 8;
+  `batchFinalize` stamps State + invalidates the snapshot cache.
+  Drupal's batch UI provides progress + a Stop link for free — no
+  more orphaned overnight embeds.
+- **`EmbedRunner` batch API** — three new public methods
+  (`prepareBatchContext` / `writeOneFromContext` / `finalizeBatch`)
+  mirror the existing `run()` phases for batch consumption. The
+  legacy `run()` stays untouched for drush + the legacy admin
+  endpoint.
+- **Auto-stale tracking** — `hook_entity_update` computes the new
+  `embeddingText` hash and, when it differs from the stored
+  `semanticHash` on an entity that already has an embedding, flags
+  the entity dirty via `EmbeddingFreshness::markDirty()`. The flag
+  clears in passing during `batchWriteChunk`. Banner's Pending
+  counter is accurate without the operator running drush queries.
+- **Renderer bundle relocation** — `dist/world.bundle.js` moved
+  from `web/themes/custom/drupal_threejs/dist/` into
+  `web/modules/custom/world_signature/js/`. Module ships its own
+  `world` library carrying the bundle; the theme's `world` library
+  is CSS-only and depends on `world_signature/world`. Sites without
+  `drupal_threejs` can attach `world_signature/world` directly.
+  Cache-bust `md5_file` hook moved from `drupal_threejs.theme` to
+  `world_signature_library_info_alter`. `vite.config.ts` `outDir`
+  updated; `emptyOutDir: false` preserves the hand-authored
+  `asset-hover.js`.
+
+## Embedding pipeline resilience (June 2026 — `bf138bd`, `9fe7f80`)
+
+Two guardrails on the semantic layout so re-seeds and cold-start
+sandboxes don't degrade the inner-mind cloud.
+
+- **`SignatureWriter` preserves the existing embedding on
+  signature re-extract** — extractors never mint
+  `semantic.embedding`; only the corpus-wide `world:embed` does. So
+  a plain re-extraction (entity update, seed re-run) was clobbering
+  whatever embedding the previous embed pass had deposited. Fix:
+  before writing, read the existing field; if the existing record
+  carries an embedding AND the incoming signature carries none AND
+  the semanticHash matches (same source text → same embedding still
+  valid), carry the existing embedding + modelVersion + embeddedAt
+  across. When the hash differs the embedding is genuinely stale
+  and we let the null overwrite stand.
+- **Inner-mind Fibonacci-sphere fallback when no embeddings
+  present** — `computeLayout` previously returned null with < 2
+  embeddings, dropping the atmosphere back to taxonomy ring
+  placement. New `fibonacciSphere(ids, targetRadius)` in
+  `projection.ts` — deterministic golden-angle-spaced points on a
+  sphere, ordered by an id hash so alphabetical adjacency doesn't
+  read as semantic adjacency. Same ids → same positions, every
+  run. inner-mind's `computeLayout` now branches: ≥ 2 embeddings →
+  real path (anchored → MDS-3D → temporal shift), < 2 embeddings →
+  Fibonacci sphere. A fresh sandbox reads as a distinctly 3D cloud
+  rather than a flat ring even before `world:embed` has ever run.
+
+## Transition polish — pill spinner + 30% overlap + tween variants (June 2026 — `e6ecaf3`, `240b4e3`, `03280e7`, `e11561b`, `b7e59b9`)
+
+Five iterative commits reshape the atmosphere/language switch from
+"cover overlay + hard cut" to "everything tweens, no black moment."
+
+- **Per-prop `intro()` / `outro()` on SmartObject** (`e11561b`) —
+  each prop tweens its own scale with a deterministic per-entity
+  stagger derived from an entityId hash. Same prop, same offset
+  across runs; the bloom front reads as organic stagger.
+- **World-layer breath-in** (`b7e59b9`) — the world-layer group
+  itself scales from 0.93 → 1 on mount + atmosphere/language switch
+  reveal, giving a subtle motion cushion.
+- **CrossfadeOverlay → envelope tween** (`03280e7` peak-opacity
+  drop; `240b4e3` overlay removed entirely). The former DOM cover
+  read as "fade to black" on dark atmospheres. Now `scene.background`
+  and `scene.fog` lerp continuously across the teardown boundary as
+  the world-layer shrinks then grows — no flat-colour sheet ever
+  layered on top of the canvas.
+- **Pill spinner + 30% dual-scene overlap + 7 tween variants**
+  (`e6ecaf3`) — three bundled improvements:
+    - `AtmosphereSwitcher.setPending(name)` swaps the clicked pill's
+      label for a CSS spinner glyph so the click registers
+      immediately while the new scene preloads.
+    - Outgoing world-layer + smartObjects + atmosphere disposers
+      detach into an `OutgoingSlot` before teardown; buildScene runs
+      the new scene in parallel with the outgoing's outro tween;
+      the new intro starts at outro's 70 % mark (30 % overlap,
+      configurable via `SCENE_OVERLAP_FRACTION`). Both scenes
+      co-exist for ~115 ms.
+    - `SmartObject` picks one of 7 recipes deterministically by
+      entityId hash: `scale-cubic`, `scale-back`, `scale-elastic`,
+      `drop-in` (falls from +18 above), `rise-in`, `spin-in`
+      (1.25 rotations around Y), `snap-in`. Outro mirrors the intro
+      variant — a tree that dropped in will rise out.
+
+## Atmosphere registry — N-theme scalable (June 2026 — `a1c211d`)
+
+Refactored so adding a 3rd / 4th / Nth visual theme is a single
+directory under `atmospheres/<key>/` plus one line in `registry.ts`.
+No edits anywhere else.
+
+- **`AtmosphereModule` interface** (`atmospheres/types.ts`) — every
+  atmosphere exports a `default` conforming to
+  `{ key, i18nLabelKey, registerBuilders, setupEnvironment?,
+  computeLayout?, buildSoundscape? }`. Plus `AtmosphereSetupContext`
+  packaging the kitchen-sink ctx and `Soundscape` (lifted from
+  `AtmosphereAudio`).
+- **Central `registry.ts`** — insertion-ordered map of lazy loaders.
+  `listAtmosphereKeys()`, `hasAtmosphere(key)`, `loadAtmosphere(key)`.
+  Two lines today (forest, inner-mind).
+- Every consumer reads the registry: `SceneManager.registerAtmosphere`
+  no longer has a `switch(name)`, `AtmosphereSwitcher` pill list
+  derives from `listAtmosphereKeys()`, `AtmosphereAudio` asks the
+  registry for the active atmosphere's `buildSoundscape`, and the
+  StageEditor default-atmosphere dropdown reads
+  `["none", ...listAtmosphereKeys()]`.
+- Per-atmosphere audio moved into `atmospheres/<key>/audio.ts`.
+- Inner-mind's `StageEditor` mount moved into
+  `inner-mind/index.ts`'s `setupEnvironment` — SceneManager has zero
+  inner-mind-specific HUD code.
+
+## Runtime cut off Atlas (June 2026 — `0d59538`)
+
+The snapshot endpoint no longer round-trips to the RESTHeart gateway
+on the read path. `SnapshotPublisher::buildSnapshot` now rebuilds
+descriptors from Drupal directly (iterate published nodes carrying a
+non-empty `field_world_signature`, decode the stored `Signature` JSON,
+run the same `DescriptorBuilder` the write path uses). Same shape,
+same fields, byte-identical payload.
+
+Atlas / RESTHeart stays for the paths that genuinely need it:
+`drush world:publish`, `drush world:embed`, `WorldSearchClient::nearest`.
+Documented in `BATTLE_SCARS A7`. Root cause was a 2026-06-06 Atlas
+IP-allowlist drift that black-holed the entire app despite every
+descriptor being reproducible from MariaDB.
+
+## Language state → persistent + SPA-style switching (June 2026 — `da83bcb`, `c80b6dc`, `9b8f47f`, `704a558`, `a7007b4`, `add5f93`, `a922d19`)
+
+Six commits refactor language handling so it survives every navigation
+and no longer round-trips through a page reload.
+
+- **`hud/lang.ts`** — canonical persistent language module.
+  `consumeUrlLang()` reads URL `?lang=` once at boot, writes
+  localStorage, strips the param from the URL. `getCurrentLang()`
+  reads localStorage → browser language → default. `setCurrentLang()`
+  persists. `withLangQuery(url)` appends `?lang=<active>` to any URL
+  a runtime fetch is about to send. Every fetch site (snapshot,
+  card, HTML in-canvas surface, HTML mesh surface) uses it — one
+  source of truth.
+- **FullView card endpoint honors `?lang=`** — server side reads the
+  query and loads the matching translation, resolving the earlier
+  bug where the picker changed labels but the card body stayed in
+  English.
+- **SPA-style `switchLanguage`** — replaces the page reload with a
+  soft snapshot re-fetch through the atmosphere-switch pipeline.
+- **Pill mount hoisted before `buildScene`** — the switcher is
+  visible + interactive during the world's boot instead of after it.
+- **Race-gate fix** (`a7007b4`) — the redundant `setCurrentLang`
+  call in `switchLanguage` was silently bailing (the switcher had
+  already persisted, the second call reported "no change", the
+  rebuild was skipped). Dropped the guard; the `code === currentLang`
+  check at the top of the method is the canonical no-op gate.
+- Companion editorial: `world_seed` enables taxonomy + user
+  translation and seeds ES variants for the whole corpus
+  (`add5f93`).
+
+## Bonus infrastructure (June 2026)
+
+- **DDEV watchdog** (`39df5c9`) — passive polling script at
+  `scaffold/ddev-watchdog.sh` that logs heartbeats every 5 min and
+  dumps rich diagnostics on any transition out of `running`. Log
+  at `.local/ddev-watchdog.log`, PID at `.local/ddev-watchdog.pid`,
+  both gitignored. Does NOT auto-restart — that would mask the
+  cause. Documented side effect: an active process keeps WSL2 from
+  auto-shutting-down its distro.
+- **BATTLE_SCARS T1** (`a52d7ab`) — perceived renderer freeze in
+  automated browsers is Chrome's unfocused-tab throttling of `rAF`,
+  not a real perf wall. Rule: when a live observation is required,
+  hand the URL to the user.
+- **BATTLE_SCARS A7** — Atlas on the runtime read path is a
+  boundary violation (see the runtime-cut chapter above).
+- **`world_seed` 5 new non-Latin sectors** (`708fcc9`) — Ethiopia,
+  Kenya, Sumatra, Yemen, Burundi added with 70 new entities + full
+  ES translations. Dev-sandbox only; not shipped to contrib.
+- **`world_seed` topic-term dedupe** (`b0722ba`) — seeder now reuses
+  an existing term with the same name in the `topics` vocab rather
+  than minting a duplicate.
+- **Elegant install rewrite** (`a922d19`) — one-command bring-up
+  via `drush en world_seed`; `enforced.module` deps on field
+  storages so uninstall cleanly removes them; no `hook_update_N`.
+- **Manifesto extensions** (`10a7c3c`, `5ff2acd`, `6549b2e`) —
+  registry additions: `commerce.product` and
+  `commerce.configurable_item` item types; `metaphor.world.shot`
+  and `camera_pose` / `composite_lane` components;
+  `binding_slot` for live Drupal-field → slot wiring.
+- **Composer bump** (`dc391f5`) — Drupal core 11.3.8 → 11.3.11 +
+  contrib updates.
+
+---
+
+## i18n polish & docs (May 2026 — head: `f3d99ac`)
 
 The world now talks. Every in-canvas UI string flows through a small
 i18n catalog so the chrome speaks the same language as the content.

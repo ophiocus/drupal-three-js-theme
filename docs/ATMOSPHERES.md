@@ -179,72 +179,112 @@ Normalise the acquired assets.
 
 ### Stage 6 — Renderer integration (code)
 
-The atmosphere becomes a typed code module that registers
-itself with the SmartObjectRegistry.
+The atmosphere becomes a typed code module that exports a `default`
+conforming to the `AtmosphereModule` interface, then registers a
+lazy-load line in the central registry. That's the entire integration
+surface.
 
-**Artifact:** `src/world/runtime/atmospheres/<name>/`
+> **June 2026 — registry-driven contract** (commit `a1c211d`). This
+> section formerly described a per-atmosphere `register<Name>Atmosphere`
+> free function plus an ad-hoc `setup<Name>Environment` companion whose
+> signature differed per atmosphere. That's been unified into a single
+> module interface + central registry; SceneManager no longer knows any
+> atmosphere by name.
+
+**Artifact:** `src/world/runtime/atmospheres/<key>/`
 
 ```
-src/world/runtime/atmospheres/<name>/
-├── index.ts                          ← register<Name>Atmosphere(registry)
-├── manifest.ts                       ← typed import of manifest.json
-├── builders/                         ← atmosphere-specific Builders
-│   ├── ArticleAs<Element>.ts
-│   ├── ProfileAs<Element>.ts
-│   └── EventAs<Element>.ts
-└── components/                       ← atmosphere-specific Components
-    └── (optional new components specific to this atmosphere)
+src/world/runtime/atmospheres/<key>/
+├── index.ts        ← export default <AtmosphereModule>
+├── audio.ts        ← buildSoundscape(ctx, master) → Soundscape (optional)
+├── projection.ts   ← computeLayout support (optional)
+├── ArticleAs<Element>.ts
+├── ProfileAs<Element>.ts
+├── EventAs<Element>.ts
+└── (scenery, particles, region overlays as needed)
 ```
 
-**Registration contract:**
+**Registration contract — the `AtmosphereModule` interface**
+(`src/world/runtime/atmospheres/types.ts`):
 
 ```ts
-export function registerForestAtmosphere(registry: SmartObjectRegistry): void {
+export interface AtmosphereModule {
+  readonly key: string;
+  readonly i18nLabelKey: string;
+  registerBuilders(registry: SmartObjectRegistry): void;
+  setupEnvironment?(ctx: AtmosphereSetupContext): AtmosphereEnvironment;
+  computeLayout?(snapshot: CorpusSnapshot): Map<string, Vec3> | null;
+  buildSoundscape?(ctx: AudioContext, master: GainNode): Soundscape;
+}
+```
+
+`AtmosphereSetupContext` packages the kitchen-sink environment ctx
+(scene, root, snapshot, registerUpdater, layout, camera, canvas,
+currentLang, activeAtmosphere, paletteTints, onRefresh) so every
+atmosphere sees the same hook signature — no more per-atmosphere
+signature drift.
+
+**Central catalog** — `src/world/runtime/atmospheres/registry.ts`
+holds an insertion-ordered map of lazy loaders. Adding a new
+atmosphere requires exactly one edit here:
+
+```ts
+registerAtmosphereLoader("underwater", async () =>
+  (await import("./underwater/index.js")).default,
+);
+```
+
+Every consumer reads the registry:
+
+- `SceneManager.registerAtmosphere(name)` calls
+  `loadAtmosphere(name)` and runs the module's hooks generically.
+- `AtmosphereSwitcher` pill list derives from `listAtmosphereKeys()`.
+- `AtmosphereAudio.startSoundscape` asks the registry for the
+  active atmosphere's `buildSoundscape`.
+- `StageEditor` default-atmosphere dropdown reads
+  `["none", ...listAtmosphereKeys()]`.
+
+None of them name any atmosphere directly.
+
+**Environment + disposability contract.** `setupEnvironment(ctx)`
+attaches everything to `ctx.root` — SceneManager's disposable
+world-layer `THREE.Group`. Return `{ dispose: () => void }` so the
+world switcher can tear the atmosphere down cleanly. Shared/module-
+cached textures (e.g. the pollen sprite, the mote sprite) are
+intentionally NOT disposed — they're reused across switches.
+
+Meshes attached to `ctx.root` have their geometry + material freed
+automatically by teardown's Mesh-walk. `THREE.Points` are NOT
+Mesh-walked, so any particle system must free its own geometry +
+material via the returned `dispose()`.
+
+```ts
+// forest/index.ts (real, June 2026)
+import type { AtmosphereModule, AtmosphereSetupContext, AtmosphereEnvironment }
+  from "../types.js";
+
+function registerBuilders(registry) {
   registry.register(new ArticleAsTree());
   registry.register(new ProfileAsSpirit());
   registry.register(new EventAsTotem());
 }
-```
 
-Atmosphere builders register **before** the default builders in
-`SceneManager.buildScene()` (called by both `mount()` and
-`switchAtmosphere()`). First-match-wins ordering means the
-atmosphere claims its bundles; anything it doesn't claim falls
-through to defaults (FallbackBuilder, ArticleBuilder, etc.).
-
-**Environment + disposability contract (v1.5 — required for live switching).**
-An atmosphere may export an optional `setup<Name>Environment` companion
-for atmosphere-wide visuals (scenery, particles, sky/fog animation). The
-world switcher (`docs/feature-requests/world-switcher.md`) tears the world
-down and rebuilds in place, so this hook MUST be disposable:
-
-- **Attach into the passed `root`, never `scene` directly.** `root` is
-  SceneManager's disposable world-layer `THREE.Group`; everything parented
-  to it is removed + freed on a switch. Meshes attached here have their
-  geometry + material freed automatically by the teardown's Mesh-walk.
-- **Return a disposer for any `THREE.Points`** (particle fields). The
-  Mesh-walk deliberately skips `Points`, so their geometry + material are
-  freed via the returned `() => void`. Shared/module-cached textures (e.g.
-  the pollen sprite) are intentionally NOT disposed — they're reused.
-- **Signature is per-atmosphere** (each `registerAtmosphere` case calls its
-  own): forest takes `(root, snapshot, registerUpdater)`; inner-mind takes
-  `(scene, root, snapshot, registerUpdater)` because its updater mutates
-  `scene.background` / `scene.fog` (the hue cycle) — `scene` survives the
-  switch; `root` does not.
-
-```ts
-// forest/index.ts
-export function setupForestEnvironment(
-  root: THREE.Object3D,
-  snapshot: CorpusSnapshot,
-  registerUpdater: (fn: AtmosphereUpdater) => void,
-): () => void {
-  placeForestScenery(root, snapshot);          // meshes → root (auto-freed)
-  const pollen = new PollenField(snapshot);
-  root.add(pollen.points);                      // Points → root
-  registerUpdater((elapsed) => pollen.update(elapsed));
-  return () => pollen.dispose();                // disposer frees the Points
+function setupEnvironment(ctx: AtmosphereSetupContext): AtmosphereEnvironment {
+  placeForestScenery(ctx.root, ctx.snapshot);
+  const pollen = new PollenField(ctx.snapshot);
+  ctx.root.add(pollen.points);
+  ctx.registerUpdater((elapsed) => pollen.update(elapsed));
+  return { dispose: () => pollen.dispose() };   // frees the Points
 }
+
+const forestAtmosphere: AtmosphereModule = {
+  key: "forest",
+  i18nLabelKey: "switcher.atmosphere.forest",
+  registerBuilders,
+  setupEnvironment,
+  buildSoundscape: buildForestSoundscape,        // from ./audio.ts
+};
+export default forestAtmosphere;
 ```
 
 Per-frame `registerUpdater` callbacks and the disposers are cleared on
