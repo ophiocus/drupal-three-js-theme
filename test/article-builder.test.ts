@@ -8,7 +8,7 @@
 //     an explicit baseline to argue against.
 
 import { describe, expect, it } from "vitest";
-import { wordCountToSide } from "../src/world/runtime/smart-objects/builders/ArticleBuilder.js";
+import { wordCountToSide } from "../src/builders/ArticleBuilder.js";
 
 describe("ArticleBuilder.wordCountToSide", () => {
   it("is monotonic on word count", () => {

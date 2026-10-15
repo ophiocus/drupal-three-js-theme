@@ -8,14 +8,14 @@
 // Exports the canonical `AtmosphereModule` shape (default export);
 // the registry-driven SceneManager calls its hooks generically.
 
-import * as THREE from "../../../../toolbox/three.js";
-import type { CorpusSnapshot, Vec3 } from "../../../types.js";
-import type { SmartObjectRegistry } from "../../smart-objects/Builder.js";
+import * as THREE from "../../toolbox/three.js";
+import type { CorpusSnapshot, Vec3 } from "../../world/types.js";
+import type { SmartObjectRegistry } from "../../world/runtime/smart-objects/Builder.js";
 import type {
   AtmosphereEnvironment,
   AtmosphereModule,
   AtmosphereSetupContext,
-} from "../types.js";
+} from "../../world/runtime/atmospheres/types.js";
 import { ArticleAsCrystal } from "./ArticleAsCrystal.js";
 import { ProfileAsOrb } from "./ProfileAsOrb.js";
 import { EventAsRing } from "./EventAsRing.js";
@@ -24,7 +24,7 @@ import { SurrealZodiac } from "./zodiac.js";
 import { FuzzyRegions } from "./regions.js";
 import { fibonacciSphere, projectAnchored, projectMds3D } from "./projection.js";
 import { buildInnerMindSoundscape } from "./audio.js";
-import { StageEditor } from "../../hud/StageEditor.js";
+import { StageEditor } from "./StageEditor.js";
 
 function registerBuilders(registry: SmartObjectRegistry): void {
   registry.register(new ArticleAsCrystal());

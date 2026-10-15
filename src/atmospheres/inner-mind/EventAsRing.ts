@@ -4,12 +4,12 @@
 // the mind"), vivid + emissive, with a small bright core at center.
 // Abstract procedural; a `ripple-ring` .glb can replace it later.
 
-import * as THREE from "../../../../toolbox/three.js";
-import type { Entity } from "../../../types.js";
-import { hashString } from "../../../layout.js";
-import { SmartObject } from "../../smart-objects/SmartObject.js";
-import type { BuilderContext, SmartObjectBuilder } from "../../smart-objects/Builder.js";
-import { MeshComponent } from "../../smart-objects/components/MeshComponent.js";
+import * as THREE from "../../toolbox/three.js";
+import type { Entity } from "../../world/types.js";
+import { hashString } from "../../world/layout.js";
+import { SmartObject } from "../../world/runtime/smart-objects/SmartObject.js";
+import type { BuilderContext, SmartObjectBuilder } from "../../world/runtime/smart-objects/Builder.js";
+import { MeshComponent } from "../../world/runtime/smart-objects/components/MeshComponent.js";
 import { acidColor, acidMaterial, attachCardScaffold } from "./scaffold.js";
 
 export class EventAsRing implements SmartObjectBuilder {

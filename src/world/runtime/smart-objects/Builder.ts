@@ -42,12 +42,17 @@ export interface BuilderContext {
   palette: BuilderPalette;
   surfaceCache: SurfaceCache;
   /**
-   * Resolve an asset URL relative to the theme's assets dir.
-   * Returns an absolute URL the browser can fetch. Defaults to
-   * /themes/custom/drupal_threejs/assets/<path> via the caller's
-   * configuration; never hardcoded inside builders.
+   * Resolve an asset URL relative to the host's assets dir.
+   * Returns an absolute URL the browser can fetch. Supplied by the
+   * host transport; never hardcoded inside builders.
    */
   assetUrl: (path: string) => string;
+  /**
+   * URL of an entity's HTML card in a view mode, for the in-world
+   * surface ("default"). Supplied by the host transport. Null when
+   * the entity has no card — the builder then skips the surface.
+   */
+  cardUrl: (entityId: string, viewMode: string) => string | null;
   /**
    * The world-space position this entity belongs at. Derived from
    * `entityPosition()` upstream; passed in so builders don't need

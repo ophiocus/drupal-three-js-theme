@@ -23,6 +23,7 @@ import * as THREE from "../../toolbox/three.js";
 import type { CardController } from "./CardController.js";
 import type { CameraController } from "./CameraController.js";
 import type { CorpusSnapshot } from "../types.js";
+import type { RouteCodec } from "../routes.js";
 import { SilhouetteHover } from "./hud/SilhouetteHover.js";
 
 interface NavigatorOptions {
@@ -32,6 +33,8 @@ interface NavigatorOptions {
   cardController: CardController;
   cameraController: CameraController;
   snapshot: CorpusSnapshot;
+  /** Host URL grammar — reads the current path, writes navigation targets. */
+  routes: RouteCodec;
   /**
    * Hover-change callback. Fires with an entityId when the user
    * starts hovering an eligible entity body / trigger pad; fires
@@ -351,42 +354,36 @@ export class PointerNavigator {
   }
 
   private handleEmptyClick(): void {
-    const path = window.location.pathname;
-    if (path === "/" || path === "") {
+    const { routes } = this.options;
+    const route = routes.parse(window.location.pathname);
+    const front = routes.format({ kind: "front" });
+    if (route.kind === "front") {
       // Q3: at overview, empty-space click clears card state.
       this.options.cardController.collapseAll();
       return;
     }
     // At sector or detail vantage, step out one URL level.
-    if (path.startsWith("/node/")) {
-      // node/<id> → its primary sector. If we can't resolve a
+    if (route.kind === "detail") {
+      // entity → its primary sector. If we can't resolve a
       // sector, fall back to overview.
-      const numericId = path.slice("/node/".length);
-      const entity = this.options.snapshot.entities[`node-${numericId}`];
+      const entity = this.options.snapshot.entities[route.entityId];
       const primarySector = entity?.taxonomyTerms?.[0];
       const target = primarySector
         ? this.uriForSector(primarySector)
-        : "/";
+        : front;
       this.options.cameraController.navigateTo(target);
       return;
     }
-    if (path.startsWith("/sector/")) {
-      this.options.cameraController.navigateTo("/");
-      return;
-    }
-    // Unknown path shape — back to overview.
-    this.options.cameraController.navigateTo("/");
+    // Sector, or an unknown path shape — back to overview.
+    this.options.cameraController.navigateTo(front);
   }
 
   private uriForSector(termId: string): string {
-    return `/sector/${termId}`;
+    return this.options.routes.format({ kind: "section", termId });
   }
 
   private uriForEntity(entityId: string): string {
-    // entityId is shaped "node-<n>"; URI is "/node/<n>".
-    const dash = entityId.indexOf("-");
-    if (dash < 0) return "/";
-    return `/${entityId.slice(0, dash)}/${entityId.slice(dash + 1)}`;
+    return this.options.routes.format({ kind: "detail", entityId });
   }
 
   /**

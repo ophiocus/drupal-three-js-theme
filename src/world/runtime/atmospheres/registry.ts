@@ -1,13 +1,15 @@
 // Atmosphere registry — the catalog of available visual themes.
 //
-// Every supported atmosphere is registered here with a lazy loader.
-// SceneManager + AtmosphereSwitcher + AtmosphereAudio + StageEditor
-// all read from this registry; none of them name an atmosphere
-// directly. To ship a new visual theme:
+// The host registers every atmosphere it ships here, with a lazy
+// loader, before mount. SceneManager + AtmosphereSwitcher +
+// AtmosphereAudio + StageEditor all read from this registry; none
+// of them name an atmosphere directly. To ship a new visual theme
+// (in this theme):
 //
-//   1. Create `src/world/runtime/atmospheres/<key>/index.ts` exporting
+//   1. Create `src/atmospheres/<key>/index.ts` exporting
 //      `export default <AtmosphereModule>`.
-//   2. Add one line below:
+//   2. Add one registerAtmosphereLoader line in
+//      `src/atmospheres/index.ts`:
 //        registerAtmosphereLoader("<key>", () =>
 //          import("./<key>/index.js").then(m => m.default));
 //   3. Add the i18n entries `switcher.atmosphere.<key>` in
@@ -25,7 +27,7 @@ type AtmosphereLoader = () => Promise<AtmosphereModule>;
 
 /** Insertion-ordered so the AtmosphereSwitcher renders pills in the
  *  same order they were registered. Reorder by changing the
- *  registration order at the bottom of this file. */
+ *  host's registration order. */
 const loaders = new Map<string, AtmosphereLoader>();
 
 /** Module cache so the second `loadAtmosphere(key)` is synchronous. */
@@ -79,16 +81,3 @@ export async function loadAtmosphere(
     return null;
   }
 }
-
-// ─── Catalog ───────────────────────────────────────────────────────────────
-// Add a new atmosphere by adding one line. The dynamic import keeps
-// inactive atmospheres out of the main bundle (vite splits them into
-// separate chunks).
-
-registerAtmosphereLoader("forest", async () =>
-  (await import("./forest/index.js")).default,
-);
-
-registerAtmosphereLoader("inner-mind", async () =>
-  (await import("./inner-mind/index.js")).default,
-);

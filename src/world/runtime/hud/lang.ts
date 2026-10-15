@@ -12,10 +12,11 @@
 //   1. consumeUrlLang()  // strips URL param + writes localStorage
 //   2. getCurrentLang() everywhere thereafter
 //
-// Every runtime reader (snapshot fetch, card fetch, in-canvas
-// surface fetch, label projection) calls getCurrentLang(). The
-// language switcher writes via setCurrentLang() and triggers a
-// page reload so the snapshot can refetch in the new language.
+// Every reader (the host's transport for snapshot / card / surface
+// requests, label projection) calls getCurrentLang(). The language
+// switcher writes via setCurrentLang() and SceneManager.switchLanguage
+// rebuilds the world from a fresh snapshot in the new language. How
+// the language reaches the server is the transport's business.
 
 export type Lang = "en" | "es";
 
@@ -92,26 +93,4 @@ export function setCurrentLang(lang: Lang): boolean {
   try { window.localStorage.setItem(STORAGE_KEY, lang); }
   catch { /* swallow — the change won't survive a reload but the current session still flips */ }
   return true;
-}
-
-/**
- * Append the active language as `?lang=<code>` to a request URL.
- * Used by the three card-fetch sites (CardController,
- * HtmlInCanvasSurface, HtmlMeshSurface) and the snapshot fetcher
- * (SceneManager). Reads the language via getCurrentLang() — never
- * looks at window.location.
- */
-export function withLangQuery(url: string): string {
-  const lang = getCurrentLang();
-  try {
-    const out = new URL(url, window.location.href);
-    out.searchParams.set("lang", lang);
-    // Preserve relative paths when the input was relative.
-    return url.startsWith("/")
-      ? out.pathname + out.search + out.hash
-      : out.toString();
-  } catch {
-    // Pathological URL — fall back to a naive append.
-    return url + (url.includes("?") ? "&" : "?") + "lang=" + encodeURIComponent(lang);
-  }
 }

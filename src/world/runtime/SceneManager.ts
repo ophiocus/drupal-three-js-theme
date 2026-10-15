@@ -1,8 +1,9 @@
 // SceneManager — owns the three.js renderer, scene, camera, and
-// the render loop. Reads a corpus snapshot from the cypher's
-// /world/snapshot/full endpoint, instantiates one placeholder mesh
-// per entity at the position `entityPosition()` derives from sector
-// + within-sector hash.
+// the render loop. Reads a corpus snapshot through the host's
+// WorldTransport, instantiates one SmartObject per entity at the
+// position `entityPosition()` derives from sector + within-sector
+// hash. The host supplies the transport, the URL grammar (RouteCodec),
+// its own default builders, and registers its atmospheres before mount.
 //
 // ALPHA scope: cubes only, static camera at the front vantage,
 // ambient + directional light. Sprint 5 brings the card runtime,
@@ -15,13 +16,12 @@ import { hasHtmlInCanvas, type HtmlSurface } from "./HtmlSurface.js";
 import { SurfaceCache } from "./SurfaceCache.js";
 import { AssetCache } from "./AssetCache.js";
 import { CardController } from "./CardController.js";
-import { BiomeMixer, type BiomePaletteEntry } from "./BiomeMixer.js";
+import { BiomeMixer } from "./BiomeMixer.js";
 import { CameraController } from "./CameraController.js";
 import { PointerNavigator } from "./PointerNavigator.js";
 import { SmartObject, type FrameContext } from "./smart-objects/SmartObject.js";
-import { SmartObjectRegistry } from "./smart-objects/Builder.js";
+import { SmartObjectRegistry, type SmartObjectBuilder } from "./smart-objects/Builder.js";
 import { FallbackBuilder } from "./smart-objects/builders/FallbackBuilder.js";
-import { ArticleBuilder } from "./smart-objects/builders/ArticleBuilder.js";
 import { LoaderOverlay } from "../../shared/LoaderOverlay.js";
 import { FLOOR_LAYERS } from "./floor-layers.js";
 import { sectorPadDecal } from "./sector-pad-texture.js";
@@ -29,58 +29,38 @@ import { vantage } from "../vantage.js";
 import { WorldHud, type HudLabel } from "./hud/WorldHud.js";
 import { AtmosphereSwitcher } from "./hud/AtmosphereSwitcher.js";
 import { LanguageSwitcher } from "./hud/LanguageSwitcher.js";
-import { consumeUrlLang, getCurrentLang, setCurrentLang, withLangQuery } from "./hud/lang.js";
+import { consumeUrlLang, getCurrentLang, setCurrentLang } from "./hud/lang.js";
 import { t as i18n, type Lang } from "./hud/i18n.js";
 import { AtmosphereAudio } from "./AtmosphereAudio.js";
 import {
   listAtmosphereKeys,
   loadAtmosphere,
 } from "./atmospheres/registry.js";
+import type { RouteCodec } from "../routes.js";
+import type {
+  Palette,
+  RawSnapshot,
+  SnapshotRequest,
+  WorldTransport,
+} from "./wire.js";
+
+/** What the host binding hands the runtime at construction. */
+export interface SceneManagerOptions {
+  /** Every server request — snapshot, card HTML, asset URLs. */
+  transport: WorldTransport;
+  /** The host's URL grammar (URI ⇄ vantage). */
+  routes: RouteCodec;
+  /**
+   * The host's own default builders, registered after the active
+   * atmosphere's and before the fallback (first match wins). Called
+   * once per scene build so each build gets fresh instances.
+   */
+  builders?: () => SmartObjectBuilder[];
+}
 
 interface BootOptions {
-  snapshotUrl: string;
   /** Optional override of the starting camera position. */
   cameraPosition?: Vec3;
-}
-
-interface DescriptorShape {
-  _id: string;
-  type: string;
-  title?: string;
-  summary?: string;
-  sector?: string;
-  sectorTermIds?: string[];
-  signature?: unknown;
-  /** BETA 2: explicit semantic-layout position, stamped by the
-   *  publisher in semantic mode. Absent in taxonomy mode. */
-  worldPos?: { x: number; z: number };
-}
-
-/**
- * Palette shape — mirrors world_signature.palette config schema
- * (see web/modules/custom/world_signature/config/schema/...). Every
- * color is a CSS hex string the renderer parses with THREE.Color.
- */
-interface Palette {
-  background: string;
-  fog: { color: string; near: number; far: number };
-  ambient: { color: string; intensity: number };
-  sun: { color: string; intensity: number; position: [number, number, number] };
-  fill: { color: string; intensity: number; position: [number, number, number] };
-  ground: { color: string };
-  sectorPad: { color: string };
-  compassPost: { color: string };
-  bundleColors: Record<string, string>;
-  /** Per-sector biome overlays. Empty array = global palette unchanged. */
-  biomes?: BiomePaletteEntry[];
-  /**
-   * Active atmosphere key. "none" (or absent) = no atmosphere
-   * builders register; defaults handle everything. Other values
-   * trigger lazy-import of `./atmospheres/<name>/index.js` and
-   * registration before the default builders, per
-   * docs/ATMOSPHERES.md.
-   */
-  activeAtmosphere?: string;
 }
 
 /**
@@ -192,8 +172,8 @@ export class SceneManager {
   private readonly scene: THREE.Scene;
   private readonly camera: THREE.PerspectiveCamera;
   private snapshot: CorpusSnapshot | null = null;
-  /** Snapshot endpoint pinned at mount(); switchAtmosphere() re-fetches it. */
-  private snapshotUrl: string | null = null;
+  /** Set by mount(); switchAtmosphere() / switchLanguage() refuse before it. */
+  private mounted = false;
   /**
    * v1.5 world switcher: the single disposable world-layer group.
    * Everything mount/atmosphere-time attaches HERE (lights, ground,
@@ -207,7 +187,7 @@ export class SceneManager {
   private palette: Palette = DEFAULT_PALETTE;
   private mode: Mode = "exploration";
   private readonly htmlSurfaces: HtmlSurface[] = [];
-  private readonly surfaceCache = new SurfaceCache();
+  private readonly surfaceCache: SurfaceCache;
   /** AssetCache — singleton-per-renderer cache of .glb scenes. */
   private readonly assetCache = new AssetCache();
   private registry: SmartObjectRegistry | null = null;
@@ -273,7 +253,11 @@ export class SceneManager {
    */
   private atmosphereLayout: Map<string, Vec3> | null = null;
 
-  constructor(private readonly canvas: HTMLCanvasElement) {
+  constructor(
+    private readonly canvas: HTMLCanvasElement,
+    private readonly host: SceneManagerOptions,
+  ) {
+    this.surfaceCache = new SurfaceCache(host.transport.fetchHtml);
     this.renderer = new THREE.WebGLRenderer({
       canvas,
       antialias: true,
@@ -317,14 +301,14 @@ export class SceneManager {
    * Fades out once everything's ready; the user never sees the
    * mid-build canvas.
    */
-  async mount(options: BootOptions): Promise<void> {
+  async mount(_options: BootOptions = {}): Promise<void> {
     const loader = new LoaderOverlay({
       title: "Building the world",
       message: "fetching corpus",
       namespace: "world-loader",
     });
 
-    this.snapshotUrl = options.snapshotUrl;
+    this.mounted = true;
     // Mount the HUD switchers IMMEDIATELY — they don't depend on the
     // snapshot at all, and putting them up first means the language
     // pill (and atmosphere pill) is visible + interactive while the
@@ -333,7 +317,7 @@ export class SceneManager {
     this.ensureAtmosphereSwitcher();
     this.ensureLanguageSwitcher();
     try {
-      await this.fetchSnapshot(options.snapshotUrl, false, loader);
+      await this.fetchSnapshot({ fresh: false }, loader);
       loader.setMessage("assembling entities");
       await this.buildScene(loader);
       // Start the render loop only after the scene is fully built.
@@ -362,27 +346,23 @@ export class SceneManager {
   /**
    * Fetch + adapt the snapshot, set the palette, and bind the asset
    * / surface caches to its version. Shared by mount() (first load)
-   * and switchAtmosphere() (rebuild). `noStore` bypasses the HTTP
-   * cache — switchAtmosphere needs a fresh read so a node-save
-   * atmosphere flip is reflected immediately.
+   * and switchAtmosphere() (rebuild). `fresh` bypasses HTTP caches —
+   * switchAtmosphere needs a fresh read so a node-save atmosphere
+   * flip is reflected immediately. The transport carries the active
+   * language to the server (3D positions are language-agnostic —
+   * same world, different labels).
    */
   private async fetchSnapshot(
-    url: string,
-    noStore: boolean,
+    request: SnapshotRequest,
     loader?: LoaderOverlay,
   ): Promise<void> {
-    const init: RequestInit = { headers: { Accept: "application/json" } };
-    if (noStore) init.cache = "no-store";
-    // Tell the server which language to overlay descriptor
-    // title/summary/body to. 3D positions stay language-agnostic —
-    // same world, different labels. Single source of truth via
-    // withLangQuery() → getCurrentLang() → localStorage.
-    const response = await fetch(withLangQuery(url), init);
-    if (!response.ok) {
-      loader?.setMessage(`snapshot fetch failed: HTTP ${response.status}`);
-      throw new Error(`snapshot fetch failed: HTTP ${response.status}`);
+    let raw: RawSnapshot;
+    try {
+      raw = await this.host.transport.loadSnapshot(request);
+    } catch (err) {
+      loader?.setMessage(err instanceof Error ? err.message : String(err));
+      throw err;
     }
-    const raw = (await response.json()) as RawSnapshot;
     this.snapshot = this.adaptSnapshot(raw);
     this.palette = (raw.world.palette as Palette) ?? DEFAULT_PALETTE;
     // Cache invalidates atomically when the cypher publishes a new
@@ -417,39 +397,40 @@ export class SceneManager {
     // v0.2: build the SmartObjectRegistry with atmosphere
     // builders FIRST, defaults AFTER. First-match-wins means
     // an active atmosphere claims its bundles; anything it
-    // doesn't claim falls through to ArticleBuilder /
-    // FallbackBuilder. See docs/ATMOSPHERES.md §"Stage 6".
+    // doesn't claim falls through to the host's default builders,
+    // then FallbackBuilder. See docs/ATMOSPHERES.md §"Stage 6".
     this.registry = new SmartObjectRegistry(new FallbackBuilder());
     const atmosphere = this.palette.activeAtmosphere;
     if (atmosphere && atmosphere !== "none") {
       loader?.setMessage(`loading ${atmosphere} atmosphere`);
       await this.registerAtmosphere(atmosphere);
     }
-    this.registry.register(new ArticleBuilder());
+    for (const builder of this.host.builders?.() ?? []) {
+      this.registry.register(builder);
+    }
 
     // v0.1: CameraController owns motion. Seed from the URL's
     // vantage; the ALPHA orbit is gone.
     const snap = this.snapshot;
+    const routes = this.host.routes;
     this.cameraController = new CameraController({
       camera: this.camera,
       snapshot: snap,
-      getTargetVantageFromUrl: () => vantage(window.location.pathname, snap),
+      routes,
+      getTargetVantageFromUrl: () => vantage(window.location.pathname, snap, routes),
       setUrlFromVantage: (v) => {
         if (window.location.pathname !== v.uri) {
           history.replaceState(null, "", v.uri);
         }
         // v0.4 information-lod: detail vantages auto-open FullView.
-        // When the camera settles at /node/<id>, the user is at a
-        // node URL and expects to see the article. Previously they
-        // only saw the entity from a detail vantage with no text;
-        // the FullView modal had to be triggered separately. This
-        // closes that gap.
-        if (v.kind === "detail" && v.uri.startsWith("/")) {
-          // /node/123 → "node-123" — the descriptorId shape.
-          const parts = v.uri.split("/").filter(Boolean);
-          if (parts.length === 2) {
-            const entityId = `${parts[0]}-${parts[1]}`;
-            this.cardController?.openFullView(entityId);
+        // When the camera settles at an entity's URL, the user
+        // expects to see the article. Previously they only saw the
+        // entity from a detail vantage with no text; the FullView
+        // modal had to be triggered separately. This closes that gap.
+        if (v.kind === "detail") {
+          const route = routes.parse(v.uri);
+          if (route.kind === "detail") {
+            this.cardController?.openFullView(route.entityId);
           }
         }
       },
@@ -458,6 +439,7 @@ export class SceneManager {
       canvas: this.canvas,
       camera: this.camera,
       surfaceCache: this.surfaceCache,
+      transport: this.host.transport,
       setMode: (m) => this.setMode(m),
       onBloomedMesh: (mesh) => this.cameraController?.setBloomedMesh(mesh),
     });
@@ -470,6 +452,7 @@ export class SceneManager {
       cardController: this.cardController,
       cameraController: this.cameraController,
       snapshot: snap,
+      routes,
       // v0.4: hover-driven subtitle reveal. PointerNavigator emits
       // an entityId on hover start / null on clear; WorldHud finds
       // the matching label and toggles its subtitle.
@@ -531,9 +514,9 @@ export class SceneManager {
    * `SnapshotPublisher::applyTranslationOverlay`), so a language flip
    * is structurally a snapshot re-fetch with new label content. We
    * reuse the atmosphere-switch pipeline: persist the choice, run
-   * the per-prop outro + world-layer shrink, refetch with the new
-   * `?lang=` (added by `withLangQuery` reading the now-persisted
-   * value), rebuild the scene, refresh the atmosphere-switcher
+   * the per-prop outro + world-layer shrink, refetch (the transport
+   * reads the now-persisted language and carries it to the server),
+   * rebuild the scene, refresh the atmosphere-switcher
    * labels (they're translated), run the per-prop intro + envelope
    * (sky+fog) crossfade. Visual result: the world gently breathes;
    * the camera doesn't move; the labels change.
@@ -544,7 +527,7 @@ export class SceneManager {
    */
   async switchLanguage(code: Lang): Promise<void> {
     if (code === this.currentLang) return;
-    if (!this.snapshotUrl) {
+    if (!this.mounted) {
       console.warn("[world] switchLanguage() before mount(); ignoring.");
       return;
     }
@@ -567,7 +550,7 @@ export class SceneManager {
     // we only need to refresh its active highlight.
     this.atmosphereSwitcher?.dispose();
     this.atmosphereSwitcher = null;
-    // Re-fetch the same snapshot — withLangQuery() will append the new
+    // Re-fetch the same snapshot — the transport sends the new
     // language. switchAtmosphere(undefined) is the well-tested rebuild
     // path; reusing it gives us the crossfade, the disposal pass, the
     // camera-position preservation, and the loop pause for free.
@@ -577,7 +560,7 @@ export class SceneManager {
   }
 
   async switchAtmosphere(name?: string): Promise<void> {
-    if (!this.snapshotUrl) {
+    if (!this.mounted) {
       console.warn("[world] switchAtmosphere() before mount(); ignoring.");
       return;
     }
@@ -639,10 +622,9 @@ export class SceneManager {
       //    AtmosphereSwitcher already shows a spinner on the clicked
       //    pill from the click handler — the user has immediate
       //    feedback while this work runs.
-      const url = name
-        ? this.withQuery(this.snapshotUrl, "atmosphere", name)
-        : this.snapshotUrl;
-      await this.fetchSnapshot(url, true);
+      await this.fetchSnapshot(
+        name ? { atmosphere: name, fresh: true } : { fresh: true },
+      );
       await this.buildScene();
       this.camera.position.copy(stashedPos);
       this.audio?.setAtmosphere(this.palette.activeAtmosphere ?? "none");
@@ -1083,12 +1065,6 @@ export class SceneManager {
     this.atmosphereLayout = null;
   }
 
-  /** Append a query param to a URL, choosing `?` or `&` as needed. */
-  private withQuery(url: string, key: string, value: string): string {
-    const sep = url.includes("?") ? "&" : "?";
-    return `${url}${sep}${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
-  }
-
   /**
    * Mass centre of the active atmosphere's 3D layout (interpretation
    * engine), or null when there's no atmosphere layout. The camera
@@ -1510,7 +1486,8 @@ export class SceneManager {
         snapshot: snap,
         palette: this.palette,
         surfaceCache: this.surfaceCache,
-        assetUrl: (path) => `/themes/custom/drupal_threejs/assets/${path}`,
+        assetUrl: (path) => this.host.transport.assetUrl(path),
+        cardUrl: (id, viewMode) => this.host.transport.cardUrl(id, viewMode),
         worldPosition: new THREE.Vector3(wp.x, wp.y, wp.z),
         activeAtmosphere,
         tryLoadProp,
@@ -1573,8 +1550,13 @@ export class SceneManager {
           className: "world-hud__sector-label",
           visibleIf: (camera) => camera.position.y > overviewHeightThreshold,
           onClick: () => {
+            const routes = this.host.routes;
             this.cameraController?.setTarget(
-              vantage(`/sector/${sector.termId}`, this.snapshot!),
+              vantage(
+                routes.format({ kind: "section", termId: sector.termId }),
+                this.snapshot!,
+                routes,
+              ),
             );
           },
         });
@@ -1876,14 +1858,4 @@ export class SceneManager {
     }
     return sig;
   }
-}
-
-interface RawSnapshot {
-  version: string;
-  generatedAt: number;
-  world: CorpusSnapshot["world"] & { palette?: Palette };
-  sectors: CorpusSnapshot["sectors"];
-  entities: Record<string, DescriptorShape>;
-  /** v0.4+: live assets — omitted on legacy publish runs. */
-  assets?: CorpusSnapshot["assets"];
 }

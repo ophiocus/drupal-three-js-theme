@@ -1,18 +1,24 @@
-// vantage(url, snapshot) → Vantage
+// vantage(url, snapshot, routes) → Vantage
 //
 // The thesis's central claim made executable: every URI deterministically
 // maps to a place in the world. This is the only function in the module
-// that an outside caller needs.
+// that an outside caller needs. The URL grammar is the host's: `routes`
+// parses the request path and writes the vantage's canonical URI.
 
 import type { CorpusSnapshot, Vantage, Vec3 } from "./types.js";
+import type { RouteCodec } from "./routes.js";
 import { entityPosition, normalize2D } from "./layout.js";
-import { parseUrl } from "./url.js";
 
 const DEFAULT_FOV = 60;
 
-export function vantage(url: string, snapshot: CorpusSnapshot): Vantage {
-  const parsed = parseUrl(url);
+export function vantage(
+  url: string,
+  snapshot: CorpusSnapshot,
+  routes: RouteCodec,
+): Vantage {
+  const parsed = routes.parse(url);
   const w = snapshot.world;
+  const frontUri = routes.format({ kind: "front" });
 
   switch (parsed.kind) {
     case "front": {
@@ -20,7 +26,7 @@ export function vantage(url: string, snapshot: CorpusSnapshot): Vantage {
       // across all sectors rather than straight down.
       return {
         kind: "front",
-        uri: "/",
+        uri: frontUri,
         sectorId: null,
         position: { x: 0, y: w.overviewHeight, z: w.overviewHeight },
         lookAt: { x: 0, y: 0, z: 0 },
@@ -45,7 +51,7 @@ export function vantage(url: string, snapshot: CorpusSnapshot): Vantage {
       };
       return {
         kind: "section",
-        uri: `/sector/${parsed.termId}`,
+        uri: routes.format(parsed),
         sectorId: parsed.termId,
         position: rim,
         lookAt: { x: sector.centroid.x, y: 0, z: sector.centroid.z },
@@ -54,9 +60,7 @@ export function vantage(url: string, snapshot: CorpusSnapshot): Vantage {
     }
 
     case "detail": {
-      // Snapshot keys are `${entityType}-${entityId}` (e.g. "node-19");
-      // the URL carries them split (/node/19). Reconstruct.
-      const key = `${parsed.entityType}-${parsed.entityId}`;
+      const key = parsed.entityId;
       const entity = snapshot.entities[key];
       if (!entity) throw new Error(`Unknown entity: ${key}`);
       const pos = entityPosition(entity, snapshot);
@@ -75,7 +79,7 @@ export function vantage(url: string, snapshot: CorpusSnapshot): Vantage {
       const primarySector = entity.taxonomyTerms[0] ?? null;
       return {
         kind: "detail",
-        uri: `/${parsed.entityType}/${parsed.entityId}`,
+        uri: routes.format(parsed),
         sectorId: primarySector,
         position: camera,
         // v0.2.1-P4: aim partway up so the HTML surface (which
@@ -113,7 +117,7 @@ export function vantage(url: string, snapshot: CorpusSnapshot): Vantage {
       // Report the front URI — the camera ends up there regardless.
       return {
         kind: "front",
-        uri: "/",
+        uri: frontUri,
         sectorId: null,
         position: { x: 0, y: w.overviewHeight, z: w.overviewHeight },
         lookAt: { x: 0, y: 0, z: 0 },

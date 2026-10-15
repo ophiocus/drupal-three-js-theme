@@ -17,7 +17,7 @@
 // Deterministic: fixed power-iteration seed, fixed iteration count.
 // Same embeddings → same cloud, every run (preserves URI-is-a-coordinate).
 
-import type { Vec3 } from "../../../types.js";
+import type { Vec3 } from "../../world/types.js";
 
 const POWER_ITERATIONS = 128;
 

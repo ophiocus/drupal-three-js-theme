@@ -20,15 +20,15 @@
 // proportionally placed: pad just in front of the cube, surface
 // just above its top.
 
-import * as THREE from "../../../../toolbox/three.js";
-import type { Entity } from "../../../types.js";
-import { SmartObject } from "../SmartObject.js";
-import type { BuilderContext, SmartObjectBuilder } from "../Builder.js";
-import { MeshComponent } from "../components/MeshComponent.js";
-import { TriggerPadComponent } from "../components/TriggerPadComponent.js";
-import { HtmlSurfaceComponent, cardPlacement } from "../components/HtmlSurfaceComponent.js";
-import { metaMaterial, META_PAD_COLOR } from "../../uv-test-texture.js";
-import { FLOOR_LAYERS } from "../../floor-layers.js";
+import * as THREE from "../toolbox/three.js";
+import type { Entity } from "../world/types.js";
+import { SmartObject } from "../world/runtime/smart-objects/SmartObject.js";
+import type { BuilderContext, SmartObjectBuilder } from "../world/runtime/smart-objects/Builder.js";
+import { MeshComponent } from "../world/runtime/smart-objects/components/MeshComponent.js";
+import { TriggerPadComponent } from "../world/runtime/smart-objects/components/TriggerPadComponent.js";
+import { HtmlSurfaceComponent, cardPlacement } from "../world/runtime/smart-objects/components/HtmlSurfaceComponent.js";
+import { metaMaterial, META_PAD_COLOR } from "../world/runtime/uv-test-texture.js";
+import { FLOOR_LAYERS } from "../world/runtime/floor-layers.js";
 
 /**
  * Word count → cube side. Log scale; clamped to a readable range.
@@ -84,12 +84,10 @@ export class ArticleBuilder implements SmartObjectBuilder {
     // detail vantage frames it consistently. Card sits at a fixed
     // readable height + outward offset, regardless of cube size.
     try {
-      const dashIdx = descriptor.id.indexOf("-");
-      if (dashIdx > 0) {
-        const entityType = descriptor.id.slice(0, dashIdx);
-        const numericId = descriptor.id.slice(dashIdx + 1);
+      const url = ctx.cardUrl(descriptor.id, "default");
+      if (url) {
         const surface = await ctx.surfaceCache.acquire({
-          url: `/world/card/${entityType}/${numericId}/default`,
+          url,
           widthPx: 600,
           heightPx: 400,
           widthWorld: 18,

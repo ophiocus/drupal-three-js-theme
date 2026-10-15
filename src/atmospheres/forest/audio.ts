@@ -6,7 +6,7 @@
 // soundscape; AtmosphereAudio is a generic lifecycle wrapper that
 // asks the registry for whichever atmosphere is active.
 
-import type { Soundscape } from "../types.js";
+import type { Soundscape } from "../../world/runtime/atmospheres/types.js";
 
 function noiseBuffer(ctx: AudioContext, seconds: number): AudioBuffer {
   const len = Math.floor(ctx.sampleRate * seconds);

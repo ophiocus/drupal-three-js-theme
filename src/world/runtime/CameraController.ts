@@ -14,6 +14,7 @@
 
 import * as THREE from "../../toolbox/three.js";
 import type { CorpusSnapshot, Vantage } from "../types.js";
+import type { RouteCodec } from "../routes.js";
 
 export interface CameraControllerOptions {
   camera: THREE.PerspectiveCamera;
@@ -34,6 +35,12 @@ export interface CameraControllerOptions {
    * Optional: hotkeys silently no-op when absent.
    */
   snapshot?: CorpusSnapshot;
+  /**
+   * Host URL grammar — keyboard navigation reads the current route
+   * and writes its targets through it. Optional: Tab / number-key
+   * hotkeys silently no-op when absent; Escape falls back to "/".
+   */
+  routes?: RouteCodec;
   /**
    * Damping stiffness; higher = faster convergence. Default 4
    * gives ~250ms to 90% convergence at typical frame rates.
@@ -597,7 +604,7 @@ export class CameraController {
       // CardController also listens for Escape (collapses cards).
       // Both can fire; the order doesn't matter — collapsing a
       // card and jumping to overview are independent state mutations.
-      this.navigateTo("/");
+      this.navigateTo(this.options.routes?.format({ kind: "front" }) ?? "/");
       event.preventDefault();
       return;
     }
@@ -618,9 +625,9 @@ export class CameraController {
 
   /**
    * Cycle to the next/prev entity in the current path's sector.
-   * "Current sector" is derived from the URL: at `/node/<n>`, the
-   * primary sector of that node; at `/sector/<n>`, that sector;
-   * at `/`, all entities corpus-wide.
+   * "Current sector" is derived from the URL's route: at a detail
+   * route, the primary sector of that entity; at a section route,
+   * that sector; anywhere else, all entities corpus-wide.
    *
    * Entity order is `Object.values(snapshot.entities)` by id —
    * stable across reloads since the snapshot is deterministic.
@@ -628,21 +635,21 @@ export class CameraController {
    */
   private cycleEntity(direction: 1 | -1): void {
     const snap = this.options.snapshot;
-    if (!snap) return;
-    const path = window.location.pathname;
+    const routes = this.options.routes;
+    if (!snap || !routes) return;
+    const route = routes.parse(window.location.pathname);
     let pool: string[] = [];
 
     const allEntities = Object.values(snap.entities);
-    if (path.startsWith("/node/")) {
-      const currentId = `node-${path.slice("/node/".length)}`;
-      const sector = snap.entities[currentId]?.taxonomyTerms?.[0];
+    if (route.kind === "detail") {
+      const sector = snap.entities[route.entityId]?.taxonomyTerms?.[0];
       pool = sector
         ? allEntities
             .filter((e) => e.taxonomyTerms[0] === sector)
             .map((e) => e.id)
         : allEntities.map((e) => e.id);
-    } else if (path.startsWith("/sector/")) {
-      const sectorId = path.slice("/sector/".length);
+    } else if (route.kind === "section") {
+      const sectorId = route.termId;
       pool = allEntities
         .filter((e) => e.taxonomyTerms.includes(sectorId))
         .map((e) => e.id);
@@ -653,15 +660,11 @@ export class CameraController {
 
     // Find current position in the pool; if not present, start at the
     // direction-appropriate end.
-    const currentNodeId = path.startsWith("/node/")
-      ? `node-${path.slice("/node/".length)}`
-      : null;
-    let idx = currentNodeId ? pool.indexOf(currentNodeId) : -1;
+    const currentEntityId = route.kind === "detail" ? route.entityId : null;
+    let idx = currentEntityId ? pool.indexOf(currentEntityId) : -1;
     if (idx === -1) idx = direction > 0 ? -1 : pool.length;
-    const next = pool[(idx + direction + pool.length) % pool.length];
-    const dash = next.indexOf("-");
-    if (dash < 0) return;
-    this.navigateTo(`/${next.slice(0, dash)}/${next.slice(dash + 1)}`);
+    const next = pool[(idx + direction + pool.length) % pool.length]!;
+    this.navigateTo(routes.format({ kind: "detail", entityId: next }));
   }
 
   /**
@@ -672,12 +675,13 @@ export class CameraController {
    */
   private jumpToSectorByIndex(index: number): void {
     const snap = this.options.snapshot;
-    if (!snap) return;
+    const routes = this.options.routes;
+    if (!snap || !routes) return;
     const sectorIds = Object.values(snap.sectors)
       .map((s) => s.termId)
       .sort((a, b) => Number(a) - Number(b));
     if (index >= sectorIds.length) return;
-    this.navigateTo(`/sector/${sectorIds[index]}`);
+    this.navigateTo(routes.format({ kind: "section", termId: sectorIds[index]! }));
   }
 
 }

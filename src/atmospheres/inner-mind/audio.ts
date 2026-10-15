@@ -4,7 +4,7 @@
 // Moved out of AtmosphereAudio.ts into the inner-mind atmosphere's
 // own directory. See ../forest/audio.ts for the same rationale.
 
-import type { Soundscape } from "../types.js";
+import type { Soundscape } from "../../world/runtime/atmospheres/types.js";
 
 export function buildInnerMindSoundscape(
   ctx: AudioContext,

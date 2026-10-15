@@ -1,13 +1,14 @@
-// Bridge: render Drupal-served HTML to a CanvasTexture via
+// Bridge: render server-rendered HTML to a CanvasTexture via
 // html-to-image (SVG foreignObject under the hood). Universal
 // browser support; only ever instantiated when the HIC path
 // is unavailable.
 
 import * as THREE from "../../toolbox/three.js";
-import { withLangQuery } from "./hud/lang.js";
+import type { HtmlFetcher } from "./wire.js";
 import {
   HtmlSurface,
   HtmlSurfaceOptions,
+  fetchFragment,
   makeSurfaceMesh,
   wrapHtmlFragment,
 } from "./HtmlSurface.js";
@@ -16,7 +17,10 @@ export class HtmlMeshSurface extends HtmlSurface {
   readonly mesh: THREE.Mesh;
   private texture: THREE.CanvasTexture | null = null;
 
-  constructor(private readonly options: HtmlSurfaceOptions) {
+  constructor(
+    private readonly options: HtmlSurfaceOptions,
+    private readonly fetchHtml: HtmlFetcher,
+  ) {
     super();
     this.mesh = makeSurfaceMesh(options);
   }
@@ -24,7 +28,7 @@ export class HtmlMeshSurface extends HtmlSurface {
   async refresh(): Promise<void> {
     const { toCanvas } = await import("html-to-image");
 
-    const fragment = await fetchFragment(this.options.url);
+    const fragment = await fetchFragment(this.fetchHtml, this.options.url, "HtmlMeshSurface");
     const container = document.createElement("div");
     container.style.cssText = [
       "position:fixed",
@@ -72,12 +76,4 @@ export class HtmlMeshSurface extends HtmlSurface {
     mat.map = tex;
     mat.needsUpdate = true;
   }
-}
-
-async function fetchFragment(url: string): Promise<string> {
-  const r = await fetch(withLangQuery(url), { headers: { Accept: "text/html" } });
-  if (!r.ok) {
-    throw new Error(`HtmlMeshSurface fetch ${url} failed: HTTP ${r.status}`);
-  }
-  return r.text();
 }

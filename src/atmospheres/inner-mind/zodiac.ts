@@ -14,9 +14,9 @@
 // dream-distant ring). Attaches to the disposable world-layer root; the
 // inner-mind env returns dispose() for the switcher teardown.
 
-import * as THREE from "../../../../toolbox/three.js";
-import type { CorpusSnapshot } from "../../../types.js";
-import { hashString } from "../../../layout.js";
+import * as THREE from "../../toolbox/three.js";
+import type { CorpusSnapshot } from "../../world/types.js";
+import { hashString } from "../../world/layout.js";
 
 const COUNT = 12;            // a zodiac
 const RING_FACTOR = 1.4;     // ring radius as a multiple of world.radius

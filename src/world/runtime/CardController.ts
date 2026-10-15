@@ -29,7 +29,7 @@ import * as THREE from "../../toolbox/three.js";
 import type { HtmlSurface, HtmlSurfaceOptions } from "./HtmlSurface.js";
 import type { SurfaceCache } from "./SurfaceCache.js";
 import type { SmartObject } from "./smart-objects/SmartObject.js";
-import { withLangQuery } from "./hud/lang.js";
+import type { WorldTransport } from "./wire.js";
 import { HtmlSurfaceComponent } from "./smart-objects/components/HtmlSurfaceComponent.js";
 import { TriggerPadComponent } from "./smart-objects/components/TriggerPadComponent.js";
 
@@ -44,9 +44,8 @@ export type CardState = "hidden" | "bloomed" | "fullView";
  */
 interface CardRecord {
   entityId: string;
-  /** Numeric/string id used to build the FullView card endpoint URL. */
-  numericId: string;
-  entityType: string;
+  /** FullView card URL, from the transport's cardUrl() at register time. */
+  fullViewUrl: string;
   /** Small disc on the ground; the click target. Optional — entity-body
    *  clicks still register through openFullView even if no pad. */
   pad: THREE.Mesh | null;
@@ -68,6 +67,8 @@ interface ControllerOptions {
   canvas: HTMLCanvasElement;
   camera: THREE.Camera;
   surfaceCache: SurfaceCache;
+  /** Host transport — FullView card URLs and their HTML. */
+  transport: WorldTransport;
   setMode: ModeSetter;
   /**
    * Notify the host (CameraController) when a surface mesh enters
@@ -153,16 +154,17 @@ export class CardController {
       );
     }
 
-    // Parse "node-12" → ("node", "12") for the FullView URL.
-    const dashIdx = smartObject.entityId.indexOf("-");
-    if (dashIdx < 0) return;
-    const entityType = smartObject.entityId.slice(0, dashIdx);
-    const numericId = smartObject.entityId.slice(dashIdx + 1);
+    // An entity the transport serves no card for stays out of the
+    // card lifecycle.
+    const fullViewUrl = this.options.transport.cardUrl(
+      smartObject.entityId,
+      this.fullViewMode,
+    );
+    if (fullViewUrl === null) return;
 
     const record: CardRecord = {
       entityId: smartObject.entityId,
-      entityType,
-      numericId,
+      fullViewUrl,
       pad,
       surface,
       homePosition: surface?.mesh.position.clone() ?? null,
@@ -350,8 +352,7 @@ export class CardController {
     if (this.prefetchSlot?.entityId === entityId) return;
     const record = this.cards.find((c) => c.entityId === entityId);
     if (!record) return;
-    const url = `/world/card/${record.entityType}/${record.numericId}/${this.fullViewMode}`;
-    this.prefetchSlot = { entityId, html: fetchCardHtml(url) };
+    this.prefetchSlot = { entityId, html: this.options.transport.fetchHtml(record.fullViewUrl) };
     if (this.fullViewRecord !== null) {
       // Already in reading mode — give the user immediate "going
       // somewhere new" feedback by swapping the overlay to its
@@ -386,8 +387,7 @@ export class CardController {
     if (this.prefetchSlot?.entityId === record.entityId) {
       htmlPromise = this.prefetchSlot.html;
     } else {
-      const url = `/world/card/${record.entityType}/${record.numericId}/${this.fullViewMode}`;
-      htmlPromise = fetchCardHtml(url);
+      htmlPromise = this.options.transport.fetchHtml(record.fullViewUrl);
     }
     // Clear the slot regardless — applyFullView is the consumer.
     this.prefetchSlot = null;
@@ -870,12 +870,6 @@ class CardOverlay {
   dispose(): void {
     this.root.remove();
   }
-}
-
-async function fetchCardHtml(url: string): Promise<string> {
-  const r = await fetch(withLangQuery(url), { headers: { Accept: "text/html" } });
-  if (!r.ok) throw new Error(`HTTP ${r.status}`);
-  return r.text();
 }
 
 // HtmlSurfaceOptions re-export so the SceneManager doesn't need a

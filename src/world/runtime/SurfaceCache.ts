@@ -22,6 +22,7 @@ import {
   type HtmlSurface,
   type HtmlSurfaceOptions,
 } from "./HtmlSurface.js";
+import type { HtmlFetcher } from "./wire.js";
 
 interface CacheEntry {
   surface: HtmlSurface;
@@ -37,7 +38,12 @@ export class SurfaceCache {
   private snapshotVersion: string | null = null;
   private accessClock = 0;
 
-  constructor(private readonly capacity: number = DEFAULT_CAPACITY) {}
+  /** `fetchHtml` is the host transport's; every surface built on a
+   *  cache miss fetches its fragment through it. */
+  constructor(
+    private readonly fetchHtml: HtmlFetcher,
+    private readonly capacity: number = DEFAULT_CAPACITY,
+  ) {}
 
   /**
    * Get or create the surface for `options.url`. The factory's
@@ -59,7 +65,7 @@ export class SurfaceCache {
     if (pending) return pending;
 
     const promise = (async () => {
-      const surface = await createHtmlSurface(options);
+      const surface = await createHtmlSurface(options, this.fetchHtml);
       await surface.refresh();
       this.entries.set(key, { surface, lastAccess: ++this.accessClock });
       this.evictIfOverCapacity();

@@ -20,11 +20,11 @@
 // atmosphere disposers), so a switch to forest tears it down with the
 // rest of the atmosphere chrome.
 
-import * as THREE from "../../../toolbox/three.js";
-import type { CorpusSnapshot } from "../../types.js";
-import type { SurrealZodiac, ZodiacPlacement } from "../atmospheres/inner-mind/zodiac.js";
-import { listAtmosphereKeys } from "../atmospheres/registry.js";
-import { type Lang, t } from "./i18n.js";
+import * as THREE from "../../toolbox/three.js";
+import type { CorpusSnapshot } from "../../world/types.js";
+import type { SurrealZodiac, ZodiacPlacement } from "./zodiac.js";
+import { listAtmosphereKeys } from "../../world/runtime/atmospheres/registry.js";
+import { type Lang, t } from "../../world/runtime/hud/i18n.js";
 
 const STORAGE_KEY = "world.stage.placements.v0";
 const ANGLE_SENSITIVITY = 0.005;   // rad per pixel of horizontal drag

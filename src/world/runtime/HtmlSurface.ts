@@ -1,5 +1,6 @@
-// HtmlSurface — Drupal-served HTML painted onto a 3D quad as a
+// HtmlSurface — server-rendered HTML painted onto a 3D quad as a
 // texture. The engine's core differentiator (see docs/HTML_SURFACES.md).
+// The HTML arrives through the host transport's fetchHtml().
 //
 // Capability-detected at construction time:
 //   - HtmlInCanvasSurface  — Chromium 147+ with the
@@ -14,9 +15,10 @@
 // know which path is active.
 
 import * as THREE from "../../toolbox/three.js";
+import type { HtmlFetcher } from "./wire.js";
 
 export interface HtmlSurfaceOptions {
-  /** Endpoint serving the HTML fragment, e.g. /world/card/node/1/default. */
+  /** URL of the HTML fragment, as the transport's cardUrl() gave it. */
   url: string;
   /** Texture pixel dimensions — drives the underlying canvas size. */
   widthPx: number;
@@ -40,13 +42,33 @@ export abstract class HtmlSurface {
  * Factory: pick the SOTA path if the browser supports it, fall back
  * to the bridge otherwise. Single API on the property's side.
  */
-export async function createHtmlSurface(options: HtmlSurfaceOptions): Promise<HtmlSurface> {
+export async function createHtmlSurface(
+  options: HtmlSurfaceOptions,
+  fetchHtml: HtmlFetcher,
+): Promise<HtmlSurface> {
   if (hasHtmlInCanvas()) {
     const { HtmlInCanvasSurface } = await import("./HtmlInCanvasSurface.js");
-    return new HtmlInCanvasSurface(options);
+    return new HtmlInCanvasSurface(options, fetchHtml);
   }
   const { HtmlMeshSurface } = await import("./HtmlMeshSurface.js");
-  return new HtmlMeshSurface(options);
+  return new HtmlMeshSurface(options, fetchHtml);
+}
+
+/**
+ * Fetch a surface's fragment, naming the surface path and URL in the
+ * error so a failed card is traceable from the console.
+ */
+export async function fetchFragment(
+  fetchHtml: HtmlFetcher,
+  url: string,
+  surfaceName: string,
+): Promise<string> {
+  try {
+    return await fetchHtml(url);
+  } catch (err) {
+    const cause = err instanceof Error ? err.message : String(err);
+    throw new Error(`${surfaceName} fetch ${url} failed: ${cause}`);
+  }
 }
 
 /**
@@ -78,7 +100,7 @@ export function makeSurfaceMesh(options: HtmlSurfaceOptions): THREE.Mesh {
 }
 
 /**
- * Drupal-served HTML often arrives with a fragment-only structure
+ * Server-rendered HTML often arrives with a fragment-only structure
  * (just the entity render, no <html>/<head>/<body>). Wrap it with
  * a minimal frame so html-to-image's serializer is happy and the
  * styling defaults are predictable. Ignored by the HIC path.

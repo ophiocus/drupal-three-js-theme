@@ -10,8 +10,8 @@
 // position. Deterministic via hashed base positions but visually
 // reads as random ambient motion.
 
-import * as THREE from "../../../../toolbox/three.js";
-import type { CorpusSnapshot } from "../../../types.js";
+import * as THREE from "../../toolbox/three.js";
+import type { CorpusSnapshot } from "../../world/types.js";
 
 const PARTICLE_COUNT = 80;
 const SPAWN_Y_MIN = 5;

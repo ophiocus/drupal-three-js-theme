@@ -2,9 +2,18 @@
 // emits a <canvas data-world-canvas> + a <script type="application/json"
 // data-scene-root>. Vite bundles this file into dist/world.bundle.js,
 // which the theme's libraries.yml ships to the browser.
+//
+// This file is the Drupal binding's composition root: it hands the
+// runtime (world/) the Drupal transport and URL grammar (binding/),
+// registers the theme's atmospheres (atmospheres/) and default
+// builders (builders/), then mounts.
 
 import { SceneManager } from "./world/runtime/SceneManager.js";
-import { maybeShowFirstVisitOverlay } from "./world/runtime/hud/FirstVisitOverlay.js";
+import { DrupalTransport } from "./binding/drupal-transport.js";
+import { drupalRoutes } from "./binding/drupal-routes.js";
+import { maybeShowFirstVisitOverlay } from "./binding/FirstVisitOverlay.js";
+import { ArticleBuilder } from "./builders/ArticleBuilder.js";
+import "./atmospheres/index.js";
 
 async function boot(): Promise<void> {
   const canvas = document.querySelector<HTMLCanvasElement>(
@@ -26,9 +35,16 @@ async function boot(): Promise<void> {
 
   // Snapshot URL is pinned to the cypher's REST resource. v0.0.2 will
   // accept a snapshot version override in the URL query for permalinks.
-  const sm = new SceneManager(canvas);
+  const sm = new SceneManager(canvas, {
+    transport: new DrupalTransport({
+      snapshotUrl: "/world/snapshot/full",
+      assetBase: "/themes/custom/drupal_threejs/assets/",
+    }),
+    routes: drupalRoutes,
+    builders: () => [new ArticleBuilder()],
+  });
   try {
-    await sm.mount({ snapshotUrl: "/world/snapshot/full" });
+    await sm.mount();
   } catch (error) {
     console.error("[world] mount failed:", error);
   }

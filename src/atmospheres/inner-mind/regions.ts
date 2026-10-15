@@ -13,8 +13,8 @@
 // skips for 3D atmosphere layouts). Attaches to the disposable
 // world-layer root; the env returns dispose() for the switcher teardown.
 
-import * as THREE from "../../../../toolbox/three.js";
-import type { CorpusSnapshot, Vec3 } from "../../../types.js";
+import * as THREE from "../../toolbox/three.js";
+import type { CorpusSnapshot, Vec3 } from "../../world/types.js";
 
 const RADIUS_PADDING = 18;     // breathing room beyond the farthest member
 const MIN_RADIUS = 25;         // small clusters still read as regions

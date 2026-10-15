@@ -5,12 +5,12 @@
 // Abstract procedural — a real `thought-crystal` .glb can slot in
 // later via ctx.tryLoadProp without changing this contract.
 
-import * as THREE from "../../../../toolbox/three.js";
-import type { Entity } from "../../../types.js";
-import { hashString } from "../../../layout.js";
-import { SmartObject } from "../../smart-objects/SmartObject.js";
-import type { BuilderContext, SmartObjectBuilder } from "../../smart-objects/Builder.js";
-import { MeshComponent } from "../../smart-objects/components/MeshComponent.js";
+import * as THREE from "../../toolbox/three.js";
+import type { Entity } from "../../world/types.js";
+import { hashString } from "../../world/layout.js";
+import { SmartObject } from "../../world/runtime/smart-objects/SmartObject.js";
+import type { BuilderContext, SmartObjectBuilder } from "../../world/runtime/smart-objects/Builder.js";
+import { MeshComponent } from "../../world/runtime/smart-objects/components/MeshComponent.js";
 import { acidMaterial, attachCardScaffold } from "./scaffold.js";
 
 function crystalRadius(wordCount: number): number {

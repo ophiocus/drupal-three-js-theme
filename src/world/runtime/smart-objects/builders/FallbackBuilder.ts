@@ -60,11 +60,8 @@ export class FallbackBuilder implements SmartObjectBuilder {
     // builder produced the SmartObject. Failure to fetch degrades
     // to "just the cube" — the SurfaceCache logs the error.
     try {
-      const dashIdx = descriptor.id.indexOf("-");
-      if (dashIdx > 0) {
-        const entityType = descriptor.id.slice(0, dashIdx);
-        const numericId = descriptor.id.slice(dashIdx + 1);
-        const url = `/world/card/${entityType}/${numericId}/default`;
+      const url = ctx.cardUrl(descriptor.id, "default");
+      if (url) {
         const surface = await ctx.surfaceCache.acquire({
           url,
           widthPx: 600,

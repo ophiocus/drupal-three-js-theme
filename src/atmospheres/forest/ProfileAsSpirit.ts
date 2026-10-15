@@ -19,19 +19,19 @@
 // stays atmosphere-coherent — a forest's profile fallback is
 // person-shaped, not a cube.
 
-import * as THREE from "../../../../toolbox/three.js";
-import type { Entity } from "../../../types.js";
-import { hashString } from "../../../layout.js";
-import { SmartObject } from "../../smart-objects/SmartObject.js";
+import * as THREE from "../../toolbox/three.js";
+import type { Entity } from "../../world/types.js";
+import { hashString } from "../../world/layout.js";
+import { SmartObject } from "../../world/runtime/smart-objects/SmartObject.js";
 import type {
   BuilderContext,
   SmartObjectBuilder,
-} from "../../smart-objects/Builder.js";
-import { MeshComponent } from "../../smart-objects/components/MeshComponent.js";
-import { GltfComponent } from "../../smart-objects/components/GltfComponent.js";
-import { TriggerPadComponent } from "../../smart-objects/components/TriggerPadComponent.js";
-import { HtmlSurfaceComponent, cardPlacement } from "../../smart-objects/components/HtmlSurfaceComponent.js";
-import { FLOOR_LAYERS } from "../../floor-layers.js";
+} from "../../world/runtime/smart-objects/Builder.js";
+import { MeshComponent } from "../../world/runtime/smart-objects/components/MeshComponent.js";
+import { GltfComponent } from "../../world/runtime/smart-objects/components/GltfComponent.js";
+import { TriggerPadComponent } from "../../world/runtime/smart-objects/components/TriggerPadComponent.js";
+import { HtmlSurfaceComponent, cardPlacement } from "../../world/runtime/smart-objects/components/HtmlSurfaceComponent.js";
+import { FLOOR_LAYERS } from "../../world/runtime/floor-layers.js";
 
 /** Slot the profile builder consults. Matches mappings.yml. */
 const PROFILE_ASSET_SLOT = "sapling-figure";
@@ -241,12 +241,10 @@ export class ProfileAsSpirit implements SmartObjectBuilder {
     }));
 
     try {
-      const dashIdx = descriptor.id.indexOf("-");
-      if (dashIdx > 0) {
-        const entityType = descriptor.id.slice(0, dashIdx);
-        const numericId = descriptor.id.slice(dashIdx + 1);
+      const url = ctx.cardUrl(descriptor.id, "default");
+      if (url) {
         const surface = await ctx.surfaceCache.acquire({
-          url: `/world/card/${entityType}/${numericId}/default`,
+          url,
           widthPx: 600,
           heightPx: 400,
           widthWorld: 18,

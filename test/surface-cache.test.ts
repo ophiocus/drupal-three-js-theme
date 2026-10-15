@@ -40,9 +40,11 @@ afterEach(() => {
 
 describe("SurfaceCache", () => {
   const opts = (url: string) => ({ url, widthPx: 100, heightPx: 100 });
+  // The mocked factory never fetches; the cache only passes this through.
+  const fetchHtml = async () => "";
 
   it("returns the same surface on repeated acquires (cache hit)", async () => {
-    const cache = new SurfaceCache();
+    const cache = new SurfaceCache(fetchHtml);
     const a = await cache.acquire(opts("/world/card/node/1/default"));
     const b = await cache.acquire(opts("/world/card/node/1/default"));
     expect(a).toBe(b);
@@ -50,7 +52,7 @@ describe("SurfaceCache", () => {
   });
 
   it("de-duplicates concurrent acquires for the same URL", async () => {
-    const cache = new SurfaceCache();
+    const cache = new SurfaceCache(fetchHtml);
     const url = "/world/card/node/1/default";
     const [a, b, c] = await Promise.all([
       cache.acquire(opts(url)),
@@ -63,7 +65,7 @@ describe("SurfaceCache", () => {
   });
 
   it("issues separate fetches for different URLs", async () => {
-    const cache = new SurfaceCache();
+    const cache = new SurfaceCache(fetchHtml);
     await cache.acquire(opts("/world/card/node/1/default"));
     await cache.acquire(opts("/world/card/node/1/full"));
     expect(factoryCounter.count).toBe(2);
@@ -71,7 +73,7 @@ describe("SurfaceCache", () => {
   });
 
   it("evicts least-recently-used when over capacity", async () => {
-    const cache = new SurfaceCache(2);
+    const cache = new SurfaceCache(fetchHtml, 2);
     await cache.acquire(opts("/a"));
     await cache.acquire(opts("/b"));
     // Re-touch /a so /b becomes the LRU.
@@ -85,7 +87,7 @@ describe("SurfaceCache", () => {
   });
 
   it("clears + disposes everything on snapshot-version change", async () => {
-    const cache = new SurfaceCache();
+    const cache = new SurfaceCache(fetchHtml);
     cache.setSnapshotVersion("v1");
     await cache.acquire(opts("/a"));
     await cache.acquire(opts("/b"));
@@ -101,7 +103,7 @@ describe("SurfaceCache", () => {
   });
 
   it("does not clear on the first version set (no prior version)", async () => {
-    const cache = new SurfaceCache();
+    const cache = new SurfaceCache(fetchHtml);
     await cache.acquire(opts("/a"));
     cache.setSnapshotVersion("v1");
     expect(cache.size()).toBe(1);
@@ -109,7 +111,7 @@ describe("SurfaceCache", () => {
   });
 
   it("setSnapshotVersion is idempotent for the same version", async () => {
-    const cache = new SurfaceCache();
+    const cache = new SurfaceCache(fetchHtml);
     cache.setSnapshotVersion("v1");
     await cache.acquire(opts("/a"));
     cache.setSnapshotVersion("v1");

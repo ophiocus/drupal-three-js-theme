@@ -6,13 +6,13 @@
 // (trigger pad + HTML surface) so reading works identically to the
 // forest skin; only the geometry + palette differ.
 
-import * as THREE from "../../../../toolbox/three.js";
-import type { Entity } from "../../../types.js";
-import type { BuilderContext } from "../../smart-objects/Builder.js";
-import type { SmartObject } from "../../smart-objects/SmartObject.js";
-import { TriggerPadComponent } from "../../smart-objects/components/TriggerPadComponent.js";
-import { HtmlSurfaceComponent, cardPlacement } from "../../smart-objects/components/HtmlSurfaceComponent.js";
-import { FLOOR_LAYERS } from "../../floor-layers.js";
+import * as THREE from "../../toolbox/three.js";
+import type { Entity } from "../../world/types.js";
+import type { BuilderContext } from "../../world/runtime/smart-objects/Builder.js";
+import type { SmartObject } from "../../world/runtime/smart-objects/SmartObject.js";
+import { TriggerPadComponent } from "../../world/runtime/smart-objects/components/TriggerPadComponent.js";
+import { HtmlSurfaceComponent, cardPlacement } from "../../world/runtime/smart-objects/components/HtmlSurfaceComponent.js";
+import { FLOOR_LAYERS } from "../../world/runtime/floor-layers.js";
 
 /**
  * Vivid acid colour derived deterministically from an entity seed.
@@ -58,12 +58,10 @@ export async function attachCardScaffold(
   }));
 
   try {
-    const dashIdx = descriptor.id.indexOf("-");
-    if (dashIdx > 0) {
-      const entityType = descriptor.id.slice(0, dashIdx);
-      const numericId = descriptor.id.slice(dashIdx + 1);
+    const url = ctx.cardUrl(descriptor.id, "default");
+    if (url) {
       const surface = await ctx.surfaceCache.acquire({
-        url: `/world/card/${entityType}/${numericId}/default`,
+        url,
         widthPx: 600,
         heightPx: 400,
         widthWorld: 18,

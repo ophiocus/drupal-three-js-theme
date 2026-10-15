@@ -1,4 +1,4 @@
-// SOTA: render Drupal-served HTML directly into a 2D canvas via
+// SOTA: render server-rendered HTML directly into a 2D canvas via
 // the native drawElementImage() API (HTML-in-Canvas spec, Chromium
 // 147+ behind chrome://flags/#canvas-draw-element).
 //
@@ -8,10 +8,11 @@
 // transparently upgrade.
 
 import * as THREE from "../../toolbox/three.js";
-import { withLangQuery } from "./hud/lang.js";
+import type { HtmlFetcher } from "./wire.js";
 import {
   HtmlSurface,
   HtmlSurfaceOptions,
+  fetchFragment,
   makeSurfaceMesh,
   wrapHtmlFragment,
 } from "./HtmlSurface.js";
@@ -27,7 +28,10 @@ export class HtmlInCanvasSurface extends HtmlSurface {
   private readonly canvas: HTMLCanvasElement;
   private texture: THREE.CanvasTexture | null = null;
 
-  constructor(private readonly options: HtmlSurfaceOptions) {
+  constructor(
+    private readonly options: HtmlSurfaceOptions,
+    private readonly fetchHtml: HtmlFetcher,
+  ) {
     super();
     this.canvas = document.createElement("canvas");
     this.canvas.width = options.widthPx;
@@ -36,7 +40,7 @@ export class HtmlInCanvasSurface extends HtmlSurface {
   }
 
   async refresh(): Promise<void> {
-    const fragment = await fetchFragment(this.options.url);
+    const fragment = await fetchFragment(this.fetchHtml, this.options.url, "HtmlInCanvasSurface");
 
     // The DOM source must be in the document for drawElementImage
     // to compute layout and styles. Hide offscreen.
@@ -86,12 +90,4 @@ export class HtmlInCanvasSurface extends HtmlSurface {
     mat.map = tex;
     mat.needsUpdate = true;
   }
-}
-
-async function fetchFragment(url: string): Promise<string> {
-  const r = await fetch(withLangQuery(url), { headers: { Accept: "text/html" } });
-  if (!r.ok) {
-    throw new Error(`HtmlInCanvasSurface fetch ${url} failed: HTTP ${r.status}`);
-  }
-  return r.text();
 }

@@ -12,8 +12,8 @@ import type {
   AtmosphereEnvironment,
   AtmosphereModule,
   AtmosphereSetupContext,
-} from "../types.js";
-import type { SmartObjectRegistry } from "../../smart-objects/Builder.js";
+} from "../../world/runtime/atmospheres/types.js";
+import type { SmartObjectRegistry } from "../../world/runtime/smart-objects/Builder.js";
 import { ArticleAsTree } from "./ArticleAsTree.js";
 import { ProfileAsSpirit } from "./ProfileAsSpirit.js";
 import { EventAsTotem } from "./EventAsTotem.js";

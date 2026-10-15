@@ -6,9 +6,15 @@
 // borderland and overview properties intact.
 
 import { describe, it, expect } from "vitest";
-import { vantage } from "../src/world/vantage.js";
+import { vantage as vantageFor } from "../src/world/vantage.js";
 import { distance } from "../src/world/layout.js";
+import type { CorpusSnapshot } from "../src/world/types.js";
+import { drupalRoutes } from "../src/binding/drupal-routes.js";
 import { fixtureCorpus } from "./fixtures.js";
+
+// The invariants are stated against the theme's URL grammar.
+const vantage = (url: string, corpus: CorpusSnapshot) =>
+  vantageFor(url, corpus, drupalRoutes);
 
 describe("vantage(): URI as coordinate", () => {
   const corpus = fixtureCorpus();
