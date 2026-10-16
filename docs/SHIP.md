@@ -18,19 +18,29 @@ All config is environment variables — never in code, never in the
 repo. In DDEV they live in `.ddev/.env` (or `web_environment` in
 `.ddev/config.yaml`); in production, in the container's environment.
 
-### A1. Descriptor + vector store — RESTHeart → Atlas  *(required)*
+### A1. Descriptor + vector store — Drupal's database  *(built in)*
 
-The store the snapshot reads from. Stand up a RESTHeart gateway in
-front of a MongoDB Atlas cluster (one cluster per tenant), then:
+Nothing to stand up. Descriptors and their vectors live in the
+`world_signature_descriptor` table (created by `drush updb`), behind
+`DescriptorStoreInterface`; `nearest()` is exact cosine in PHP —
+milliseconds at hundreds of entities, a few hundred at ~10k.
 
 ```
-WORLD_GATEWAY_URL=https://<restheart-host>
-WORLD_SIGNATURE_DATABASE=<tenant_db_name>
-WORLD_GATEWAY_USER=<gateway_user>
-WORLD_GATEWAY_PASSWORD=<gateway_password>
+drush updb          # creates world_signature_descriptor
+drush world:embed   # fills it (descriptors + vectors)
 ```
 
-Verify: `drush world:validate` → "✓ gateway reachable".
+Verify: `drush world:validate` → "✓ descriptor store reachable
+(DatabaseDescriptorStore)"; `GET /world/health` → `store: reachable`.
+
+Atlas was retired in 2026-10 (no active cluster). The RESTHeart →
+MongoDB client is kept as an alternative backend: point the
+`world_signature.descriptor_store` alias in
+`world_signature.services.yml` at `world_signature.world_search_client`
+and set `WORLD_GATEWAY_URL` / `_USER` / `_PASSWORD` and
+`WORLD_SIGNATURE_DATABASE` (self-hosted MongoDB 8.2+ with mongot for
+`$vectorSearch`). At larger scale, a MariaDB 11.8 `VECTOR` column with
+an HNSW index can back the same interface.
 
 ### A2. Embedding service — for semantic layout  *(optional)*
 
@@ -38,14 +48,38 @@ Any OpenAI-compatible / Voyage-style embeddings endpoint. Without it,
 `world:embed` falls back to the **dev-only** local TF-IDF embedder
 (fine for a demo, not production — see `docs/BOUNDARY.md`).
 
+Local, no key — an Ollama on the host (the 2026-10 bake-off pick;
+`ollama pull qwen3-embedding:4b`):
+
+```
+WORLD_EMBED_URL=http://<ollama-host>:11434/v1/embeddings
+WORLD_EMBED_MODEL=qwen3-embedding:4b
+WORLD_EMBED_DIM=1024
+```
+
+Hosted:
+
 ```
 WORLD_EMBED_URL=https://api.voyageai.com/v1/embeddings
 WORLD_EMBED_KEY=<token>
 WORLD_EMBED_MODEL=voyage-3
-WORLD_EMBED_DIM=1024
 ```
 
 Set → `world:embed` calls the service. Unset → dev fallback.
+
+`WORLD_EMBED_DIM` is sent as the OpenAI-style `dimensions` field
+(Ollama and OpenAI truncate Matryoshka models to it — qwen3-embedding
+is 2560 wide natively) and every returned vector must match it; leave
+it unset for a provider that rejects the field (width then defaults to
+1024). Keep it ≤ 1024: below 400 entities the snapshot ships the raw
+vectors to the browser. The width is part of the model version, so
+changing it marks the corpus stale; re-run `world:embed` and recreate
+the Atlas vector index at the new `numDimensions`.
+
+In DDEV these are machine-specific (the Ollama host differs per seat),
+so they go in the git-ignored `.ddev/.env`, not `config.yaml`. From a
+WSL2 DDEV, a Windows-side Ollama is reached at the WSL gateway address
+(`ip route show default`), not `host.docker.internal`.
 
 ### A3. asset_workshop — transform + turntable  *(optional)*
 

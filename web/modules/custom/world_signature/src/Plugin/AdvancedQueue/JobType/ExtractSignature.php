@@ -16,13 +16,13 @@ use Drupal\world_signature\Plugin\MetaphorPluginManager;
 use Drupal\world_signature\Service\DescriptorBuilder;
 use Drupal\world_signature\Service\EntityFactsReader;
 use Drupal\world_signature\Service\SignatureWriter;
-use Drupal\world_signature\Service\WorldSearchClient;
 use Drupal\world_signature\Signature\SignatureExtractor;
+use Drupal\world_signature\Store\DescriptorStoreInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Job that extracts a signature, persists it to MariaDB, and pushes
- * the skinny descriptor to the RESTHeart gateway.
+ * Job that extracts a signature, persists it to MariaDB, and upserts
+ * the skinny descriptor to the descriptor store.
  *
  * Payload: ['entity_type' => string, 'entity_id' => string|int,
  *           'op' => 'insert'|'update'|'delete'].
@@ -34,12 +34,12 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *     → SignatureExtractor::extract()
  *     → SignatureWriter::write()           (JSON onto field_world_signature, MariaDB)
  *     → DescriptorBuilder::build()         (skinny shape)
- *     → WorldSearchClient::upsert()        (HTTPS PUT to gateway → Atlas)
+ *     → DescriptorStoreInterface::upsert() (default: world_signature_descriptor table)
  *     → JobResult::success()
  *
  * Pipeline (delete):
  *
- *   WorldSearchClient::delete(<descriptorId>)
+ *   DescriptorStoreInterface::delete(<descriptorId>)
  *     → JobResult::success()
  *
  * @AdvancedQueueJobType(
@@ -60,7 +60,7 @@ final class ExtractSignature extends JobTypeBase implements ContainerFactoryPlug
     private readonly SignatureExtractor $extractor,
     private readonly SignatureWriter $writer,
     private readonly DescriptorBuilder $descriptorBuilder,
-    private readonly WorldSearchClient $searchClient,
+    private readonly DescriptorStoreInterface $descriptorStore,
     private readonly MetaphorPluginManager $metaphorManager,
     private readonly LoggerChannelInterface $logger,
   ) {
@@ -82,7 +82,7 @@ final class ExtractSignature extends JobTypeBase implements ContainerFactoryPlug
       $container->get('world_signature.signature_extractor'),
       $container->get('world_signature.signature_writer'),
       $container->get('world_signature.descriptor_builder'),
-      $container->get('world_signature.world_search_client'),
+      $container->get('world_signature.descriptor_store'),
       $container->get('plugin.manager.world_signature.metaphor'),
       $container->get('logger.channel.world_signature'),
     );
@@ -102,16 +102,16 @@ final class ExtractSignature extends JobTypeBase implements ContainerFactoryPlug
       ));
     }
 
-    // Delete: drop the descriptor from the gateway. No facts/extractor
-    // needed — the gateway-side _id is recoverable from (type, id).
+    // Delete: drop the descriptor from the store. No facts/extractor
+    // needed — the descriptor _id is recoverable from (type, id).
     if ($op === 'delete') {
       $descriptorId = $this->descriptorBuilder->descriptorId($entityType, $entityId);
       try {
-        $this->searchClient->delete($descriptorId);
+        $this->descriptorStore->delete($descriptorId);
       }
       catch (\RuntimeException $e) {
         return JobResult::failure(sprintf(
-          'Gateway delete failed for %s: %s',
+          'Descriptor store delete failed for %s: %s',
           $descriptorId,
           $e->getMessage(),
         ));
@@ -154,11 +154,13 @@ final class ExtractSignature extends JobTypeBase implements ContainerFactoryPlug
 
     $signature = $this->extractor->extract($facts);
     $written = $this->writer->write($entity, $signature);
+    // Publish what was stored: write() keeps an unchanged embedding.
+    $signature = $this->writer->read($entity) ?? $signature;
 
-    // Build descriptor and push to the gateway. Persisting locally
-    // (above) is the system of record; gateway is a cache. If the
-    // gateway write fails, the local field is still correct and a
-    // retry will republish.
+    // Build descriptor and upsert it to the store. The field (above)
+    // is the system of record; the store is the search-side copy. If
+    // the store write fails, the field is still correct and a retry
+    // will republish.
     $pluginId = sprintf('%s:%s', $entityType, $entity->bundle());
     /** @var \Drupal\world_signature\Plugin\MetaphorPluginInterface $metaphor */
     $metaphor = $this->metaphorManager->createInstance($pluginId);
@@ -167,13 +169,13 @@ final class ExtractSignature extends JobTypeBase implements ContainerFactoryPlug
     $descriptor = $this->descriptorBuilder->build($entity, $facts, $signature, $metaphor);
 
     try {
-      $this->searchClient->upsert($descriptor);
+      $this->descriptorStore->upsert($descriptor);
     }
     catch (\RuntimeException $e) {
-      // Local persist already happened; only the gateway is stale.
-      // Failing the job lets advancedqueue retry against the gateway.
+      // Local persist already happened; only the store is stale.
+      // Failing the job lets advancedqueue retry the store write.
       return JobResult::failure(sprintf(
-        'gateway upsert failed for %s/%s: %s',
+        'descriptor store upsert failed for %s/%s: %s',
         $entityType,
         $entityId,
         $e->getMessage(),

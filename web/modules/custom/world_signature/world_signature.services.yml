@@ -28,16 +28,28 @@ services:
     arguments:
       - '@logger.channel.world_signature'
 
-  # Builds the skinny descriptor written to the gateway.
+  # Builds the skinny descriptor written to the descriptor store.
   world_signature.descriptor_builder:
     class: Drupal\world_signature\Service\DescriptorBuilder
 
-  # Guzzle client to the RESTHeart gateway. The service reads
-  # env vars (WORLD_GATEWAY_URL, WORLD_SIGNATURE_DATABASE,
-  # WORLD_GATEWAY_USER, WORLD_GATEWAY_PASSWORD) directly via
-  # getenv() — Drupal's container doesn't expand %env()% the
-  # way Symfony's does. Sandbox values come from
-  # .ddev/config.yaml's web_environment.
+  # Descriptor store — where descriptors + their vectors live and
+  # nearest() runs. Callers depend on DescriptorStoreInterface via
+  # this alias; point it at another implementation to swap backends.
+  world_signature.descriptor_store: '@world_signature.descriptor_store.database'
+
+  # Default backend: a table in Drupal's own database
+  # (world_signature_descriptor), exact cosine nearest() in PHP.
+  world_signature.descriptor_store.database:
+    class: Drupal\world_signature\Store\DatabaseDescriptorStore
+    arguments:
+      - '@database'
+      - '@logger.channel.world_signature'
+
+  # Alternative backend: Guzzle client to a RESTHeart → MongoDB
+  # gateway ($vectorSearch needs MongoDB 8.2+ with mongot). Not wired
+  # by default since Atlas was retired (2026-10). Reads WORLD_GATEWAY_URL,
+  # WORLD_SIGNATURE_DATABASE, WORLD_GATEWAY_USER, WORLD_GATEWAY_PASSWORD
+  # via getenv() — Drupal's container doesn't expand %env()%.
   world_signature.world_search_client:
     class: Drupal\world_signature\Service\WorldSearchClient
     arguments:
@@ -47,7 +59,7 @@ services:
   # Snapshot publisher — assembles a corpus snapshot the renderer
   # consumes. Descriptors are rebuilt directly from MariaDB (each
   # entity's field_world_signature) via DescriptorBuilder; the
-  # gateway/Atlas is NOT on the runtime read path. Layout, palette,
+  # descriptor store is NOT on the runtime read path. Layout, palette,
   # interpretation, stage and asset payloads stitch on top.
   world_signature.snapshot_publisher:
     class: Drupal\world_signature\Service\SnapshotPublisher
@@ -181,7 +193,7 @@ services:
       - '@world_signature.signature_extractor'
       - '@world_signature.signature_writer'
       - '@world_signature.descriptor_builder'
-      - '@world_signature.world_search_client'
+      - '@world_signature.descriptor_store'
       - '@plugin.manager.world_signature.metaphor'
       - '@world_signature.embedding.manager'
       - '@state'

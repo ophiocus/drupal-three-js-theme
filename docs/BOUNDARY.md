@@ -24,7 +24,8 @@ world*, or *consumes a produced result*, it's the theme.
 | **Hosting + playing produced media** — `field_asset_turntable` mp4 + hover-autoplay | Host/play yes; *produce* no |
 | **Source resolution + licensing metadata** — provider layer (ref → URL + licence), copyright/`live` gate | Cataloguing, not processing |
 | **Animation catalogue (light metadata read) + playback** — read `gltf.animations`; mix clips at runtime | Asset-management + rendering |
-| **Gateway *client*** — Guzzle calls to RESTHeart | Consuming a service |
+| **Descriptor + vector *store*** — `world_signature_descriptor` in Drupal's DB, exact cosine `nearest()` (default since 2026-10) | Storing and using computed results; no inference involved |
+| **Gateway *client*** — Guzzle calls to RESTHeart (optional MongoDB backend) | Consuming a service |
 
 ## External service (NO)
 
@@ -35,7 +36,7 @@ world*, or *consumes a produced result*, it's the theme.
 | **Turntable / offline rendering** — headless Chromium/Blender → mp4 | Render pipeline | `asset_workshop/` |
 | **LLM inference** — chatvatar dialogue, auto-descriptors | Model inference | LLM provider |
 | **Heavy leech / decompress / extract** — download + unpack archives | Worker concern, not request-path | ingestion worker |
-| **Vector store + gateway** — Atlas, RESTHeart | Infrastructure | hosted services |
+| **External vector store + gateway** — RESTHeart → MongoDB, only if that backend is wired (Atlas retired 2026-10) | Infrastructure | hosted services |
 | **Search query embedding** — computing the query vector | Model inference (the *fly-to* UI is internal) | embedding service |
 
 ---

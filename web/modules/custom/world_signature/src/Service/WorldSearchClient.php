@@ -5,15 +5,20 @@ declare(strict_types=1);
 namespace Drupal\world_signature\Service;
 
 use Drupal\Core\Logger\LoggerChannelInterface;
+use Drupal\world_signature\Store\DescriptorStoreInterface;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;
 
 /**
- * Guzzle client to the RESTHeart gateway.
+ * Guzzle client to the RESTHeart gateway — the MongoDB backend.
  *
- * The cypher's only direct contact with Atlas. Drupal speaks HTTP
- * to RESTHeart; RESTHeart speaks the MongoDB wire protocol to the
- * cluster. See ARCHITECTURE.md §9 for the full pattern.
+ * An alternative DescriptorStoreInterface implementation, not wired by
+ * default: Atlas was retired in 2026-10 and the descriptor store moved
+ * into Drupal's database (Store\DatabaseDescriptorStore). Point the
+ * `world_signature.descriptor_store` alias here to run against a
+ * self-hosted MongoDB (8.2+ with mongot for $vectorSearch) instead.
+ * Drupal speaks HTTP to RESTHeart; RESTHeart speaks the MongoDB wire
+ * protocol to the cluster. See ARCHITECTURE.md §9 for the pattern.
  *
  * Three operations the cypher needs:
  *
@@ -31,7 +36,7 @@ use GuzzleHttp\Exception\GuzzleException;
  * - 4xx → throw, but with a marker that the worker can skip-retry
  *   on (bad payload won't fix itself).
  */
-final class WorldSearchClient {
+final class WorldSearchClient implements DescriptorStoreInterface {
 
   private readonly string $gatewayUrl;
   private readonly string $database;

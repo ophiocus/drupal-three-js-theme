@@ -127,4 +127,19 @@ final class SignatureWriter {
     return TRUE;
   }
 
+  /**
+   * The signature currently stored on the entity, or NULL.
+   *
+   * Build a descriptor from this after write(), not from the signature
+   * passed in: write() may have carried an unchanged embedding across,
+   * and the descriptor store must see that vector too.
+   */
+  public function read(FieldableEntityInterface $entity): ?Signature {
+    if (!$entity->hasField('field_world_signature') || $entity->get('field_world_signature')->isEmpty()) {
+      return NULL;
+    }
+    $data = json_decode((string) $entity->get('field_world_signature')->value, TRUE);
+    return is_array($data) ? Signature::fromArray($data) : NULL;
+  }
+
 }

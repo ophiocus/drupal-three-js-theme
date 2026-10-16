@@ -16,10 +16,20 @@ use GuzzleHttp\ClientInterface;
  * gateway client uses — avoids native-extension fights). Config
  * comes from environment, NOT code:
  *
- *   WORLD_EMBED_URL      e.g. https://api.voyageai.com/v1/embeddings
- *   WORLD_EMBED_KEY      bearer token
- *   WORLD_EMBED_MODEL    e.g. voyage-3
- *   WORLD_EMBED_DIM      vector width the model emits (e.g. 1024)
+ *   WORLD_EMBED_URL      e.g. http://<host>:11434/v1/embeddings (Ollama)
+ *                        or https://api.voyageai.com/v1/embeddings
+ *   WORLD_EMBED_KEY      bearer token (unset for a local Ollama)
+ *   WORLD_EMBED_MODEL    e.g. qwen3-embedding:4b, voyage-3
+ *   WORLD_EMBED_DIM      vector width to request and store (e.g. 1024)
+ *
+ * When WORLD_EMBED_DIM is set it is sent as the OpenAI-style
+ * `dimensions` field, which Ollama and OpenAI honour for Matryoshka
+ * models (qwen3-embedding: 2560 native, 1024 requested). Leave it
+ * unset for a provider that rejects the field; the width then
+ * defaults to 1024. Either way every returned vector must have that
+ * width — a mismatch throws (and the manager falls back to local)
+ * rather than storing a mixed-width corpus. The width is part of
+ * modelVersion(), so changing it flags every vector as stale.
  *
  * When WORLD_EMBED_URL is unset the provider reports itself
  * unconfigured (isConfigured() === FALSE); the EmbeddingManager
@@ -27,15 +37,24 @@ use GuzzleHttp\ClientInterface;
  * working with zero setup while leaving production a one-env-var
  * switch to real semantics.
  *
- * NOTE: this is the seam, deliberately not exercised in the dev
- * sandbox (no key). The request/response shape targets the common
- * {input: [...], model: ...} → {data: [{embedding: [...]}]}
- * contract; adjust mapResponse() for a provider that differs.
+ * The request/response shape targets the common
+ * {input: [...], model: ..., dimensions?: n} → {data: [{embedding: [...]}]}
+ * contract; adjust mapResponse() for a provider that differs. The dev
+ * sandbox can run it against a local Ollama (qwen3-embedding:4b at
+ * 1024 won the 2026-10 bake-off); see docs/SHIP.md §A2.
  */
 final class RemoteEmbeddingProvider implements EmbeddingProviderInterface {
 
   /** Conservative batch size — most embedding APIs cap inputs per call. */
   private const int BATCH = 64;
+
+  /**
+   * Per-call timeout in seconds.
+   *
+   * Generous because a local model loads on its first call
+   * (qwen3-embedding:4b takes ~20 s cold on a 16 GB GPU).
+   */
+  private const int TIMEOUT = 120;
 
   public function __construct(
     private readonly ClientInterface $httpClient,
@@ -48,13 +67,22 @@ final class RemoteEmbeddingProvider implements EmbeddingProviderInterface {
   }
 
   public function modelVersion(): string {
-    $model = getenv('WORLD_EMBED_MODEL') ?: 'unknown';
-    return 'remote:' . $model;
+    return 'remote:' . $this->model() . '@' . $this->dimensions();
   }
 
   public function dimensions(): int {
+    return $this->requestedDimensions() ?? 1024;
+  }
+
+  /** The configured model name. */
+  private function model(): string {
+    return (string) (getenv('WORLD_EMBED_MODEL') ?: 'voyage-3');
+  }
+
+  /** WORLD_EMBED_DIM when explicitly set, else NULL (nothing to request). */
+  private function requestedDimensions(): ?int {
     $dim = getenv('WORLD_EMBED_DIM');
-    return $dim !== FALSE && $dim !== '' ? (int) $dim : 1024;
+    return $dim !== FALSE && $dim !== '' ? (int) $dim : NULL;
   }
 
   public function embedCorpus(array $documents): array {
@@ -69,7 +97,8 @@ final class RemoteEmbeddingProvider implements EmbeddingProviderInterface {
 
     $url = (string) getenv('WORLD_EMBED_URL');
     $key = (string) (getenv('WORLD_EMBED_KEY') ?: '');
-    $model = (string) (getenv('WORLD_EMBED_MODEL') ?: 'voyage-3');
+    $model = $this->model();
+    $width = $this->dimensions();
 
     $ids = array_keys($documents);
     $texts = array_values($documents);
@@ -78,7 +107,19 @@ final class RemoteEmbeddingProvider implements EmbeddingProviderInterface {
     foreach (array_chunk($texts, self::BATCH, TRUE) as $chunk) {
       $chunkIds = array_map(static fn($i) => $ids[$i], array_keys($chunk));
       $vectors = $this->callApi($url, $key, $model, array_values($chunk));
+      if (count($vectors) !== count($chunkIds)) {
+        throw new \RuntimeException(sprintf(
+          'Embedding API returned %d vectors for %d inputs.',
+          count($vectors), count($chunkIds),
+        ));
+      }
       foreach ($vectors as $i => $vec) {
+        if (count($vec) !== $width) {
+          throw new \RuntimeException(sprintf(
+            'Embedding API returned %d-dim vectors; expected %d (WORLD_EMBED_DIM).',
+            count($vec), $width,
+          ));
+        }
         $out[$chunkIds[$i]] = $this->l2normalize($vec);
       }
     }
@@ -98,10 +139,14 @@ final class RemoteEmbeddingProvider implements EmbeddingProviderInterface {
     if ($key !== '') {
       $headers['Authorization'] = 'Bearer ' . $key;
     }
+    $payload = ['input' => $texts, 'model' => $model];
+    if (($dim = $this->requestedDimensions()) !== NULL) {
+      $payload['dimensions'] = $dim;
+    }
     $response = $this->httpClient->request('POST', $url, [
       'headers' => $headers,
-      'json' => ['input' => $texts, 'model' => $model],
-      'timeout' => 30,
+      'json' => $payload,
+      'timeout' => self::TIMEOUT,
     ]);
     $body = json_decode((string) $response->getBody(), TRUE);
     if (!is_array($body) || !isset($body['data']) || !is_array($body['data'])) {

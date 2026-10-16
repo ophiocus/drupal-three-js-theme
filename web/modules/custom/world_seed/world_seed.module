@@ -21,7 +21,6 @@ function world_seed_help(string $route_name, RouteMatchInterface $route_match): 
   return '<p>' . t(
     'World Seed installs the canonical demo corpus: admin user, author writers,
     sector taxonomy, 100 coffee articles, 15 events, 15 biographies. Re-runnable
-    via <code>drush world:seed</code>. The first install also runs an embed pass
-    when the gateway is reachable.'
+    via <code>drush world:seed</code>. The first install also runs an embed pass.'
   ) . '</p>';
 }

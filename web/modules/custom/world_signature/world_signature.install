@@ -1,0 +1,140 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for world_signature.
+ */
+
+declare(strict_types=1);
+
+/**
+ * Implements hook_schema().
+ */
+function world_signature_schema(): array {
+  return [
+    'world_signature_descriptor' => _world_signature_descriptor_table(),
+  ];
+}
+
+/**
+ * Create the descriptor store table (replaces the Atlas mirror).
+ */
+function world_signature_update_11001(): string {
+  $schema = \Drupal::database()->schema();
+  if ($schema->tableExists('world_signature_descriptor')) {
+    return 'world_signature_descriptor already exists.';
+  }
+  // Frozen copy of the table as first shipped; later shape changes get
+  // their own update hooks.
+  $schema->createTable('world_signature_descriptor', [
+    'description' => 'World descriptors and their embedding vectors (DatabaseDescriptorStore).',
+    'fields' => [
+      'id' => ['type' => 'varchar_ascii', 'length' => 128, 'not null' => TRUE],
+      'type' => ['type' => 'varchar_ascii', 'length' => 128, 'not null' => TRUE, 'default' => ''],
+      'bundle' => ['type' => 'varchar_ascii', 'length' => 64, 'not null' => TRUE, 'default' => ''],
+      'sector' => ['type' => 'varchar_ascii', 'length' => 64, 'not null' => FALSE],
+      'status' => ['type' => 'varchar_ascii', 'length' => 32, 'not null' => TRUE, 'default' => ''],
+      'lang' => ['type' => 'varchar_ascii', 'length' => 12, 'not null' => TRUE, 'default' => ''],
+      'model_version' => ['type' => 'varchar', 'length' => 255, 'not null' => TRUE, 'default' => ''],
+      'dimensions' => ['type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0],
+      'embedding' => ['type' => 'blob', 'size' => 'big', 'not null' => FALSE],
+      'descriptor' => ['type' => 'text', 'size' => 'big', 'not null' => TRUE],
+      'changed' => ['type' => 'int', 'not null' => TRUE, 'default' => 0],
+    ],
+    'primary key' => ['id'],
+    'indexes' => [
+      'type' => ['type'],
+      'bundle' => ['bundle'],
+      'sector' => ['sector'],
+      'dimensions' => ['dimensions'],
+    ],
+  ]);
+  return 'Created world_signature_descriptor. Run `drush world:embed` to fill it.';
+}
+
+/**
+ * The descriptor store table definition (current shape).
+ */
+function _world_signature_descriptor_table(): array {
+  return [
+    'description' => 'World descriptors and their embedding vectors (DatabaseDescriptorStore).',
+    'fields' => [
+      'id' => [
+        'type' => 'varchar_ascii',
+        'length' => 128,
+        'not null' => TRUE,
+        'description' => 'Descriptor id, e.g. node-42.',
+      ],
+      'type' => [
+        'type' => 'varchar_ascii',
+        'length' => 128,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'entity_type:bundle.',
+      ],
+      'bundle' => [
+        'type' => 'varchar_ascii',
+        'length' => 64,
+        'not null' => TRUE,
+        'default' => '',
+      ],
+      'sector' => [
+        'type' => 'varchar_ascii',
+        'length' => 64,
+        'not null' => FALSE,
+        'description' => 'Primary sector term id.',
+      ],
+      'status' => [
+        'type' => 'varchar_ascii',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => '',
+      ],
+      'lang' => [
+        'type' => 'varchar_ascii',
+        'length' => 12,
+        'not null' => TRUE,
+        'default' => '',
+      ],
+      'model_version' => [
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'Embedding model version, e.g. remote:qwen3-embedding:4b@1024.',
+      ],
+      'dimensions' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Vector width; 0 when not embedded yet.',
+      ],
+      'embedding' => [
+        'type' => 'blob',
+        'size' => 'big',
+        'not null' => FALSE,
+        'description' => 'Packed little-endian float32 vector.',
+      ],
+      'descriptor' => [
+        'type' => 'text',
+        'size' => 'big',
+        'not null' => TRUE,
+        'description' => 'Descriptor JSON without the vector.',
+      ],
+      'changed' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Unix time of the last upsert.',
+      ],
+    ],
+    'primary key' => ['id'],
+    'indexes' => [
+      'type' => ['type'],
+      'bundle' => ['bundle'],
+      'sector' => ['sector'],
+      'dimensions' => ['dimensions'],
+    ],
+  ];
+}

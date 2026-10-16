@@ -1,0 +1,538 @@
+{
+  "pack": "bakeoff-crosscut",
+  "themes": {
+    "leaf-rust-pests": {
+      "label": "Leaf rust, pests and plant disease",
+      "keywords": ["rust", "roya", "fung", "pest", "disease", "borer", "broca", "infest", "blight", "outbreak"]
+    },
+    "fermentation-processing": {
+      "label": "Fermentation and post-harvest processing",
+      "keywords": ["ferment", "anaerob", "carbonic", "yeast", "washed", "natural process", "honey process", "mucilage", "processing", "wet mill"]
+    },
+    "climate-weather": {
+      "label": "Climate and weather",
+      "keywords": ["climate", "weather", "rain", "drought", "temperature", "warming", "frost", "heat", "el niño", "la niña", "storm"]
+    },
+    "labor-land-cooperatives": {
+      "label": "Labor, land and cooperatives",
+      "keywords": ["cooperative", "co-op", "labor", "labour", "worker", "picker", "wage", "smallholder", "union", "land tenure", "migrant"]
+    },
+    "price-trade-certification": {
+      "label": "Price, trade and certification",
+      "keywords": ["price", "pricing", "premium", "trade", "market", "certif", "auction", "export", "per pound"]
+    },
+    "varietals-genetics": {
+      "label": "Varietals and genetics",
+      "keywords": ["variet", "cultivar", "genetic", "hybrid", "breed", "heirloom", "landrace", "geisha", "gesha", "bourbon", "typica", "sl28"]
+    },
+    "roasting-brewing": {
+      "label": "Roasting and brewing",
+      "keywords": ["roast", "brew", "espresso", "pour-over", "pour over", "grind", "extract", "filter", "barista", "v60"]
+    },
+    "cupping-sensory": {
+      "label": "Cupping and sensory evaluation",
+      "keywords": ["cupp", "sensory", "aroma", "flavo", "acidity", "tast", "q-grader", "q grader", "score", "scoring", "palate"]
+    }
+  },
+  "records": [
+    {
+      "bundle": "article",
+      "region": "antigua",
+      "author": "mcervantes",
+      "title": "Orange spores under the leaf: a copper calendar for Acatenango Caturra",
+      "body": "Turn a Caturra leaf over in July on the lower Acatenango slopes and you can count the problem: pale yellow flecks on the upper face and, beneath them, powdery orange pustules the size of a lentil. Each pustule releases tens of thousands of urediniospores, carried by splash and wind to the next wet leaf.\n\nAt Finca Los Cerezos, agronomist Héctor Saquic sprays copper oxychloride in late May, before the first sustained wet spell, and again six weeks later. Trees he skipped in 2024 dropped 55% of their leaves by December; the following crop, set on bare wood, came in at 9 quintals per manzana in early 2026 against 23 on protected rows.",
+      "eval": {"theme": "leaf-rust-pests", "pair": null, "register": null, "length": "normal", "late_reveal": false, "avoids_keywords": true, "names_region": true}
+    },
+    {
+      "bundle": "article",
+      "region": "cauca",
+      "author": "lbermudez",
+      "title": "The year the trees went bare: what renovation credit really cost",
+      "body": "Between 2011 and 2013 the leaves on the old Caturra blocks yellowed, spotted orange underneath and fell, and three-quarters of the crop on Ramiro Ijají's eleven hectares went with them. The cherries that did set ripened unevenly on branches with no canopy left to feed them.\n\nRamiro borrowed the equivalent of US$9,400 to rip out the old trees and replant with Castillo, a line bred to shrug off the spores. It took 30 months for the new plants to give a real harvest. He paid interest on a field that earned nothing for two and a half years, and he is still paying: the last instalment falls due in March 2027.",
+      "eval": {"theme": "leaf-rust-pests", "pair": null, "register": null, "length": "normal", "late_reveal": false, "avoids_keywords": true, "names_region": false}
+    },
+    {
+      "bundle": "event",
+      "region": "sierra-madre",
+      "title": "Tacaná Leaf Rust Field School — February 2026",
+      "body": "A four-day field school on the Mexican slope of Tacaná for extension staff and cooperative promoters, run from a 14-hectare demonstration farm above Unión Juárez. Sessions covered leaf rust scouting by the 30-leaf sample, fungicide timing against the first wet weeks of May, and berry borer trapping with alcohol-baited bottles. Sixty-two participants attended; each left with a scouting kit and a spreadsheet template that the regional INIFAP station will pool into a shared infestation map for the 2026–27 season.",
+      "eval": {"theme": "leaf-rust-pests", "pair": null, "register": null, "length": "normal", "late_reveal": false, "avoids_keywords": false, "names_region": true}
+    },
+    {
+      "bundle": "profile",
+      "region": "nyeri",
+      "title": "Grace Wambui — counting dark lesions on green cherries",
+      "body": "Grace Wambui is a plant pathologist who spends the long wet months walking the same 40 marked trees on a 1,750 m estate every week. Her quarry is Colletotrichum kahawae, which sinks dark, sunken lesions into expanding green cherries and can strip a tree of half its crop before a single bean ripens.\n\nSince 2023 she has logged lesion counts against hours of leaf wetness, and her data, not the calendar, now tells the estate when to spray copper. In 2025 the estate cut its spray rounds from eleven to seven and lost less fruit than the year before. On Saturdays she trains field staff from the neighbouring factories.",
+      "eval": {"theme": "leaf-rust-pests", "pair": null, "register": null, "length": "normal", "late_reveal": false, "avoids_keywords": true, "names_region": false}
+    },
+    {
+      "bundle": "article",
+      "region": "mandheling",
+      "author": "mcervantes",
+      "title": "A pinhole at the crown: the beetle that hollows Lintong cherries",
+      "body": "The damage starts as a hole no wider than a pencil lead, bored into the navel of a green cherry by a female Hypothenemus hampei barely 2 mm long. Inside, she tunnels into the seed and lays up to 50 eggs; her daughters mate inside the bean and fly out to the next cherry before the harvest crews arrive.\n\nIn a sample of 1,200 cherries from three Lintongnihuta gardens in August 2025, 14% carried the hole. Growers hung 300 red bottle traps baited with methanol and ethanol per village, stripped every fallen and overripe cherry from the ground, and cut the bored count to 5% by the following May.",
+      "eval": {"theme": "leaf-rust-pests", "pair": null, "register": null, "length": "normal", "late_reveal": false, "avoids_keywords": true, "names_region": true}
+    },
+    {
+      "bundle": "article",
+      "region": "tarrazu",
+      "author": "dpavon",
+      "title": "Sticky beans on the raised bed: the amber lots of Dota",
+      "body": "At Beneficio Loma Larga, outside Santa María de Dota, the cherries go through the depulper with the discs set wide, so the skins come off but most of the sugary pulp clings to the parchment. The beans go straight to raised African beds, a single layer at first, and two people rake them every 40 minutes through the first afternoon so the sticky coat does not glue them into clumps.\n\nOver twelve to sixteen days the coat darkens from yellow to amber to near black. Operator Esteban Mora targets 11% moisture and pulls a bed early if it starts to smell of vinegar. His 2025 amber lot sold out in three weeks.",
+      "eval": {"theme": "fermentation-processing", "pair": null, "register": null, "length": "normal", "late_reveal": false, "avoids_keywords": true, "names_region": true}
+    },
+    {
+      "bundle": "article",
+      "region": "yirgacheffe",
+      "author": "mcervantes",
+      "title": "Inside a sealed barrel: what the microbes do in 96 hours",
+      "body": "Whole ripe cherries go into 200-litre food-grade barrels, the lids fitted with one-way valves so carbon dioxide can escape and air cannot get in. Samples drawn every twelve hours from a 2025 trial at a highland station tell the story: dissolved oxygen falls to near zero within a day, lactic acid bacteria take over, and the pH of the juice slides from 5.4 to 3.9 by hour 72. Saccharomyces numbers climb behind them, turning sugar into ethanol and esters.\n\nAfter 96 hours the cherries are tipped onto raised beds to dry whole for 21 days. Lots pulled at hour 72 kept their jasmine and bergamot; those left to hour 120 tasted of overripe pineapple and glue.",
+      "eval": {"theme": "fermentation-processing", "pair": null, "register": null, "length": "normal", "late_reveal": false, "avoids_keywords": true, "names_region": false}
+    },
+    {
+      "bundle": "profile",
+      "region": "haraz",
+      "title": "Abdullah Qasim — drying whole cherries on a stone roof",
+      "body": "Abdullah Qasim, 61, dries every cherry his family picks on the flat roof of their stone house at 2,100 m, spread no more than two fingers deep on woven mats. He turns them by hand at dawn and at noon and covers them against the night dew. Thirty to forty days later the fruit has shrunk to a dark, rattling husk.\n\nHe stores the dried pods in a back room for months and only removes the husk, with a stone hand mill, when a buyer is ready. The husks are not waste: his wife steeps them with ginger and cinnamon for the household's afternoon drink.",
+      "eval": {"theme": "fermentation-processing", "pair": null, "register": null, "length": "normal", "late_reveal": false, "avoids_keywords": true, "names_region": false}
+    },
+    {
+      "bundle": "event",
+      "region": "kayanza",
+      "title": "Kayanza Station Managers' Fermentation Workshop — May 2026",
+      "body": "A three-day workshop for washing station managers, held at a station near Kayanza town during peak harvest. Sessions covered dry versus underwater fermentation, measuring pH and Brix in the tanks, mucilage removal timing, and how a 12-hour soak after the washing channels changes the cup. Twenty-eight managers from northern Burundi attended. Each station then ran a split lot, one half on its usual protocol and one half on the workshop's, and the paired samples were cupped blind in Bujumbura in July.",
+      "eval": {"theme": "fermentation-processing", "pair": null, "register": null, "length": "normal", "late_reveal": false, "avoids_keywords": false, "names_region": true}
+    },
+    {
+      "bundle": "article",
+      "region": "boquete",
+      "author": "dpavon",
+      "title": "Carbonic maceration at 1,700 m: a cold-room trial in Boquete",
+      "body": "Finca Lomas del Viento ran its 2026 carbonic maceration trial in six stainless tanks flushed with CO₂ and held at 16°C in a converted cold room. Whole cherry stayed sealed for 120 hours before going to raised beds as a natural process lot; a control lot from the same picking day was washed after 36 hours of dry fermentation.\n\nThe anaerobic tanks used 1.3 kg of CO₂ per 100 kg of cherry, and the cold room added roughly $0.40 per kilo of green in electricity. The sealed lot showed more red-fruit intensity and a heavier body; the washed control kept the cleaner, tea-like finish buyers expect from Boquete.",
+      "eval": {"theme": "fermentation-processing", "pair": null, "register": null, "length": "normal", "late_reveal": false, "avoids_keywords": false, "names_region": true}
+    },
+    {
+      "bundle": "article",
+      "region": "haraz",
+      "author": "jruvalcaba",
+      "title": "Seven dry months above Manakha",
+      "body": "Between October 2024 and May 2025 the terraces above Manakha received no measurable water from the sky. Families on the upper Haraz slopes filled their stone cisterns from trucked tanks at roughly twelve dollars a load, and gave the coffee one deep soaking a month instead of the customary three.\n\nThe trees answered by dropping flowers. Where a normal March brings a white wash of blossom across the terraces, 2025 brought scattered clusters, and the cherry that did set ripened in a rush of afternoons above 30°C. Yields fell by around a third. Old farmers point to the dry-stone walls of the upper terraces, cracked open where the soil shrank behind them.",
+      "eval": {"theme": "climate-weather", "pair": null, "register": null, "length": "normal", "late_reveal": false, "avoids_keywords": true, "names_region": true}
+    },
+    {
+      "bundle": "article",
+      "region": "boquete",
+      "author": "jruvalcaba",
+      "title": "When the northeast wind stopped carrying mist over the divide",
+      "body": "For most of the dry months, the farms on the Pacific side of the continental divide live off a fine, wind-driven drizzle that spills over the ridge from the Caribbean slope. It wets the leaves, cools the afternoons and slows the cherry. In January and February 2025 the trade winds weakened, the drizzle came on only nine days instead of the usual thirty, and the afternoon cloud deck lifted 200 metres.\n\nOn one 1,650 m estate the gap between flowering and picking shrank from 34 weeks to 29. Pickers found ripe and green fruit on the same branch, and the cup lost some of the slow, layered sweetness that justifies the farm's lot prices.",
+      "eval": {"theme": "climate-weather", "pair": null, "register": null, "length": "normal", "late_reveal": false, "avoids_keywords": true, "names_region": false}
+    },
+    {
+      "bundle": "article",
+      "region": "nyeri",
+      "author": "jruvalcaba",
+      "title": "Nyeri's two rainy seasons are drifting apart",
+      "body": "Nyeri coffee has always run on two rainy seasons: the long rains from March to May and the short rains from October to December, each triggering its own flowering. Records from a factory near Othaya show the long rains starting eleven days later on average in 2016–2025 than in 1986–1995, while the short rains have grown heavier and more erratic.\n\nThe result is a stretched, uneven calendar: two middling crops instead of one main crop and one fly crop, cherry ripening in waves, and more drought stress on the slopes below 1,600 m. Factories now plan for picking rounds every week from September to January.",
+      "eval": {"theme": "climate-weather", "pair": null, "register": null, "length": "normal", "late_reveal": false, "avoids_keywords": false, "names_region": true}
+    },
+    {
+      "bundle": "profile",
+      "region": "cauca",
+      "title": "Rubiela Campo — sixteen years of readings from a louvered box",
+      "body": "Rubiela Campo keeps a white louvered instrument box on a post behind her house at 1,780 m above Popayán, and has read it every morning at seven since March 2009: maximum, minimum, the millimetres in the gauge, the hours of sunshine burnt into a card. Her notebooks, 31 of them now, are the longest daily record anyone holds for her vereda.\n\nThey show nights that were 1.1°C milder in 2020–2024 than in her first five years, and fewer days below 12°C. Cenicafé researchers photographed the notebooks in 2025. She still farms four hectares of Castillo and checks the flowering dates against the numbers.",
+      "eval": {"theme": "climate-weather", "pair": null, "register": null, "length": "normal", "late_reveal": false, "avoids_keywords": true, "names_region": true}
+    },
+    {
+      "bundle": "article",
+      "region": "kayanza",
+      "author": "jruvalcaba",
+      "title": "Hailstones in the flowering weeks",
+      "body": "Three times in October 2025, afternoon cells built over the ridge at 1,900 m and dropped hailstones the size of chickpeas on hillside plots that had flowered a week earlier. On the worst afternoon, 26 October, the ice fell for eleven minutes.\n\nStation staff counted shredded leaves, split green shoots and blossoms knocked into the mud on 140 farms. Where the hail hit during full bloom, fruit set on sampled branches dropped from an average of 18 cherries per node to six. Growers who had kept banana and Grevillea cover lost far less; the canopy took the blows. The station's May 2026 intake came in a quarter below the year before.",
+      "eval": {"theme": "climate-weather", "pair": null, "register": null, "length": "normal", "late_reveal": false, "avoids_keywords": true, "names_region": false}
+    },
+    {
+      "bundle": "article",
+      "region": "sierra-madre",
+      "author": "lbermudez",
+      "title": "Sixty-one families, one depulper and a treasurer chosen by show of hands",
+      "body": "In 2019 sixty-one families in a highland municipality stopped selling cherry a sack at a time to the intermediary who drove up on Thursdays. They bought a second-hand depulper together, built drying patios on communal ground, and elected a treasurer by show of hands in the school courtyard.\n\nEach family now delivers parchment to a shared warehouse, where it is weighed, logged and graded in front of a member from another village. Every family is paid on the same day at the same rate per kilo. The assembly meets on the first Sunday of each month and is conducted in two languages. Members rotate night watch over the patios during harvest; skipping a turn costs a day's share.",
+      "eval": {"theme": "labor-land-cooperatives", "pair": null, "register": null, "length": "normal", "late_reveal": false, "avoids_keywords": true, "names_region": false}
+    },
+    {
+      "bundle": "article",
+      "region": "antigua",
+      "author": "afonseca",
+      "title": "The crews who come down from the western highlands each December",
+      "body": "Every December, families from the western highlands board buses for the Antigua valley with blankets, cooking pots and children. At Finca El Tablón, 140 of them sleep in a long concrete dormitory for the ten-week harvest. They are paid by the caja, a wooden box that holds about 100 pounds of ripe cherry: Q35 a box in the 2025–26 season.\n\nA fast adult fills four boxes on a good day on the upper slopes, fewer on the steep blocks below the Fuego ridge. The farm charges nothing for the dormitory but deducts for meals after the first week. Children under fourteen are supposed to attend the farm's temporary school; in practice, the older ones are in the rows by ten.",
+      "eval": {"theme": "labor-land-cooperatives", "pair": null, "register": null, "length": "normal", "late_reveal": false, "avoids_keywords": true, "names_region": true}
+    },
+    {
+      "bundle": "event",
+      "region": "yirgacheffe",
+      "title": "Gedeo Smallholder Cooperative Union Assembly — August 2026",
+      "body": "The annual general assembly of a 31-member cooperative union serving Gedeo zone smallholders, held in Dilla. Delegates voted on the 2026–27 second-payment formula, which returns 70% of net surplus to member cooperatives by delivered volume. A motion setting a minimum daily wage of 350 birr for seasonal pickers at washing stations passed after a three-hour debate. Land tenure certificates issued under the regional programme were discussed as collateral for member loans; the union's board will present a pilot in January.",
+      "eval": {"theme": "labor-land-cooperatives", "pair": null, "register": null, "length": "normal", "late_reveal": false, "avoids_keywords": false, "names_region": true}
+    },
+    {
+      "bundle": "profile",
+      "region": "tarrazu",
+      "title": "Yorleny Ureña — three hectares, one deed and a savings circle",
+      "body": "Yorleny Ureña farms three hectares at 1,650 m outside San Marcos de Tarrazú. The land was her mother's, but for eleven years the title stayed in her late stepfather's name, and without the deed no bank would lend against it. A legal clinic run by a regional university helped her clear the succession in 2023.\n\nSince then she has borrowed twice against the farm, once for a new drying shed and once for 4,000 seedlings. She also chairs a savings circle of nineteen women who each put in a fixed sum every fortnight and take turns drawing the pot; three members have used it to buy land of their own.",
+      "eval": {"theme": "labor-land-cooperatives", "pair": null, "register": null, "length": "normal", "late_reveal": false, "avoids_keywords": true, "names_region": true}
+    },
+    {
+      "bundle": "article",
+      "region": "mandheling",
+      "author": "lbermudez",
+      "title": "Smallholders without titles: the land tenure gap behind cooperative lending",
+      "body": "Across the highland coffee districts, most smallholders farm land they inherited under customary clan rules, with no state-registered title. That matters the moment a cooperative tries to borrow on its members' behalf: banks will lend against a titled hectare at 9% but treat customary plots as worthless collateral.\n\nOne cooperative of 620 members surveyed its own households in 2025 and found that only 17% held registered land titles. Members without them paid 24% to informal lenders for harvest-season credit to hire pickers and buy fertiliser. The cooperative now runs a titling desk with the district land office; 85 members received titles in the first year.",
+      "eval": {"theme": "labor-land-cooperatives", "pair": null, "register": null, "length": "normal", "late_reveal": false, "avoids_keywords": false, "names_region": false}
+    },
+    {
+      "bundle": "article",
+      "region": "nyeri",
+      "author": "lbermudez",
+      "title": "Tuesday at the Nairobi exchange, as a factory secretary sees it",
+      "body": "Each Tuesday a factory secretary from the Mathira hills of Nyeri takes the early matatu to Nairobi with a sample book of the society's lots. The broker's catalogue lists them by grade: AA, AB, PB, C. Licensed dealers bid in US dollars per 50-kilo bag, in silence, by raised hand.\n\nOn 11 March 2025 the society's AA lot fetched $612 a bag; the PB lot from the same intake, $455. That is not what members receive. The broker keeps 0.75%, the selling agent and the dry mill take about 6% between them, the society deducts its running costs, and the remainder reaches growers as a per-kilo cherry payment four to eight months later. For 2025 that came to 92 shillings a kilo.",
+      "eval": {"theme": "price-trade-certification", "pair": null, "register": null, "length": "normal", "late_reveal": false, "avoids_keywords": true, "names_region": true}
+    },
+    {
+      "bundle": "article",
+      "region": "cauca",
+      "author": "lbermudez",
+      "title": "When New York lost a dollar and the buying post repainted its board",
+      "body": "The buying post at the bottom of the hill repaints its blackboard every morning at eight. The number on it follows a futures contract quoted in New York, converted at the day's exchange rate, minus a margin for transport and the buyer's risk.\n\nBetween February and July 2025 that contract slid from 4.20 to 2.95 US dollars, and the board fell with it, from 2.6 million to 1.9 million per 125-kilo load of dry parchment. Growers who sold early covered their fertiliser bills; those who held back, waiting for a rebound, sold in July for 27% less. Only the 40 members who had signed fixed contracts with a roaster in Oslo kept their number.",
+      "eval": {"theme": "price-trade-certification", "pair": null, "register": null, "length": "normal", "late_reveal": false, "avoids_keywords": true, "names_region": false}
+    },
+    {
+      "bundle": "event",
+      "region": "haraz",
+      "title": "Haraz Green Lot Auction — December 2025",
+      "body": "An online auction of 24 traceable green lots from Haraz and neighbouring districts, cupped by a seven-person panel in Sana'a and shipped as pre-auction samples to 50 registered bidders. The top lot, a 2,250 m village blend dried on rooftops, sold at $38.50 per pound to a Saudi-Korean buyer group; the median cleared $16.20/lb. Fourteen lots carried organic certification. Export paperwork through Hodeidah added an average of nine weeks; organisers plan a premium for sellers who absorb that delay.",
+      "eval": {"theme": "price-trade-certification", "pair": null, "register": null, "length": "normal", "late_reveal": false, "avoids_keywords": false, "names_region": true}
+    },
+    {
+      "bundle": "profile",
+      "region": "yirgacheffe",
+      "title": "Meseret Alemu — the auditor with a clipboard and a moisture meter",
+      "body": "Meseret Alemu inspects coffee farms and washing stations for a sustainability label that roasters in Europe pay extra to print on their bags. In a typical week she visits three sites, checks that agrochemicals are locked away and logged, interviews pickers' families about school attendance, measures buffer strips along streams, and reconciles each station's purchase ledgers against what it claims to have sold under the seal.\n\nIn the 2025 season she failed four of the 23 sites she visited, mostly over unrecorded cherry purchases. The label costs a farmers' group about 2.8 US cents a pound; she reckons half her farmers never see what difference it makes at sale.",
+      "eval": {"theme": "price-trade-certification", "pair": null, "register": null, "length": "normal", "late_reveal": false, "avoids_keywords": true, "names_region": false}
+    },
+    {
+      "bundle": "article",
+      "region": "kayanza",
+      "author": "lbermudez",
+      "title": "What a Fairtrade minimum means at a Kayanza washing station",
+      "body": "The Fairtrade minimum price for washed arabica stands at $1.80 per pound, plus a $0.30 social premium and $0.40 for organic certification. At a Kayanza washing station selling certified parchment through a Bujumbura exporter, the arithmetic in 2025 looked different: the C-market never fell below $2.80/lb all year, so the minimum never applied, and buyers paid the market differential instead. The premium still flowed, about $38,000 across 2,100 member households, and paid for a borehole and two new drying tables. The certification audit cost $6,200.",
+      "eval": {"theme": "price-trade-certification", "pair": null, "register": null, "length": "normal", "late_reveal": false, "avoids_keywords": false, "names_region": true}
+    },
+    {
+      "bundle": "article",
+      "region": "boquete",
+      "author": "mcervantes",
+      "title": "The tall, thin-leaved plant that came to Boquete from Turrialba",
+      "body": "It is easy to spot in a Boquete block: taller than its neighbours, with long internodes, sparse lateral branches and narrow, elongated leaves whose new growth flushes bronze. Seed collected in southwest Ethiopia in the 1930s travelled through Kenya and Tanzania to CATIE in Turrialba, and reached Panamá in the 1960s as an accession prized for tolerance, not taste.\n\nAt Finca Cumbre Alta, Rosalba Pitti keeps 1.2 hectares of these plants at 1,750 m. They yield about 40% less than her Catuaí, need staking against the wind, and only show their jasmine-and-bergamot cup above roughly 1,600 m. Her 2025 lot from the plot fetched eleven times the farm's average.",
+      "eval": {"theme": "varietals-genetics", "pair": null, "register": null, "length": "normal", "late_reveal": false, "avoids_keywords": true, "names_region": true}
+    },
+    {
+      "bundle": "article",
+      "region": "nyeri",
+      "author": "mcervantes",
+      "title": "Short trees, close rows: the compact line that replaced the old giants",
+      "body": "The tall plants that built the region's reputation came out of a colonial research laboratory's selections in the 1930s: vigorous, deep-rooted, superb in the cup and badly exposed to the fungus that rots green berries. In 1985 the national research station released a compact line built on a cross with Timor stock, carrying resistance to both the berry fungus and the orange leaf spore. Planted at 2,500 trees per hectare instead of 1,330, it needs no copper schedule.\n\nGrowers resisted it for decades because the early versions cupped flat. The 2010 release, a taller tree from the same parentage, closed most of the gap. On one 1,800 m estate surveyed in 2025, 46% of trees now came from the resistant lineage, against 12% in 2010.",
+      "eval": {"theme": "varietals-genetics", "pair": null, "register": null, "length": "normal", "late_reveal": false, "avoids_keywords": true, "names_region": false}
+    },
+    {
+      "bundle": "article",
+      "region": "kayanza",
+      "author": "mcervantes",
+      "title": "Bourbon everywhere: why Kayanza still plants one variety",
+      "body": "Ninety-five percent of the trees around Kayanza are Bourbon, chiefly the old Jackson and Mibirizi selections handed out by state nurseries since the 1930s. The genetic base is narrow, and growers know it: a single disease that the Bourbon line cannot resist could take out a district.\n\nIn 2025 the national research institute began trials of six cultivars at three Kayanza sites, including two F1 hybrids propagated from tissue culture. Early plots show the hybrids flowering 18 months after planting, against 30 for seedling Bourbon. Station managers worry about cup consistency; they also know the nurseries cannot yet supply more than 40,000 hybrid seedlings a year.",
+      "eval": {"theme": "varietals-genetics", "pair": null, "register": null, "length": "normal", "late_reveal": false, "avoids_keywords": false, "names_region": true}
+    },
+    {
+      "bundle": "article",
+      "region": "haraz",
+      "author": "mcervantes",
+      "title": "Sequencing the terrace trees: a population nobody had sampled",
+      "body": "Between 2023 and 2025 a team of plant scientists collected leaf tissue from 460 old trees on terraced plots across a single mountain massif, some planted by the grandfathers of the current owners. Genotyping at 12,000 DNA markers showed something the textbooks had missed: most of the trees fell into a distinct cluster, separate from the wild forest populations across the sea and from the lineages that left the region for the rest of the world three centuries ago.\n\nLocal farmers already had names for what they grew, based on leaf shape and bean size. The markers matched the folk names only about half the time; three locally prized types turned out to be the same plant under different names.",
+      "eval": {"theme": "varietals-genetics", "pair": null, "register": null, "length": "normal", "late_reveal": false, "avoids_keywords": true, "names_region": false}
+    },
+    {
+      "bundle": "article",
+      "region": "cauca",
+      "author": "mcervantes",
+      "title": "Six varieties, three altitudes: notes from an Andean trial field",
+      "body": "A May 2026 field day closed the third harvest of a replicated variety trial planted on three farms at 1,450, 1,700 and 1,950 m on the western flank of the central range. Six cultivars were compared: two rust-resistant hybrids, a Caturra control, Pink Bourbon, a Gesha selection and an East African landrace accession.\n\nThe hybrids out-yielded everything at the lowest site, by up to 38%. At 1,950 m the landrace and the Gesha topped the cup scores but produced so little that growers on the visit called them boutique trees. The trial's genetic material will be offered to growers through two nurseries from 2027.",
+      "eval": {"theme": "varietals-genetics", "pair": null, "register": null, "length": "normal", "late_reveal": false, "avoids_keywords": false, "names_region": false}
+    },
+    {
+      "bundle": "article",
+      "region": "yirgacheffe",
+      "author": "ctorresvega",
+      "title": "Nine minutes and forty seconds: taking a Yirgacheffe lot through the drum",
+      "body": "Dense, high-grown Yirgacheffe beans punish a timid start. On a 12-kilo drum machine in a Lisbon café-workshop, Tomás Ilbay charges a 2025 Kochere lot at 205°C and keeps the gas at full for the first four minutes while the beans dry from green to straw yellow. By 6:30 they have turned cinnamon brown and smell of baking bread. First crack, a sound like twigs snapping underfoot, arrives at 8:15.\n\nHe drops the batch at 9:40, with the beans at 207°C and 15% of the total time spent after first crack. A minute later and the lemongrass and white peach are gone; what is left reads as toast. Ten seconds early and the cup turns sour and grassy.",
+      "eval": {"theme": "roasting-brewing", "pair": null, "register": null, "length": "normal", "late_reveal": false, "avoids_keywords": true, "names_region": true}
+    },
+    {
+      "bundle": "article",
+      "region": "mandheling",
+      "author": "ctorresvega",
+      "title": "Heavy coffee, soft water: getting the most from a wet-hulled lot at home",
+      "body": "Wet-hulled coffees are dense with body and low in brightness, and they reward a heavier hand than most home recipes suggest. Start with 18 grams to 280 grams of water, about 1:15.5, and set the burrs a step coarser than for a washed East African lot, since these beans shatter into more fines.\n\nWater matters more than the recipe. At 150 ppm of hardness the cup turned muddy and flat in tests run in 2025; at 70 ppm with 40 ppm of buffer, the cedar and dark-chocolate notes separated. Keep the kettle at 92°C and aim for the bed to finish draining at 3:30. In a plunger pot, four minutes and a gentle stir are enough.",
+      "eval": {"theme": "roasting-brewing", "pair": null, "register": null, "length": "normal", "late_reveal": false, "avoids_keywords": true, "names_region": false}
+    },
+    {
+      "bundle": "event",
+      "region": "tarrazu",
+      "title": "Tarrazú Micro-Roaster Open Day — July 2026",
+      "body": "A one-day open house at a shared roasting facility in San Marcos de Tarrazú, where nine producer families now roast their own lots for the domestic market. Visitors watched profile comparisons on a 5-kilo drum roaster, worked a brewing bar with pour-over, espresso and the traditional chorreador, and cupped the same lot at three roast levels. The organisers' figures: a kilo of green that sells for $9 at the mill earns $24 roasted and bagged locally, before labour and packaging.",
+      "eval": {"theme": "roasting-brewing", "pair": null, "register": null, "length": "normal", "late_reveal": false, "avoids_keywords": false, "names_region": true}
+    },
+    {
+      "bundle": "profile",
+      "region": "antigua",
+      "title": "Lucrecia Ajcip — a five-kilo drum in a converted garage",
+      "body": "Lucrecia Ajcip, 34, bought a used five-kilo drum machine in 2022 with her savings and a loan from an uncle, and set it up in the family's garage below the farm. Twice a week she turns the household's best green coffee into medium-brown beans, dropping each batch about ninety seconds after the first cracks, and bags it for six cafés in the colonial city down the valley.\n\nShe logs every batch: charge temperature, time to yellow, time to first crack, final bean temperature. In 2025 she sold 2.1 tonnes this way, at roughly three times what the same coffee earned as parchment. Her younger brother now runs the machine on Saturdays.",
+      "eval": {"theme": "roasting-brewing", "pair": null, "register": null, "length": "normal", "late_reveal": false, "avoids_keywords": true, "names_region": false}
+    },
+    {
+      "bundle": "article",
+      "region": "haraz",
+      "author": "ctorresvega",
+      "title": "Brewing Haraz naturals: coarser grind, cooler water, and a word on qishr",
+      "body": "Haraz naturals carry dried-fruit sweetness and a winey edge that turns harsh fast if you push extraction. For a pour-over, try 15 grams to 250 grams of water at 90°C, ground a notch coarser than for a washed lot, aiming for a 3:00 drawdown. In espresso, a lighter roast and a 1:2.5 ratio keep the raisin and cardamom notes from collapsing into bitterness.\n\nBack in the Haraz villages, the more common brew uses no beans at all: qishr, the dried coffee husk simmered with ginger and sometimes cinnamon, sweetened and served through the afternoon. Several Yemeni-run cafés in Europe now sell it alongside filter coffee.",
+      "eval": {"theme": "roasting-brewing", "pair": null, "register": null, "length": "normal", "late_reveal": false, "avoids_keywords": false, "names_region": true}
+    },
+    {
+      "bundle": "article",
+      "region": "kayanza",
+      "author": "ctorresvega",
+      "title": "One bowl smelling of peeled potato: how a Kayanza panel isolates the defect",
+      "body": "On a table of 48 bowls from Kayanza stations in June 2025, one cup in the third row smelled of raw, peeled potato the moment the water hit the grounds. The panel leader, Gloria Niyonzima, flagged it, then did what Great Lakes panels have learned to do: she had every bowl of that lot re-made from separate sample roasts, five bowls per lot instead of three.\n\nTwo of the five carried the smell. The defect lives in single beans, usually ones pierced by antestia bugs, so a lot can be clean in four bowls and ruined in the fifth. Stations now hand-pick under UV light; in 2025 the panel flagged 6% of lots, down from 11% in 2023.",
+      "eval": {"theme": "cupping-sensory", "pair": null, "register": null, "length": "normal", "late_reveal": false, "avoids_keywords": true, "names_region": true}
+    },
+    {
+      "bundle": "article",
+      "region": "sierra-madre",
+      "author": "ctorresvega",
+      "title": "Twelve judges, one odd bowl: a calibration morning",
+      "body": "Before any lot is graded, the twelve judges at a highland cooperative's lab spend the first hour on triangles: three bowls, two of them identical, one from a different lot. Each judge slurps, spits and marks which bowl is the odd one. In a March 2025 session, nine of twelve found it on the first set; on the fourth set, a pair of lots separated only by drying method, five did.\n\nThen they evaluate four reference lots on the standard 100-point form and compare marks. Anyone more than two points from the group median on any attribute explains why, aloud. Only after that do the 37 member lots go on the table.",
+      "eval": {"theme": "cupping-sensory", "pair": null, "register": null, "length": "normal", "late_reveal": false, "avoids_keywords": true, "names_region": false}
+    },
+    {
+      "bundle": "event",
+      "region": "boquete",
+      "title": "Boquete Q-Grader Calibration Weekend — March 2026",
+      "body": "A two-day calibration for licensed Q-graders and cupping-lab staff working Chiriquí lots, hosted at a farm lab above Boquete. Day one ran triangulation and acidity-intensity drills with spiked samples; day two had 31 cuppers score 18 washed and natural lots, then compare sheets attribute by attribute. The spread on floral aroma scores narrowed from 1.8 to 0.9 points over the weekend. Organisers will publish the calibration set's descriptors in Spanish and English for the 2026 harvest.",
+      "eval": {"theme": "cupping-sensory", "pair": null, "register": null, "length": "normal", "late_reveal": false, "avoids_keywords": false, "names_region": true}
+    },
+    {
+      "bundle": "article",
+      "region": "cauca",
+      "author": "ctorresvega",
+      "title": "How a lab manager trains noses with thirty-six small bottles",
+      "body": "Marleny Ipia runs the quality lab of a farmers' association in the southwestern Andes, and she trains new panel members the way a wine school would: with a kit of 36 small vials, each holding one smell, from blackcurrant and cedar to roasted peanut, wet earth, rubber and rotten egg. Trainees sniff blind for three weeks before they put a spoon in a bowl.\n\nThen come the solutions: sucrose at four strengths, citric and malic acid, caffeine for bitterness, salt. By the end of the May 2025 course, seven of nine trainees could rank five sugar concentrations correctly. Ipia's rule is that nobody grades members' coffee alone until they can tell malic from citric in a lot they have never seen.",
+      "eval": {"theme": "cupping-sensory", "pair": null, "register": null, "length": "normal", "late_reveal": false, "avoids_keywords": true, "names_region": false}
+    },
+    {
+      "bundle": "article",
+      "region": "tarrazu",
+      "author": "ctorresvega",
+      "title": "Scoring Tarrazú honeys: where the points actually go",
+      "body": "Across the 2025 Tarrazú honey lots I cupped at three mills, the scoring pattern held steady. Aroma and flavor carried most of the separation: a red-honey lot from 1,900 m landed 8.25 on flavor against 7.5 for a yellow honey from 1,450 m. Acidity scores tracked altitude almost exactly, and body rarely moved more than a quarter point.\n\nWhere honeys lost points was aftertaste. Lots dried too fast on patios left a papery, drying finish that cost them half a point and pushed a likely 87 down to 86. Tasting notes leaned to panela, apricot and cacao nib.",
+      "eval": {"theme": "cupping-sensory", "pair": null, "register": null, "length": "normal", "late_reveal": false, "avoids_keywords": false, "names_region": true}
+    },
+
+    {
+      "bundle": "article",
+      "region": "antigua",
+      "author": "mcervantes",
+      "title": "Hemileia vastatrix incidence and copper timing on Acatenango Caturra, 2025",
+      "body": "Incidence of coffee leaf rust (Hemileia vastatrix) on Caturra plots at 1,550 m on the Acatenango flank reached 42% of sampled foliage by September 2025, with severity concentrated in the lower canopy stratum. Uredinial sporulation peaked roughly six weeks after the onset of seasonal precipitation. Blocks receiving two protective copper hydroxide applications, in May and June, held incidence below 12% and retained 80% of foliar area through fruit maturation. Untreated controls defoliated severely, compromising bud differentiation for the next cycle; projected 2026 yield loss is 35–50%. Resistant material (Marsellesa, Anacafé 14) showed incidence under 3% at equivalent inoculum load.",
+      "eval": {"theme": "leaf-rust-pests", "pair": "p01", "register": "technical", "length": "normal", "late_reveal": false, "avoids_keywords": false, "names_region": true}
+    },
+    {
+      "bundle": "article",
+      "region": "antigua",
+      "author": "mcervantes",
+      "title": "Why Doña Elvira's lower rows went bare before Christmas",
+      "body": "Walk the lower rows of Doña Elvira's farm near Antigua this past autumn and you would have seen it: the backs of the leaves dusted with an orange powder that came off on your fingers. By the time the cherries turned red, most of those trees stood almost bare.\n\nHer neighbour had sprayed twice before the rains came, and his trees stayed green. Elvira skipped it to save money. Now she expects next year's crop to be cut roughly in half, because a tree without leaves cannot feed new flowers. The newer, tougher plants up the hill barely noticed.",
+      "eval": {"theme": "leaf-rust-pests", "pair": "p01", "register": "plain", "length": "normal", "late_reveal": false, "avoids_keywords": true, "names_region": true}
+    },
+    {
+      "bundle": "article",
+      "region": "sierra-madre",
+      "author": "dpavon",
+      "title": "Sealed-tank anaerobic fermentation protocol at a Chiapas micro-mill: 2025 data",
+      "body": "A Chiapas micro-mill at 1,620 m ran depulped Bourbon parchment through 60-hour anaerobic fermentation in polyethylene drums fitted with airlocks. Mucilage pH fell from 5.6 to 4.1 and soluble solids from 16.2 to 8.4 °Bx. Substrate temperature was held at 19–21 °C via a jacketed coolant loop fed by gravity from a spring. Lots were subsequently channel-washed and dried on raised African beds to 10.5% moisture over a 14-day period. Relative to a 24-hour control in an uncovered tank, the protocol added 1.5 points on the SCA form and increased perceived malic acidity.",
+      "eval": {"theme": "fermentation-processing", "pair": "p02", "register": "technical", "length": "normal", "late_reveal": false, "avoids_keywords": false, "names_region": true}
+    },
+    {
+      "bundle": "article",
+      "region": "sierra-madre",
+      "author": "dpavon",
+      "title": "Don Faustino's blue barrels",
+      "body": "Don Faustino used to leave his beans overnight in an open concrete trough, the way his father did. Last year he tried something new. After stripping off the red skins, he packed the sticky beans into big blue plastic barrels, shut the lids tight and let them sit for two and a half days. A little valve on each lid let gas bubble out without letting air in.\n\nHe kept the barrels cool by running cold creek water around them. Then he rinsed the beans clean and spread them out in the sun for a fortnight. The buyers who came in March liked them better. They said the coffee was brighter, a bit like green apple.",
+      "eval": {"theme": "fermentation-processing", "pair": "p02", "register": "plain", "length": "normal", "late_reveal": false, "avoids_keywords": true, "names_region": false}
+    },
+    {
+      "bundle": "article",
+      "region": "mandheling",
+      "author": "jruvalcaba",
+      "title": "ENSO-linked precipitation deficit and anthesis fragmentation in the Lintong highlands, 2023",
+      "body": "The 2023–24 El Niño produced a 41% precipitation deficit across the Lintong highlands between July and October 2023, with volumetric soil moisture at 30 cm below permanent wilting point for 52 consecutive days. Anthesis, normally synchronised by the first major precipitation event, fragmented into 4–5 minor episodes between October and January. Consequences included protracted, asynchronous ripening, higher harvesting cost per kilogram, and an elevated share of immature and defective beans in delivered lots. Mean daily maximum temperature exceeded the 1991–2020 baseline by 1.4 °C.",
+      "eval": {"theme": "climate-weather", "pair": "p03", "register": "technical", "length": "normal", "late_reveal": false, "avoids_keywords": false, "names_region": true}
+    },
+    {
+      "bundle": "article",
+      "region": "mandheling",
+      "author": "jruvalcaba",
+      "title": "The dry year the hillsides flowered five times",
+      "body": "In the second half of 2023 the sky over the hills around Lake Toba hardly opened. The ground turned to dust and the bushes drooped by midday. Usually one big downpour wakes every bush at once, and a whole slope goes white with blossom inside a week. That year the flowers came in little bursts, four or five of them, spread across the end of the year and into the next.\n\nSo the cherries ripened a few at a time, and people had to walk the same rows again and again. Some came in green, some had gone black, and everyone's back ached for less money. It was hotter, too.",
+      "eval": {"theme": "climate-weather", "pair": "p03", "register": "plain", "length": "normal", "late_reveal": false, "avoids_keywords": true, "names_region": true}
+    },
+    {
+      "bundle": "article",
+      "region": "nyeri",
+      "author": "lbermudez",
+      "title": "Governance reform and payout ratios at a Nyeri farmers' cooperative society, 2024–25",
+      "body": "Following its 2024 elections, the society's management committee adopted a revised by-law capping administrative overheads at 20% of gross proceeds and mandating quarterly audited accounts. The payout ratio to members rose from 71% to 82% of net sales value in the 2024–25 crop year. Membership stands at 1,840 active growers across 3 wet mills; mean holding size is 0.4 ha. Casual labour at the mills is now engaged on written seasonal contracts at a daily rate of KES 600, replacing verbal piece-rate arrangements.",
+      "eval": {"theme": "labor-land-cooperatives", "pair": "p04", "register": "technical", "length": "normal", "late_reveal": false, "avoids_keywords": false, "names_region": true}
+    },
+    {
+      "bundle": "article",
+      "region": "nyeri",
+      "author": "afonseca",
+      "title": "When the farmers voted the old bosses out",
+      "body": "For years, families around the three factories grumbled that too much of their coffee money vanished before it reached them. In 2024 they voted out the old leaders. The new ones made a rule: no more than a fifth of what the coffee earns can go on offices, cars and salaries, and every three months the books get read out at a public meeting.\n\nLast season people took home about 82 cents of every shilling, up from 71. Most own less than an acre. The men and women who sort cherry at the factories now sign a paper for the whole picking period and get a set amount for each day.",
+      "eval": {"theme": "labor-land-cooperatives", "pair": "p04", "register": "plain", "length": "normal", "late_reveal": false, "avoids_keywords": true, "names_region": true}
+    },
+    {
+      "bundle": "article",
+      "region": "boquete",
+      "author": "lbermudez",
+      "title": "Differential compression in Boquete washed Catuaí contracts, 2025–26",
+      "body": "Fixed-price contracts for Boquete washed Catuaí grading SCA 84–85 settled at an average differential of +$1.10/lb over the ICE 'C' front month in the 2025–26 crop, against +$1.85 in 2023–24. With the C contract trading between $3.40 and $4.10, outright prices remained historically elevated, but differentials compressed as importers passed through financing costs of 8–9%. Parcels scoring 86+ held differentials of +$2.50 or better. Producers without forward contracts transacted spot at +$0.70.",
+      "eval": {"theme": "price-trade-certification", "pair": "p05", "register": "technical", "length": "normal", "late_reveal": false, "avoids_keywords": false, "names_region": true}
+    },
+    {
+      "bundle": "article",
+      "region": "boquete",
+      "author": "lbermudez",
+      "title": "Why a good year still felt tight on Chiriquí's mid-sized family farms",
+      "body": "Coffee from the hills above David sold for more money this year than almost anyone can remember, so you would think the middle-sized family farms would be celebrating. They aren't. The bonus they used to earn on top of the New York figure for a decent, clean bag has shrunk by about two-fifths in two seasons, because the companies that ship it abroad are borrowing at steep interest and passing the bill back down.\n\nOnly the very best beans kept their extra. Families who hadn't signed deals ahead of time, and sold whatever they had at the last minute, got the smallest bonus of all.",
+      "eval": {"theme": "price-trade-certification", "pair": "p05", "register": "plain", "length": "normal", "late_reveal": false, "avoids_keywords": true, "names_region": true}
+    },
+    {
+      "bundle": "article",
+      "region": "tarrazu",
+      "author": "mcervantes",
+      "title": "Field performance of the Centroamericano F1 hybrid at 1,600 m in Tarrazú",
+      "body": "Third-year data from a 2.5 ha planting of Centroamericano (H1), an F1 hybrid of Sarchimor T5296 × Rume Sudan, on a Tarrazú farm at 1,600 m: mean yield of 2,950 kg green/ha versus 1,830 kg/ha for adjacent Caturra; Hemileia incidence below 2% without fungicide; SCA 85.75 against 84.5 for the control. Clonal propagation via somatic embryogenesis raises plantlet cost to roughly US$0.85, against $0.15 for seed-propagated material, and F2 seed must not be used for replanting because of segregation.",
+      "eval": {"theme": "varietals-genetics", "pair": "p06", "register": "technical", "length": "normal", "late_reveal": false, "avoids_keywords": false, "names_region": true}
+    },
+    {
+      "bundle": "article",
+      "region": "tarrazu",
+      "author": "mcervantes",
+      "title": "The pricey seedlings that paid off for the Solano family",
+      "body": "Three years ago the Solano family put a new kind of coffee bush on a slope in Costa Rica's Los Santos hills. Each little plant was almost six times as expensive as an ordinary one, because it has to be grown in a lab from a few cells instead of from a bean.\n\nIt has been worth it. The new bushes give about sixty percent more coffee than the old ones next door, they shrug off the orange spots that plague the neighbours' leaves, and buyers like what's in the cup a little more. One catch: you can't save beans from them to start the next batch. Those come out all over the place.",
+      "eval": {"theme": "varietals-genetics", "pair": "p06", "register": "plain", "length": "normal", "late_reveal": false, "avoids_keywords": true, "names_region": true}
+    },
+    {
+      "bundle": "article",
+      "region": "yirgacheffe",
+      "author": "ctorresvega",
+      "title": "Development time ratio and extraction yield on a light Yirgacheffe profile",
+      "body": "On a 2025 washed Yirgacheffe at 11.2% moisture and 0.54 water activity, extending development time ratio from 14% to 20% (first crack at 8:20; drop at 9:45 versus 10:25) moved Agtron whole-bean readings from 72 to 63. Brewed as a 1:16 V60 at 94 °C with grind setting held constant, extraction yield rose from 19.1% to 21.4%. Panels perceived lower citric intensity and loss of bergamot-like volatiles at the longer development, alongside increased roast-derived bitterness. Recommended window: DTR 15–16%, Agtron 68–70.",
+      "eval": {"theme": "roasting-brewing", "pair": "p07", "register": "technical", "length": "normal", "late_reveal": false, "avoids_keywords": false, "names_region": true}
+    },
+    {
+      "bundle": "article",
+      "region": "yirgacheffe",
+      "author": "ctorresvega",
+      "title": "Forty seconds too long in the machine",
+      "body": "Take beans from southern Ethiopia, heat them until they start to pop, then wait. Pull them out a minute and a half later and they are still pale, and the cup is lively, almost like tea with lemon. Leave them another forty seconds and they come out noticeably browner. Made exactly the same way at home, that darker batch gives up more of itself, and some of what comes out is bitter.\n\nThe lemon fades, the perfumed note that reminds people of Earl Grey disappears, and what's left is a perfectly nice, ordinary cup. The sweet spot sits somewhere in between.",
+      "eval": {"theme": "roasting-brewing", "pair": "p07", "register": "plain", "length": "normal", "late_reveal": false, "avoids_keywords": true, "names_region": true}
+    },
+    {
+      "bundle": "article",
+      "region": "cauca",
+      "author": "ctorresvega",
+      "title": "Inter-rater reliability on a Cauca cupping panel: 2025 calibration results",
+      "body": "Across 6 calibration sessions in 2025, a 9-member Cauca panel evaluating washed Castillo lots reduced the standard deviation of final scores from 1.42 to 0.61. Intraclass correlation (ICC 2,1) for total score rose from 0.58 to 0.84. The largest residual disagreement concerned acidity intensity versus acidity quality, which 3 cuppers consistently conflated. Triangulation accuracy averaged 83%. Following calibration, the cooperative began releasing lot scores to members within 48 hours, accompanied by ±0.5 confidence bands.",
+      "eval": {"theme": "cupping-sensory", "pair": "p08", "register": "technical", "length": "normal", "late_reveal": false, "avoids_keywords": false, "names_region": true}
+    },
+    {
+      "bundle": "article",
+      "region": "cauca",
+      "author": "ctorresvega",
+      "title": "Getting nine people to agree about a cup of coffee",
+      "body": "At the start of last year, if you handed the same coffee to the nine judges at a farmers' group in southwest Colombia, their marks could land almost three points apart. By December, after six practice mornings together, they were mostly within a point of each other.\n\nThe hardest thing to fix was sourness. Three of them kept mixing up how sour a coffee was with how pleasant that sourness was. Now growers hear what their beans earned two days after handing them in, along with an honest note on how sure the group is.",
+      "eval": {"theme": "cupping-sensory", "pair": "p08", "register": "plain", "length": "normal", "late_reveal": false, "avoids_keywords": true, "names_region": true}
+    },
+
+    {
+      "bundle": "article",
+      "region": "sierra-madre",
+      "author": "mcervantes",
+      "title": "The road to Las Golondrinas",
+      "body": "The first bus out of Tapachula leaves at six, before the coastal plain starts to steam. For an hour it runs through banana and mango country, past packing sheds and roadside stalls selling tamales wrapped in leaves, and then the road tips upward and does not level off again. By Huixtla the windows are open; by the turnoff for Motozintla the driver has pulled on a jacket.\n\nI was going to see Tomasa Gálvez Roblero, whose family has farmed the same ridge on the Mexican side of Tacaná since 1931. I had met her two years earlier at a cooperative meeting, where she said almost nothing for three hours and then, at the end, asked a question about water rights that silenced the room. She had invited me to come for the picking. 'Bring boots,' she said. 'And don't bring a car.'\n\nThe last stretch to Las Golondrinas is a footpath, or a mule track when the mule is willing. It follows a stream bed for a kilometre, crosses it on two logs lashed together with wire, and then climbs through a stand of old cedars to a clearing where the house sits on a terrace of fitted stone. Tomasa's grandfather, Abelardo, cut those stones himself. He had come up from the Guatemalan side as a young man, one of the Mam families who crossed the border every autumn to pick on the big German-owned estates of the Soconusco, and one year he decided not to go back.\n\nThe family story of how he got the land changes depending on who tells it. In Tomasa's version he worked six harvests for a finca owner named Heinrich Kahle, saved his pay in a tin box, and bought eight hectares of forest that nobody else wanted because it was too steep for mules. In her brother Eusebio's version the land came from the agrarian reform of the 1930s and the tin box is a fiction. Both versions agree that Abelardo planted his first coffee in 1934, under the cedars, with seed carried up from the estate in his hat.\n\nThe house he built has three rooms and a kitchen with a smoke-blackened comal the size of a cartwheel. Tomasa's mother, Doña Felipa, is ninety-one and spends most of the day beside it. She speaks Mam to her children and Spanish to visitors, and she remembers the 1950s on the ridge as the years of the mule trains: forty animals at a time, carrying parchment down to Motozintla and coming back with salt, kerosene and cloth. 'There was no road,' she said. 'There was no need for a road. The mules knew the way better than the men.'\n\nFrom the terrace you can see across two valleys to the bare summit of Tacaná, 4,060 metres high and shared between two countries. In the mornings the cloud sits below the farm like a lake. By eleven it has burned off and the whole slope is laid out: the dark lines of cedar and inga, the patches of milpa, and below them the coffee, planted along contour lines that Abelardo marked out with a water level made from a length of hose.\n\nSeven people live on the farm now: Tomasa, Eusebio, Eusebio's wife Rosalinda, their three children, and Doña Felipa. The eldest grandson, Ismael, is twenty-two and studied accounting in Tapachula for a year before coming home. He keeps the farm's books in a spreadsheet on his phone and is the only one who knows the password. The two younger ones board at the secondary school in the valley and come up on weekends, when the picking needs every pair of hands.\n\nWe picked for four days. The rhythm is unforgiving: up at five, coffee and beans by the fire, in the rows by six. Tomasa picks faster than anyone I have watched, taking only the red cherries with a quick twist of the fingers and leaving the green ones for the next pass. By noon her basket has been filled and emptied twice. In the afternoons the family carries the cherry up to the small depulper behind the house, a hand-cranked machine Eusebio bought second-hand in 2008, and the parchment goes out on the patio to dry.\n\nOn the third evening, after supper, Tomasa took me down to the lower part of the farm, below the stream, where I had not yet been. The rows there looked different. The trees were young, perhaps waist-high, planted closer together, with darker leaves. Among them stood the stumps of older trees, cut off at knee height and sending up new shoots, and here and there the grey skeleton of a tree that had simply been left to die.\n\n'This is where it came,' she said.\n\nIt came in 2012. Tomasa remembers that the first sign was an orange powder on the underside of the leaves of the old Bourbon and Typica trees, the ones her grandfather had planted and her father had kept going. Coffee leaf rust, Hemileia vastatrix, had been present in the region since the early 1980s, but it had always been a background problem, something that took a few leaves at the end of the season and nothing more. That year was different. A warm, wet stretch in the middle of the year let the fungus cycle again and again; each pustule released spores that landed on the next leaf, and by October the lower farm was losing its canopy.\n\n'You could hear the leaves fall,' she said. 'Like paper.'\n\nBy the 2013 harvest the outbreak had spread across Central America and southern Mexico. In parts of the Soconusco and the Sierra Madre, municipal losses reached 50 to 70 percent. At Las Golondrinas the lower farm produced eleven quintales of parchment that year, down from forty-two. The upper farm, colder and windier, held on better, but even there the old trees thinned.\n\nThe family had no fungicide programme. Copper sprays were expensive, and the backpack sprayer they owned had a cracked tank. More importantly, the trees on the farm had no resistance at all. Bourbon and Typica are among the most susceptible coffees in the world; they were planted because they taste good, not because they survive disease.\n\nRecovery took most of a decade. In 2014, through the cooperative, the family received 6,000 seedlings of Costa Rica 95 and Oro Azteca, both lines carrying resistance inherited from the Timor Hybrid. Eusebio planted them in the lower farm. Some of the old trees were stumped to regrow; others were pulled out. Then, in 2017, came the second blow: with the canopy thin and the farm in disarray, the coffee berry borer moved in. Tomasa showed me cherries from that year that she had kept in a jar, each with a pinhole at the crown where the beetle had entered. The family began hanging red bottle traps baited with alcohol and gathering every fallen cherry from the ground, where the borer survives between harvests.\n\nBy 2022 the lower farm was producing again, though the new trees give a different cup, heavier and less floral, and the cooperative pays less for it. In 2024 Ismael persuaded his uncle to plant a test block of Marsellesa, a newer resistant line that cups closer to the old Bourbon. Its first real crop is coming in this season. Tomasa still keeps one row of the old Bourbon at the top of the farm, sprayed with copper three times a year, because her mother likes the coffee from it best.\n\n'The rust taught us that what our grandfather planted was beautiful, and it was fragile,' Tomasa said. 'Now we plant for the grandchildren. They will have to decide whether it tastes good.'\n\nWhen I left the next morning the cloud was sitting below the farm again. Ismael walked me down to the stream and steadied me across the logs. He was planning, he said, to map every tree on the farm by age and type, on his phone, so that the next time something came they would know where to look first.",
+      "eval": {"theme": "leaf-rust-pests", "pair": null, "register": null, "length": "long", "late_reveal": true, "avoids_keywords": false, "names_region": true}
+    },
+    {
+      "bundle": "article",
+      "region": "haraz",
+      "author": "lbermudez",
+      "title": "Three days on the Manakha road",
+      "body": "The road west from Sana'a leaves the high plateau through a series of switchbacks so tight that our driver, a quiet man named Fadl, sounded his horn before every bend whether or not he could see what was coming. For the first hour the country is bare and brown: terraced fields of sorghum stubble, villages of tower houses built from the same stone as the hills, and walled plots of qat, the one crop that seems to get water no matter what.\n\nThen the land falls away. Somewhere past Bani Matar the plateau ends in a broken edge, and the road begins to wind down the Haraz massif towards the Tihama, the hot coastal plain along the Red Sea. The mountains here are less mountains than staircases. Every slope, to the top of every ridge, has been cut into terraces held up by dry-stone walls, some of them three or four metres high, and on the narrowest there is room for a single row of plants.\n\nI was travelling with Nabil al-Haymi, whose family has lived in a village above Manakha for as long as anyone has kept count. Nabil is forty-four and was educated in Cairo; he spent twelve years managing hotels in Dubai before coming home in 2019 to look after the family's land. On the drive he told me about his great-grandfather, Yahya, who in the 1920s led mule caravans from these mountains down to the coast, five days each way. Yahya carried raisins, almonds and dried coffee down, and brought back cloth, salt and, once, a sewing machine that the family still owns and that still works.\n\nManakha sits on a saddle at about 2,200 metres, a town of stone houses stacked against one another, their windows outlined in white gypsum. We stopped for lunch: saltah, a stew of meat broth topped with whipped fenugreek, brought to the table still bubbling in a stone pot and eaten with flatbread torn by hand. Afterwards Nabil took me up to al-Hajjarah, a fortified village on a spur of rock whose six- and seven-storey houses rise straight out of the cliff, as if they had been carved rather than built. Children followed us through the alleys asking for pens.\n\nThat night we slept in the mafraj, the long carpeted room at the top of Nabil's house, with windows on three sides. After dinner men from the village came and sat on the cushions along the walls, chewing qat and talking about a wedding planned for the following week, the state of the road, and a boundary wall between two families that had been in mediation since 2021. Nobody hurried. When the conversation turned to me, they wanted to know how many children I had and whether it was true that people in my country ate insects.\n\nNabil's two daughters, aged nine and twelve, sat at the far end of the room doing homework by the light of a solar lamp. The village has had grid electricity only intermittently since 2015; most houses now have a panel on the roof and a car battery in the stairwell. The elder girl wants to be a doctor. The younger told me, with complete seriousness, that she intends to own the biggest terrace in the valley.\n\nThe next morning we walked. From Nabil's village the path drops through terraces planted with coffee, qat, almond and the occasional fig. Many of the coffee trees are more than fifty years old, kept short and bushy by the dry air and thin soil. Water comes from cisterns cut into the rock, fed by channels that collect whatever runs off the bare slopes above. Nabil's uncle Ahmad showed me how the flow is diverted from one terrace to the next with a single flat stone.\n\nThe terraces themselves are older than anyone's records. Local tradition holds that the oldest walls predate Islam, and archaeologists working in the western highlands have dated some terrace systems to well over two thousand years. The engineering has barely changed. Each wall leans slightly into the hill; behind it, a layer of rubble lets the soil shed water so that it does not build up and push the wall out. A good builder, Ahmad told me, reads a stone before he lifts it.\n\nAhmad is seventy and remembers the 1970s as the bad years, when young men left for the Gulf and the terraces began to crumble. 'Nobody wanted to carry stones,' he said. 'Everybody wanted to drive a taxi in Jeddah.' A wall that collapses in a single wet season can take a family a whole summer to rebuild, and in those years many were simply abandoned. Across the valley he pointed out a hillside where the terraces have slumped into a slope of rubble and wild grass.\n\nOn the third day we came back up to the village and spent the afternoon on the roof of Nabil's house, where the family's cherries were drying in a layer no deeper than two fingers. Everything about the scene would have been familiar to Yahya: the woven mats, the children turning the fruit by hand, the dried pods stored in sacks in a back room until someone decided they were worth selling.\n\nWhat has changed is who buys them, and for how much.\n\nFor most of the past century, Haraz coffee went down the mountain the way Yahya took it: through a chain of local merchants who bought dried pods by the sack, hulled them on the coast, and sold the beans on to exporters supplying Saudi Arabia, where Yemeni coffee commands a cultural premium, and to a handful of European importers. Nabil's grandfather was paid in cash, by weight, with no distinction between a careful family's pods and a careless one's. 'The price was the price,' Nabil said. 'Everyone got the same, so nobody tried harder.'\n\nThe specialty trade reached Haraz in the mid-2010s, when a few Yemeni and foreign companies set up hulling and sorting centres in Sana'a and began buying directly from villages. It brought something new: price differentiation by quality. In 2025 Nabil's family sold 640 kilos of dried cherry to one of these exporters at a price that worked out to about $14 per kilo of green coffee after hulling, roughly three times what the local merchants were paying. A separate 60-kilo lot, picked only from the upper terraces and dried slowly on raised mats, went into the exporter's online auction in December and cleared at $31.50 per pound, bought by a roaster in Seoul.\n\nThose numbers look extraordinary next to the C-market, which hovered between $3.30 and $4.00 per pound through 2025. But Nabil walked me through his costs. Yields are tiny: the family's terraces produce perhaps 200 kilos of green coffee per hectare, a fifth of a typical Central American farm. Water has to be bought by the truckload in the dry months, at around $15 a load. Pickers are paid by the day, and in a family operation every day on a terrace is a day not spent on anything else. And getting the coffee out of the country is slow and expensive: shipping through the Red Sea since 2024 has meant rerouting, insurance surcharges and delays of up to three months.\n\nCertification is a harder sell. In 2024 the exporter asked the village whether it would join an organic certification scheme, which would have added perhaps $0.80 a pound. The terraces have never seen synthetic fertiliser, because nobody could afford it, so compliance would be easy on paper. But the audit costs around $4,000 a year for the group, the inspector has to fly in, and the paperwork is in English. The village council voted it down. 'We are already organic,' Ahmad said. 'Now we must pay someone to tell us so?'\n\nWhat Nabil wants is not a certificate but a contract: a multi-year agreement at a fixed premium over the going rate, so that the family can plan to rebuild the collapsed terraces across the valley. He reckons rebuilding a hectare costs around $9,000 in labour and materials. At current prices that is four good seasons of the family's coffee income.\n\nOn the last evening I asked him whether he regretted leaving Dubai. He thought about it for a long time. 'In Dubai I earned more,' he said. 'Here, for the first time, the price of my coffee is the price of my work. I want to see if it lasts.'",
+      "eval": {"theme": "price-trade-certification", "pair": null, "register": null, "length": "long", "late_reveal": true, "avoids_keywords": false, "names_region": true}
+    },
+    {
+      "bundle": "article",
+      "region": "kayanza",
+      "author": "dpavon",
+      "title": "Inside a Kayanza washing station: the fermentation schedule, hour by hour",
+      "body": "Fermentation at a Burundian washing station is not one step but a sequence, and at Rusagara, a 1,950 m station in the hills north of Kayanza town, manager Pélagie Ndayishimiye runs it by the clock. Every lot of cherry that arrives in the afternoon is depulped, fermented, washed, soaked and laid out to dry on a schedule she has refined over nine seasons. Ask her where any given lot is in that sequence and she can tell you to within the hour. What follows is that schedule as it ran during the peak weeks of the 2025 harvest, with the numbers she keeps in a stack of school exercise books and, since last year, a shared spreadsheet.\n\nTwo in the afternoon: intake\n\nCherry starts arriving at two, carried on heads and bicycles by some 2,300 farmers who each tend a few hundred trees on the surrounding hills. Each delivery is weighed on a platform scale, logged against the farmer's name and paid for the same afternoon. In 2025 Rusagara took in 1,140 tonnes of cherry over the season, peaking at 38 tonnes on a single day in early May.\n\nBefore anything else, the cherry goes into a flotation tank. Underripe, insect-damaged and hollow fruit floats and is skimmed off into a separate stream that becomes the station's lower grade. The sinkers, dense and ripe, run by gravity to a three-disc depulper that tears off the skin and most of the fruit flesh. What comes out the other side is parchment coffee wrapped in a sticky, sugary layer of mucilage, about two millimetres thick.\n\nSix in the evening: the dry fermentation\n\nThe depulped parchment flows into tiled concrete tanks, each holding around four tonnes, with no water added. This is the dry fermentation, and it does most of the chemical work. Overnight, bacteria and yeasts that arrive on the fruit and live in the tanks feed on the sugars in the mucilage. Lactic acid bacteria dominate the first hours; acetic acid bacteria and yeasts follow as the oxygen in the mass is used up and acids accumulate. Enzymes, some from the microbes and some from the seed itself, break down the pectin that glues the mucilage to the parchment.\n\nPélagie judges the end point by touch. At five in the morning she walks the tanks, scoops a handful of parchment from each and rubs it between her palms. Slippery means not yet; gritty, like wet gravel, means done. She also squeezes a sample in her fist: if the parchment squeaks, it is ready to wash.\n\nSince 2025 she has backed that up with a pH meter. The tanks typically start at around 5.6 and finish between 4.3 and 4.6. Below 4.2, she says, a lot starts to carry a sour, vinegary edge into the cup, and she washes it at once even if the touch test says otherwise. Of the 312 tanks she logged in 2025, 19 finished below 4.2; all of them had been filled on the warmest evenings of April.\n\nTemperature is the variable she cannot fully control. At 1,950 m the overnight air in the fermentation house falls to 13 or 14 °C in June and July, which slows the microbes: a tank that finishes in ten hours in April can take sixteen in July. In 2022 the station roofed the tank row, and in 2024 it fitted wooden lids, which together raised the mass temperature by about 2 °C on cold nights and narrowed the spread of finish times from six hours to three.\n\nFive in the morning: washing and grading\n\nWhen a tank passes the touch test, the parchment is released into a sloped concrete channel about thirty metres long. Workers with wooden paddles push it upstream against a steady flow of water from the station's reservoir, scrubbing off the loosened mucilage and letting the coffee sort itself by density. The heaviest beans settle near the head of the channel; lighter ones are carried down. Wooden gates divide the channel into sections, and the station splits each lot into three density grades. The heaviest fraction, from the first eight or nine metres, becomes Rusagara's A1 lot, the one buyers compete for.\n\nWater is a constant worry. A lot at Rusagara now uses about nine litres per kilo of cherry, down from roughly twenty a decade ago, since the station began recirculating channel water. The wastewater, acidic and heavy with sugars, runs through three clay-lined settling pits before it reaches the stream below. In the 2025 inspection, downstream oxygen readings were within national limits for the first time.\n\nSeven in the morning: the soak\n\nThe step that sets East African practice apart from most of Latin America comes next. The washed parchment is moved into a second set of tanks and submerged in clean water for another 12 to 24 hours. The soak is not a second fermentation in any strict sense, since there is little sugar left to ferment, but it does something to the bean. The leading explanation is that the seed, still alive, keeps metabolising under water, shifting its balance of sugars and amino acids, while residues leach out of the parchment. Producers credit the soak with the clarity and sweetness of Burundian and Kenyan cups, and buyers have come to expect it.\n\nPélagie decided to test that belief in 2025. She split four lots from the same picking days: one half soaked for 18 hours, the other half sent straight to the drying tables. The national quality lab in Gitega scored the soaked halves an average of 1.25 points higher, with the panel's notes pointing to cleaner acidity and a longer, sweeter finish. 'Now I have the number,' she said. 'Before, I only had my grandfather's word.'\n\nMidday: skin-drying and hand-sorting\n\nAfter soaking, the parchment goes to raised drying tables; Rusagara has 140, built from eucalyptus poles and mesh. The first day is spent under shade nets, where the coffee drains and skin-dries, and where teams of women pick through it by hand, removing discoloured, broken and insect-marked beans. In 2025 the sorting teams removed around 4% of the volume at this stage.\n\nThis sorting matters more in Burundi than almost anywhere, because of the potato defect: a raw-potato smell associated with damage from the antestia bug, which pierces the cherry and opens the way for bacteria. A single affected bean can spoil a cup. Washing and soaking do nothing to remove it; only careful picking, sorting and, at the dry mill, inspection under ultraviolet light reduce the risk.\n\nTwo to three weeks: drying\n\nFrom the shade nets the coffee moves into full sun, spread about four centimetres deep and raked several times a day. At midday, when the sun is fiercest, and overnight, the tables are covered with plastic sheeting. Pélagie aims for a slow dry of two to three weeks to reach 11 to 12% moisture; parchment that dries in under ten days tends to lose its sweetness within months of shipment. When a table reaches target moisture, the coffee is bagged, labelled with its lot number and tank date, and trucked to the dry mill for hulling.\n\nWhat she will not change\n\nImporters increasingly ask for experimental lots: sealed tanks, whole-cherry naturals, inoculated yeasts. Pélagie produces a few. In 2024 she sealed 600 kilos of whole cherry in plastic barrels for 72 hours and then dried it on the tables; it sold at roughly double the station's A1 price to a roaster in Copenhagen. But experiments stay under 3% of Rusagara's volume. The farmers who deliver cherry are paid on the strength of the washed lots, and those lots are what the station's reputation rests on.\n\n'If I get the tanks right and the tables right, the coffee speaks,' she said. 'Everything else is decoration.'",
+      "eval": {"theme": "fermentation-processing", "pair": null, "register": null, "length": "long", "late_reveal": false, "avoids_keywords": false, "names_region": true}
+    },
+    {
+      "bundle": "article",
+      "region": "antigua",
+      "author": "jruvalcaba",
+      "title": "The canícula is getting longer: rain, frost and flowering on the Antigua valley floor",
+      "body": "Coffee farmers in the Antigua valley have always planned around two seasons and one interruption. The rains arrive in May, pause for a few weeks in July or August during the dry spell Guatemalans call the canícula, and return until October; then the dry season runs through to April. For most of the twentieth century that rhythm was regular enough to hang a calendar on. The rainfall record from Finca La Ceiba Blanca, on the valley floor at 1,560 m, shows that it no longer is.\n\nThe farm has kept a rain gauge since 1974: first a copper funnel read each morning by the foreman, and since 2011 an automatic station that logs every fifteen minutes. Its owner, Beatriz Monzón, shared the full series in 2025. It is one of the longest continuous daily records in the valley, and read alongside Anacafé's regional network it describes three changes that matter for coffee.\n\nThe first is the start of the rains. Between 1975 and 1999, the first day with more than 20 mm of rain, the threshold farm managers treat as the real start of the wet season, fell on average on 9 May. Between 2000 and 2024 it fell on 21 May, and the spread widened: in 2019 the season did not properly begin until 11 June.\n\nThat shift matters because Antigua coffee flowers in response to the first heavy rain after the dry season. A tree that has gone without water since November sets its buds and then waits; the first soaking wakes them together, and within eight to ten days the slopes turn white. When the rains start late, or start with a few light showers that wake only some of the buds, the flowering fragments. La Ceiba Blanca's flowering log, kept since 1990, records a single dominant bloom in 22 of its first 25 years but in only four of the ten years since 2015.\n\nA fragmented flowering means fragmented ripening. Pickers have to make five or six passes through the same rows instead of three or four, the cost of each quintal picked rises, and the chance of mixed ripeness in a lot goes up. The later start also pushes the whole calendar back. Picking on the valley floor used to begin in the second week of December; in five of the last eight seasons it began after Christmas, colliding with the holidays of the seasonal crews and with the coldest nights of the year.\n\nThe second change is the canícula itself. In the older half of the record, the midsummer dry spell averaged 18 days with less than 2 mm of rain a day. In 2000–2024 the average was 27, and in the El Niño years of 2015 and 2023 it stretched past 40. A long canícula hits just as the young cherries are expanding and the seed is forming inside them; water stress at that stage produces smaller beans and more floaters, cherries with poorly filled or empty seeds. In 2023 La Ceiba Blanca's float rate at the wet mill reached 14%, against a typical 5 to 6%.\n\nBeatriz has responded the way many valley farms have, with more shade and more mulch. Between 2018 and 2024 she planted 3,200 Grevillea and inga trees across her 48 hectares, raising canopy cover from around 30% to 55%. Soil moisture probes at 30 cm under the denser shade stayed above wilting point through the whole 2023 canícula; under the old, thin shade they did not.\n\nMulch is the cheaper half of the answer. Since 2021 the farm has spread pulp from its own wet mill, composted for four months with chicken manure, in a ring around every tree in the lowest blocks. A ten-centimetre layer, her records suggest, delays the point at which soil moisture falls below the stress threshold by eight to twelve days, often enough to carry the trees through a normal canícula, if not an extreme one.\n\nNot every farm can afford the response. Shade trees take four to six years to close a canopy, and a ring of mulch around 2,500 trees a hectare is weeks of labour. Smaller producers on the lower slopes, who sell cherry rather than parchment and have no wet mill to make their own compost, have mostly done neither. In a 2025 survey of 60 valley farms by the producers' association, canopy cover above 40% was found on 71% of farms larger than 20 hectares but on only 23% of those under five.\n\nThe third change is less intuitive. On the coldest nights, the valley floor has not warmed with the regional trend; if anything it has become more extreme. Antigua sits in a bowl ringed by three volcanoes, and on clear, still nights in December and January cold air drains off the slopes and pools on the floor of the valley. The phenomenon is old, and the oldest farms put their best coffee on the slopes above the cold pool, but the record shows clearer, drier nights in the dry season over the past two decades, and with them more frost.\n\nLa Ceiba Blanca recorded a ground-level minimum below 0 °C on three nights between 1975 and 1999, and on fourteen nights between 2000 and 2024. The worst was 4 January 2024, during the last El Niño, when the station read −2.1 °C at ground level and the lowest blocks lost their new growth overnight. Leaves blackened, and the buds that would have carried the 2024–25 crop on those blocks were badly damaged; the affected area produced 40% less the following season.\n\nShade helps here too. Under a canopy the coffee loses less heat to a clear sky at night, and the shade trees' leaves take the frost first. On the night of 4 January, sensors under the denser Grevillea read 1.5 to 2 °C warmer than in the open. Some farms on the valley floor are going further and giving up their lowest, coldest blocks altogether, replanting them with avocado or letting them go back to pasture.\n\nWhat ties the three changes together is not simply a hotter world. Central America is warming, and at the regional scale El Niño years bring drier, hotter conditions to the Pacific slope. But Antigua's valley floor sits in a peculiar position: high and enclosed enough that clear dry-season skies cool it hard at night, while the wet season is becoming later, shorter and more broken. A farm can now lose part of its crop to frost in January and part to drought stress in August of the same year.\n\nAsh adds a further variable. Fuego, the most active of the three volcanoes, has erupted frequently since 2018. Ash that falls in the wet season washes into the soil; ash that falls in the dry season sits on the leaves and blocks light. Beatriz's records show the farm's lowest yields of the past decade in 2018–19, when the June 2018 eruption was followed by a long canícula.\n\nFor now the valley's coffee is holding its quality, and in some respects improving: the slower ripening on the cooler slopes is part of why Antigua lots have been strong in recent harvests. But the margin for error has narrowed. Farms that once managed the season by custom now manage it by data. Beatriz checks her soil probes on her phone every morning, and in 2025 she joined twenty-three neighbouring farms in pooling station data through a shared dashboard run by the producers' association, so that a frost warning or a late start to the rains reaches everyone at once.\n\n'My grandfather planted by the saints' days,' she said. 'San Isidro, the fifteenth of May, and the rains came. Now San Isidro comes and the sky is empty. So I plant by the numbers.'",
+      "eval": {"theme": "climate-weather", "pair": null, "register": null, "length": "long", "late_reveal": false, "avoids_keywords": false, "names_region": true}
+    },
+
+    {
+      "bundle": "profile",
+      "region": "mandheling",
+      "title": "Rahmat Sinaga — bottle-trap maker for forty gardens",
+      "body": "Rahmat Sinaga turns red plastic bottles into alcohol-baited beetle traps and hangs 600 a season across forty Lintong gardens. Bored cherries fell from 12% to 4% in 2025.",
+      "eval": {"theme": "leaf-rust-pests", "pair": null, "register": null, "length": "short", "late_reveal": false, "avoids_keywords": true, "names_region": true}
+    },
+    {
+      "bundle": "event",
+      "region": "tarrazu",
+      "title": "Tarrazú Chorreador Morning — August 2026",
+      "body": "A free morning class in San Marcos on brewing with the chorreador, Costa Rica's cloth-sock pour-over: water at 92°C, coarse grind, 1:15 ratio, tasted against a paper V60.",
+      "eval": {"theme": "roasting-brewing", "pair": null, "register": null, "length": "short", "late_reveal": false, "avoids_keywords": false, "names_region": true}
+    },
+    {
+      "bundle": "profile",
+      "region": "boquete",
+      "title": "Ernesto Caballero — keeper of a mother-tree seed garden",
+      "body": "Ernesto Caballero keeps a 0.3-hectare seed garden of Geisha mother trees, bagging flowers by hand to stop cross-pollination. His 2025 seedlings sold out to eleven Boquete farms.",
+      "eval": {"theme": "varietals-genetics", "pair": null, "register": null, "length": "short", "late_reveal": false, "avoids_keywords": false, "names_region": true}
+    },
+    {
+      "bundle": "event",
+      "region": "nyeri",
+      "title": "Nyeri Factory Second Payment Day — February 2026",
+      "body": "Members of a Nyeri farmers' society collected their 2025 second payment: 94 shillings per kilo of cherry, after AA lots sold at $640 a bag in Nairobi.",
+      "eval": {"theme": "price-trade-certification", "pair": null, "register": null, "length": "short", "late_reveal": false, "avoids_keywords": true, "names_region": true}
+    }
+  ]
+}

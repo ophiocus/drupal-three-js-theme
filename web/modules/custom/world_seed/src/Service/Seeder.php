@@ -30,6 +30,7 @@ use Drupal\user\Entity\User;
 final class Seeder {
 
   private const STATE_KEY = 'world_seed.seed_state';
+  private const PACK_STATE_PREFIX = 'world_seed.pack_state.';
   private const ADMIN_NAME = 'admin';
 
   public function __construct(
@@ -128,6 +129,106 @@ final class Seeder {
       }
     }
     \Drupal::state()->delete(self::STATE_KEY);
+  }
+
+  /**
+   * Seed an opt-in content pack from `data/packs/<name>.json`.
+   *
+   * Packs sit on top of the canonical seed: they add nodes only, never
+   * terms or users, and are tracked under their own state key so
+   * world:seed and world:seed:purge leave them alone. Re-running a pack
+   * replaces its previous nodes. Each record names its sector either by
+   * `region` (a slug from sectors.json) or by `sector` (a `topics` term
+   * name, e.g. "Art"); any extra keys (such as `eval` labels for model
+   * evaluation) are ignored here.
+   *
+   * Because world:seed recreates the region terms, run packs again after
+   * a re-seed so their sector references point at live terms.
+   *
+   * @return array<string, int>
+   *   bundle => nodes created.
+   */
+  public function seedPack(string $name): array {
+    if (!preg_match('/^[a-z0-9-]+$/', $name)) {
+      throw new \InvalidArgumentException(sprintf('Invalid pack name "%s".', $name));
+    }
+    $this->purgePack($name);
+    $dir = $this->pathResolver->getPath('module', 'world_seed') . '/data';
+    $records = $this->loadJson($dir . '/packs/' . $name . '.json')['records'] ?? NULL;
+    if (!is_array($records)) {
+      throw new \RuntimeException(sprintf('Pack %s has no "records" array.', $name));
+    }
+    $regionNames = array_column($this->loadJson($dir . '/sectors.json'), 'name', 'slug');
+
+    $termStorage = $this->entityTypeManager->getStorage('taxonomy_term');
+    $userStorage = $this->entityTypeManager->getStorage('user');
+    $tidByName = [];
+    $uidByHandle = [];
+    $counts = [];
+    $uuids = [];
+    try {
+      foreach ($records as $idx => $r) {
+        $bundle = (string) ($r['bundle'] ?? '');
+        if (!in_array($bundle, ['article', 'event', 'profile'], TRUE) || empty($r['title']) || empty($r['body'])) {
+          throw new \RuntimeException(sprintf('Pack %s record %d is malformed.', $name, $idx));
+        }
+        $sectorName = isset($r['region']) ? ($regionNames[$r['region']] ?? '') : (string) ($r['sector'] ?? '');
+        if (!array_key_exists($sectorName, $tidByName)) {
+          $terms = $termStorage->loadByProperties(['vid' => 'topics', 'name' => $sectorName]);
+          $tidByName[$sectorName] = $terms ? (int) reset($terms)->id() : NULL;
+        }
+        if ($tidByName[$sectorName] === NULL) {
+          throw new \RuntimeException(sprintf(
+            'Pack %s record %d: sector "%s" is not a topics term (run world:seed first).',
+            $name, $idx, $sectorName,
+          ));
+        }
+        $handle = (string) ($r['author'] ?? '');
+        if ($handle !== '' && !array_key_exists($handle, $uidByHandle)) {
+          $users = $userStorage->loadByProperties(['name' => $handle]);
+          $uidByHandle[$handle] = $users ? (int) reset($users)->id() : 1;
+        }
+        $node = Node::create([
+          'type'   => $bundle,
+          'title'  => $r['title'],
+          'uid'    => $handle !== '' ? $uidByHandle[$handle] : 1,
+          'status' => 1,
+          'body'   => ['value' => $r['body'], 'format' => 'basic_html'],
+          'field_world_sector' => [['target_id' => $tidByName[$sectorName]]],
+        ]);
+        $node->save();
+        $uuids[] = $node->uuid();
+        $counts[$bundle] = ($counts[$bundle] ?? 0) + 1;
+      }
+    }
+    finally {
+      // Stamp whatever landed, even on a mid-pack failure, so a purge
+      // can always clean up.
+      \Drupal::state()->set(self::PACK_STATE_PREFIX . $name, ['node' => $uuids]);
+    }
+    return $counts;
+  }
+
+  /**
+   * Delete the nodes a pack created. Returns how many were deleted.
+   */
+  public function purgePack(string $name): int {
+    $key = self::PACK_STATE_PREFIX . $name;
+    $uuids = \Drupal::state()->get($key, [])['node'] ?? [];
+    $deleted = 0;
+    if ($uuids !== []) {
+      $storage = $this->entityTypeManager->getStorage('node');
+      $ids = $storage->getQuery()
+        ->accessCheck(FALSE)
+        ->condition('uuid', $uuids, 'IN')
+        ->execute();
+      if ($ids !== []) {
+        $storage->delete($storage->loadMultiple($ids));
+        $deleted = count($ids);
+      }
+    }
+    \Drupal::state()->delete($key);
+    return $deleted;
   }
 
   // ─── pipeline steps ────────────────────────────────────────────────────────

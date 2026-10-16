@@ -12,8 +12,8 @@ use Drupal\world_signature\Service\EmbedRunner;
 use Drupal\world_signature\Service\SnapshotPublisher;
 use Drupal\world_signature\Service\WorldConfigEditor;
 use Drupal\world_signature\Service\WorldInterpretationEditor;
-use Drupal\world_signature\Service\WorldSearchClient;
 use Drupal\world_signature\Service\WorldStageEditor;
+use Drupal\world_signature\Store\DescriptorStoreInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -47,7 +47,7 @@ final class WorldController extends ControllerBase {
   private const array LANGUAGE_HINTS = ['en', 'es'];
 
   public function __construct(
-    private readonly WorldSearchClient $client,
+    private readonly DescriptorStoreInterface $descriptorStore,
     private readonly SnapshotPublisher $publisher,
     private readonly AssetSnapshotBuilder $assetBuilder,
     private readonly EmbedRunner $embedRunner,
@@ -58,7 +58,7 @@ final class WorldController extends ControllerBase {
 
   public static function create(ContainerInterface $container): self {
     return new self(
-      $container->get('world_signature.world_search_client'),
+      $container->get('world_signature.descriptor_store'),
       $container->get('world_signature.snapshot_publisher'),
       $container->get('world_signature.asset_snapshot_builder'),
       $container->get('world_signature.embed_runner'),
@@ -73,17 +73,17 @@ final class WorldController extends ControllerBase {
    *
    * Returns:
    *   { status: "ok" | "degraded" | "down",
-   *     gateway: "reachable" | "unreachable",
+   *     store: "reachable" | "unreachable",
    *     timestamp: <unix-ts> }
    */
   public function health(): JsonResponse {
-    $gatewayOk = $this->client->ping();
+    $storeOk = $this->descriptorStore->ping();
     $payload = [
-      'status' => $gatewayOk ? 'ok' : 'degraded',
-      'gateway' => $gatewayOk ? 'reachable' : 'unreachable',
+      'status' => $storeOk ? 'ok' : 'degraded',
+      'store' => $storeOk ? 'reachable' : 'unreachable',
       'timestamp' => time(),
     ];
-    return new JsonResponse($payload, $gatewayOk ? 200 : 503);
+    return new JsonResponse($payload, $storeOk ? 200 : 503);
   }
 
   /**
@@ -438,11 +438,11 @@ final class WorldController extends ControllerBase {
    */
   public function descriptor(string $id): JsonResponse {
     try {
-      $doc = $this->client->find($id);
+      $doc = $this->descriptorStore->find($id);
     }
     catch (\RuntimeException $e) {
       return new JsonResponse([
-        'error' => 'gateway_error',
+        'error' => 'store_error',
         'message' => $e->getMessage(),
       ], 502);
     }

@@ -11,10 +11,9 @@
  *
  * Idempotent: `drush world:seed` (or re-installing the module) clears
  * the previously-seeded entities first (UUID-tracked, manually
- * authored content untouched) and recreates from data/*.json. If the
- * gateway is reachable, an embed pass runs at the end; if not, the
- * embed step is skipped with a clear notice and `drush world:embed`
- * picks it up later.
+ * authored content untouched) and recreates from data/*.json. An embed
+ * pass runs at the end; if it fails, the step is skipped with a clear
+ * notice and `drush world:embed` picks it up later.
  */
 
 declare(strict_types=1);
@@ -44,7 +43,7 @@ function world_seed_install(): void {
     ));
   }
 
-  // Embed pass — gateway-dependent. Failure is a notice, not an error.
+  // Embed pass. Failure is a notice, not an error.
   try {
     /** @var \Drupal\world_signature\Service\EmbedRunner $runner */
     $runner = \Drupal::service('world_signature.embed_runner');
@@ -56,7 +55,7 @@ function world_seed_install(): void {
   }
   catch (\Throwable $e) {
     \Drupal::messenger()->addStatus(t(
-      'Embed pass skipped (@msg). Run <code>drush world:embed</code> when the gateway is reachable.',
+      'Embed pass skipped (@msg). Run <code>drush world:embed</code> later.',
       ['@msg' => $e->getMessage()],
     ));
   }

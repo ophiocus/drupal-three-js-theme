@@ -1,0 +1,425 @@
+{
+  "pack": "bakeoff-hard",
+  "pole_words": {
+    "recollection-anticipation": {
+      "a": ["recollection", "recollections", "recollect", "recollected", "recollecting", "recall", "recalls", "recalled", "recalling", "memory", "memories", "memorial", "memorable", "memorise", "memorize", "memoir", "commemorate", "commemoration", "remember", "remembers", "remembered", "remembering", "remembrance", "remind", "reminds", "reminded", "reminder", "reminisce", "reminiscence", "reminiscent", "nostalgia", "nostalgic", "past", "pasts", "history", "histories", "historic", "historical", "historian", "retrospect", "retrospective", "yesterday", "bygone", "former", "formerly", "forget", "forgets", "forgetting", "forgot", "forgotten"],
+      "b": ["anticipation", "anticipate", "anticipates", "anticipated", "anticipating", "anticipatory", "expectation", "expectations", "expect", "expects", "expected", "expecting", "expectant", "unexpected", "future", "futures", "futuristic", "tomorrow", "upcoming", "forthcoming", "await", "awaits", "awaited", "awaiting", "wait", "waits", "waited", "waiting", "hope", "hopes", "hoped", "hoping", "hopeful", "prospect", "prospects", "prospective", "predict", "predicted", "prediction", "forecast", "foresee", "foreseen", "come", "comes", "coming", "came"]
+    },
+    "self-world": {
+      "a": ["self", "selves", "selfhood", "selfish", "myself", "yourself", "himself", "herself", "itself", "oneself", "ourselves", "yourselves", "themselves", "inner", "innermost", "inward", "inwardly", "inside", "interior", "identity", "identities", "identify", "identified", "identical", "private", "privately", "privacy", "feel", "feels", "feeling", "feelings", "felt", "emotion", "emotions", "emotional", "personal", "personally", "personality", "soul", "souls", "psyche", "psychological", "ego", "introspection", "introspective", "intimate", "intimacy", "mind", "minds", "heart", "hearts"],
+      "b": ["outer", "outermost", "outward", "outwardly", "outside", "external", "world", "worlds", "worldly", "worldwide", "other", "others", "another", "otherwise", "otherness", "people", "peoples", "person", "persons", "society", "societies", "social", "socially", "societal", "public", "publicly", "community", "communities", "communal", "collective", "humanity", "mankind", "human", "humans", "civic", "citizen", "citizens", "everyone", "everybody"]
+    },
+    "order-dissolution": {
+      "a": ["order", "orders", "ordered", "ordering", "orderly", "structure", "structures", "structured", "structural", "clarity", "clear", "clearer", "clearly", "clarify", "clarified", "coherence", "coherent", "cohere", "reason", "reasons", "reasoned", "reasoning", "reasonable", "rational", "rationality", "logic", "logical", "logically", "system", "systems", "systematic", "organize", "organized", "organise", "organised", "organization", "organisation", "lucid", "lucidity"],
+      "b": ["chaos", "chaotic", "dissolution", "dissolve", "dissolves", "dissolved", "dissolving", "dream", "dreams", "dreamed", "dreamt", "dreaming", "dreamlike", "dreamy", "unconscious", "unconsciously", "subconscious", "conscious", "consciousness", "disorder", "disordered", "sleep", "sleeps", "sleeping", "slept", "asleep", "trance", "hallucination", "surreal", "nightmare", "reverie", "fantasy", "irrational", "illogical", "delirium", "delirious", "madness", "disintegrate", "disintegration", "dissipate", "entropy", "confusion", "confused", "turmoil", "mayhem", "incoherent", "incoherence"]
+    }
+  },
+  "records": [
+    {
+      "bundle": "event",
+      "sector": "Society",
+      "title": "Falmouth Harbour Youth Regatta — April 2026",
+      "body": "Race window: 18–24 April 2026, Falmouth and English Harbour, Antigua and Barbuda.\n\nSixty-two dinghies from eleven Caribbean islands are entered for the week, racing Optimist and ILCA fleets on a course laid just off the reef, where the trade winds settle into a steady fifteen knots most afternoons. The Leeward Junior Sailing Trust runs shore programmes at Nelson's Dockyard between races: knot-tying, capsize drills, and an evening cricket match on the old parade ground between sailors and race officials. Results count toward the regional youth rankings, and the top three helms in each fleet earn travel grants for the autumn championship in Barbados.",
+      "eval": {"kind": "distractor", "mimics": "antigua", "relation": "same-name-other-place", "theme": "sailing-regatta", "axis": null, "pole": null}
+    },
+    {
+      "bundle": "article",
+      "sector": "Science",
+      "title": "The Sierra Madre of Luzon as a typhoon wall",
+      "body": "The Philippines' longest mountain range runs some 540 kilometres down the eastern edge of Luzon, and meteorologists on the island treat it almost as infrastructure. Typhoons arriving from the Pacific lose much of their low-level wind energy as they cross the Sierra Madre's ridges, and rain that would otherwise reach the central plain is wrung out on the windward slopes. The range also holds one of the country's largest remaining blocks of lowland dipterocarp forest and a breeding population of the Philippine eagle. A field station run by the Cagayan Ridge Ecology Group counts nests each dry season; last year's survey logged nineteen active sites.",
+      "eval": {"kind": "distractor", "mimics": "sierra-madre", "relation": "same-name-other-place", "theme": "mountain-ecology-typhoons", "axis": null, "pole": null}
+    },
+    {
+      "bundle": "article",
+      "sector": "Technology",
+      "title": "Living downstream of the Cauca's turbines",
+      "body": "Four hundred kilometres below the Colombian department that shares its name, the Cauca River has changed its rhythm. In the lower basin, where it spreads across the floodplain toward its meeting with the Magdalena, fishers in the river village of El Remanso read the water by its colour. Since the large reservoirs upstream began regulating flow, the muddy pulses that once followed the rains arrive smaller and later, released on a schedule set by turbine demand rather than by the clouds. Bocachico, the migratory fish the floodplain lakes depend on, time their spawning runs to those pulses. A fishers' association, working with hydrologists from a regional university, now logs daily water levels and catch weights on shared tablets and sends them upstream; the operators have agreed to trial two timed releases during the spawning season.",
+      "eval": {"kind": "distractor", "mimics": "cauca", "relation": "same-name-other-place", "theme": "hydropower-river-fisheries", "axis": null, "pole": null}
+    },
+    {
+      "bundle": "article",
+      "sector": "Technology",
+      "title": "Java's garbage collectors, from serial to generational ZGC",
+      "body": "When Java shipped in 1996, its heap was swept by a single-threaded collector that paused the whole program while it worked. Three decades later the JDK offers a menu. Parallel GC maximises throughput, G1 has been the default since Java 9, and ZGC, generational since JDK 21, keeps pauses below a millisecond even on multi-terabyte heaps. Every object a program allocates — a JavaBean, a lambda, a short-lived string — eventually lands in front of one of them. The trade-offs have not changed in kind: shorter pauses cost CPU and memory headroom, higher throughput tolerates longer stalls. Teams tuning a JVM for a latency-sensitive service still begin the same way: measure the allocation rate, choose a collector, and resist the urge to change twenty flags at once.",
+      "eval": {"kind": "distractor", "mimics": "java", "relation": "same-name-other-place", "theme": "programming-language-gc", "axis": null, "pole": null}
+    },
+    {
+      "bundle": "article",
+      "sector": "Society",
+      "title": "The Haraz road between Tehran and the Caspian",
+      "body": "Iran's Haraz road climbs out of the Tehran plain, crosses the Alborz range near the foot of Mount Damavand, and descends through the gorge of the Haraz River to Amol and the Caspian lowlands. For weekenders from the capital it is the quickest way to the sea, and on holiday evenings traffic in the narrow valley moves at walking pace. The gorge is lined with trout farms fed by cold river water, roadside grills, and stalls selling dried fruit, honey and pickled garlic. Engineers have spent two decades widening the route and boring tunnels to bypass the most landslide-prone bends; each new section shortens the drive and changes which villages travellers stop in.",
+      "eval": {"kind": "distractor", "mimics": "haraz", "relation": "same-name-other-place", "theme": "mountain-road-travel", "axis": null, "pole": null}
+    },
+    {
+      "bundle": "event",
+      "region": "antigua",
+      "title": "Semana Santa carpets — Antigua, Holy Week 2026",
+      "body": "Procession window: 29 March – 5 April 2026.\n\nBefore dawn on each procession day, families along the routes through Antigua's cobbled centre lay alfombras: carpets of dyed sawdust pressed through wooden stencils and bordered with pine needles, carnations and bougainvillea. A single carpet near the Santa Catalina arch can run thirty metres and take a team of twelve the whole night. The processions walk straight over them within hours, and street crews sweep the remains by afternoon. The municipal heritage office publishes route maps so visitors can watch the work without stepping on it, and this year it is also running a workshop on traditional stencil cutting at the restored Casa de los Moldes.",
+      "eval": {"kind": "distractor", "mimics": "antigua", "relation": "same-place-other-domain", "theme": "religious-festival-craft", "axis": null, "pole": null}
+    },
+    {
+      "bundle": "profile",
+      "region": "boquete",
+      "title": "Marjorie Dunleavy — retired nurse and Volcán Barú trail guide",
+      "body": "Moved to Boquete from Ohio in 2014 after thirty years as an emergency-room nurse, part of the wave of North American retirees drawn to the town by its spring-like highland climate, modest costs and dollar economy. She now leads overnight hikes up Volcán Barú, Panamá's highest point at 3,474 metres, timing the climb so groups reach the summit at sunrise, when on a good morning both the Pacific and the Caribbean are visible.\n\nShe also teaches wilderness first aid to new guides at the town's hiking club and volunteers at the Tuesday market, where newcomers and Boqueteños swap books, bread and orchids.\n\n\"The mountain is the biggest employer here,\" she says, \"and it never retires.\"",
+      "eval": {"kind": "distractor", "mimics": "boquete", "relation": "same-place-other-domain", "theme": "hiking-retiree-economy", "axis": null, "pole": null}
+    },
+    {
+      "bundle": "article",
+      "region": "mandheling",
+      "title": "The Tapanuli orangutan of Batang Toru",
+      "body": "In 2017 primatologists described a third orangutan species from a single forest block south of Lake Toba in North Sumatra. The Tapanuli orangutan, Pongo tapanuliensis, differs from its Sumatran and Bornean relatives in skull shape, frizzier cinnamon hair and the structure of its long calls, and genetic work suggests its lineage split away more than three million years ago. Fewer than 800 individuals are thought to remain, spread across the upland forests of the Batang Toru ecosystem, which makes it the rarest great ape on Earth. Field teams follow nests rather than animals: each orangutan builds a fresh platform of bent branches in the canopy every evening, and counting those platforms along fixed transects is how the population is estimated.",
+      "eval": {"kind": "distractor", "mimics": "mandheling", "relation": "same-place-other-domain", "theme": "great-ape-conservation", "axis": null, "pole": null}
+    },
+    {
+      "bundle": "article",
+      "region": "haraz",
+      "title": "Stone tower-houses of the Haraz mountains",
+      "body": "Villages in Yemen's Haraz mountains sit on ridgelines rather than in valleys, and their houses rise straight from the bedrock. A typical tower-house stands four to six storeys, built of locally quarried stone laid in heavy courses on the lower floors, with lighter masonry above. Ground floors held livestock and grain; the upper rooms, reached by a narrow internal stair, served as living quarters, and at the top sat a reception room with wide windows of alabaster or coloured glass. Al-Hajjarah, near Manakhah, is the best-known example: from the terraced slopes below, its walls read as a continuation of the cliff. Masons there still pass on the technique of dressing stone by eye.",
+      "eval": {"kind": "distractor", "mimics": "haraz", "relation": "same-place-other-domain", "theme": "vernacular-architecture", "axis": null, "pole": null}
+    },
+    {
+      "bundle": "article",
+      "region": "nyeri",
+      "title": "Paxtu: Baden-Powell's last home in Nyeri",
+      "body": "Robert Baden-Powell, founder of the Scout movement, spent his last years in Nyeri, in a cottage he named Paxtu in the grounds of the Outspan Hotel, with a view across the valley to Mount Kenya. He died there in January 1941 and was buried in the town's St Peter's cemetery; his headstone carries the trail sign of a circle with a dot at its centre, which in scouting means 'I have gone home'. Scout groups from dozens of countries still make the journey. The cottage holds a small museum of letters, sketches and badges, and the visitors' book runs to many volumes. Each February, around Founder's Day, local troops gather at the graveside.",
+      "eval": {"kind": "distractor", "mimics": "nyeri", "relation": "same-place-other-domain", "theme": "scouting-heritage", "axis": null, "pole": null}
+    },
+    {
+      "bundle": "article",
+      "region": "kayanza",
+      "title": "Kibira forest on the Congo–Nile divide",
+      "body": "Kibira National Park covers about 400 square kilometres of montane rainforest along the Congo–Nile ridge in north-western Burundi, its eastern edge running down toward the hills of Kayanza. To the north it joins Rwanda's Nyungwe forest, and together the two form one of the largest blocks of mountain rainforest left in East Africa. Streams leaving the park's western flank drain toward Lake Tanganyika and the Congo basin; those on its eastern side feed headwaters of the Nile. The forest shelters chimpanzees, several monkey species and more than 200 kinds of birds. Rangers based near Rwegura lead walks on its trails, and a local guiding association trains young people from the surrounding hills as birding guides.",
+      "eval": {"kind": "distractor", "mimics": "kayanza", "relation": "same-place-other-domain", "theme": "rainforest-ecology", "axis": null, "pole": null}
+    },
+    {
+      "bundle": "article",
+      "sector": "Science",
+      "title": "What the evidence says about cupping therapy",
+      "body": "Cupping therapy places glass, silicone or bamboo cups on the skin and creates suction, either by heating the air inside them or with a hand pump, leaving the circular bruises familiar from the backs of competitive swimmers. Practitioners distinguish 'dry' cupping, in which the cups simply sit for several minutes, from 'wet' cupping, which adds small incisions. Systematic reviews of randomised trials report modest short-term reductions in neck and lower-back pain compared with no treatment, but most trials are small, blinding is nearly impossible, and comparisons with sham cupping shrink the effect. Side effects are usually minor: bruising, skin irritation, occasional burns. Clinicians at the Westmere Pain Clinic now offer it only alongside exercise therapy.",
+      "eval": {"kind": "distractor", "mimics": "cupping", "relation": "shared-vocabulary-other-domain", "theme": "alternative-medicine", "axis": null, "pole": null}
+    },
+    {
+      "bundle": "event",
+      "sector": "Art",
+      "title": "Roast Night at the Lantern Room — March 2026",
+      "body": "A monthly comedy roast at the Lantern Room, a ninety-seat basement club. Each night one local performer sits on the dais while six comics take turns tearing apart their haircut, their dating history and their regrettable first album, before the guest of honour gets the last word. March's target is the club's own sound engineer, retiring after fourteen years behind the desk. House rules are posted at the door: the jokes can be brutal, but nothing about family members who are not in the room, and every roaster must close their set with one sincere compliment. Tickets go on sale two weeks ahead and usually sell out within the day.",
+      "eval": {"kind": "distractor", "mimics": "roast", "relation": "shared-vocabulary-other-domain", "theme": "comedy-performance", "axis": null, "pole": null}
+    },
+    {
+      "bundle": "article",
+      "sector": "Society",
+      "title": "Grounds for appeal, and why most of them fail",
+      "body": "Losing at trial is not, by itself, a ground for appeal. An appellate court does not rehear witnesses or reweigh evidence; it asks whether the trial court made an error of law, misapplied procedure, or reached a finding that no reasonable tribunal could have reached on the record. Lawyers drafting a notice of appeal therefore spend most of their time narrowing: which objection was preserved at trial, which ruling actually changed the outcome, which standard of review applies. A study by the Harrow Street Legal Clinic of 400 civil appeals found that those raising one or two well-defined grounds succeeded at more than twice the rate of those listing ten or more.",
+      "eval": {"kind": "distractor", "mimics": "grounds", "relation": "shared-vocabulary-other-domain", "theme": "appellate-law", "axis": null, "pole": null}
+    },
+    {
+      "bundle": "profile",
+      "sector": "Technology",
+      "title": "Tomás Varela — wash master at a denim finishing plant",
+      "body": "Tomás Varela runs the wash floor at Lavandería Índigo Norte, a denim finishing plant that processes about nine thousand pairs of jeans a day for export labels. Trained as a textile chemist, he designs the recipes that turn stiff raw denim into the faded, broken-in look buyers order: stone washes in tumbling drums with pumice, enzyme washes that let cellulase do the same work with less abrasion, and ozone treatments that bleach indigo without a chemical bath.\n\nHis current project halves water use per garment by recirculating rinse water through a filtration loop. He still checks every new recipe by hand, folding a test pair under the inspection lamp before the lot ships.",
+      "eval": {"kind": "distractor", "mimics": "washed-process", "relation": "shared-vocabulary-other-domain", "theme": "denim-finishing", "axis": null, "pole": null}
+    },
+    {
+      "bundle": "article",
+      "sector": "Science",
+      "title": "Measuring the acidity of a mountain lake",
+      "body": "A body of water that sits on granite has little to buffer it. When acid rain fell across northern Europe and North America in the 1970s and 1980s, lakes on thin crystalline soils dropped below pH 5, and the first casualties were snails, crayfish and young trout. Emissions controls have since cut sulphate deposition sharply, and long-term monitoring shows many lakes recovering, but slowly: the soils around them were stripped of calcium and magnesium, and they keep releasing acidity long after the rain itself has improved. A survey team from the Lakeland Hydrology Unit samples forty upland lakes each autumn, recording pH, alkalinity and dissolved organic carbon at the same buoy in the body of each lake.",
+      "eval": {"kind": "distractor", "mimics": "body-and-acidity", "relation": "shared-vocabulary-other-domain", "theme": "lake-acidification", "axis": null, "pole": null}
+    },
+    {
+      "bundle": "article",
+      "sector": "Science",
+      "title": "Volcanic soils and the salinity myth in Etna wines",
+      "body": "Wines from the slopes of Mount Etna are routinely described as smoky, mineral or saline, and the volcano gets the credit. The soils are real enough: young basaltic sands and ash, layered by centuries of lava flows, free-draining and low in clay, with vineyards on the north face climbing to around 1,000 metres. But soil scientists doubt that rock flavours reach the glass directly. Vines take up dissolved ions, not stone, and the 'mineral' note tasters report correlates more with high acidity, modest ripeness and reductive winemaking than with any measured mineral content. What volcanic soils demonstrably do is stress the vine through drainage and altitude, which slows ripening and keeps Nerello Mascalese grapes taut and aromatic.",
+      "eval": {"kind": "adjacent", "mimics": "terroir", "relation": "adjacent-domain", "theme": "wine-terroir", "axis": null, "pole": null}
+    },
+    {
+      "bundle": "article",
+      "sector": "Science",
+      "title": "Inside a cacao fermentation box",
+      "body": "Freshly opened cacao pods yield wet, white-pulped beans that taste nothing like chocolate. Flavour begins in the fermentation box. Over five to seven days, yeasts first convert the pulp's sugars to alcohol, then lactic and acetic acid bacteria take over as the mass is turned and air reaches it. The heat climbs past 45 °C, acetic acid seeps into the bean, the embryo dies, and enzymes begin breaking proteins and polyphenols into the precursors that roasting later turns into chocolate aroma. Under-fermented beans cut slaty grey and taste astringent; over-fermented ones turn hammy. Growers in a cooperative near Quevedo, Ecuador, are trialling shallower boxes and timed turning to narrow that window.",
+      "eval": {"kind": "adjacent", "mimics": "fermentation", "relation": "adjacent-domain", "theme": "cacao-fermentation", "axis": null, "pole": null}
+    },
+    {
+      "bundle": "profile",
+      "sector": "Society",
+      "title": "Priya Rajan — plucking supervisor on a Nilgiri tea estate",
+      "body": "Priya Rajan supervises forty pluckers on a hill estate at 1,900 metres in the Nilgiris, where the standard is still 'two leaves and a bud', picked by hand on a seven-to-ten-day round. She learned the job from her mother, who worked the same slopes.\n\nPlucked leaf reaches the factory within hours and is spread on withering troughs, where fans pull air through it for twelve to eighteen hours until it has lost about a third of its moisture and is limp enough to roll without breaking. Priya walks the troughs every evening, squeezing a handful to judge the wither by touch. The estate's frost-season teas, plucked in January, fetch its best prices at the Coonoor auction.",
+      "eval": {"kind": "adjacent", "mimics": "harvest-and-drying", "relation": "adjacent-domain", "theme": "tea-processing", "axis": null, "pole": null}
+    },
+    {
+      "bundle": "event",
+      "sector": "Technology",
+      "title": "Hop Selection Days — Yakima Valley, September 2026",
+      "body": "Harvest window: late August – mid-September 2026.\n\nBrewers from forty independent breweries travel to the Yakima Valley to choose the lots that will define their next year of IPAs. In the sensory room each candidate lot is presented as a rub: brewers crush a handful of dried cones between their palms and score the aroma for citrus, pine, stone fruit and the dank, onion-and-garlic notes that can sink a lot. Lab sheets list alpha acids and oil content, but the selection still turns on the nose. This year's sessions add a newly released public cultivar alongside Citra and Mosaic, and a seminar on cryogenic hop products that concentrate lupulin and leave the vegetal matter behind.",
+      "eval": {"kind": "adjacent", "mimics": "varietal-aroma", "relation": "adjacent-domain", "theme": "hop-selection", "axis": null, "pole": null}
+    },
+    {
+      "bundle": "event",
+      "sector": "Science",
+      "title": "Virgin Olive Oil Panel Training — Jaén, February 2026",
+      "body": "A five-day course for olive oil sensory assessors hosted by the Sierra Mágina Oil Laboratory in Jaén. Trainees learn the standardised method used to grade oils as extra virgin, virgin or lampante: samples are served in cobalt-blue glasses that hide their colour, warmed to 28 °C, and assessed for positive attributes — fruitiness, bitterness, pungency — and for defects such as fusty, musty, winey and rancid. Each defect has a reference sample that panellists learn to recognise at low intensity. On the final day every trainee joins a mock panel of eight, where the panel's median score, not any single taster's, decides the grade. Graduates may apply to sit on accredited panels.",
+      "eval": {"kind": "adjacent", "mimics": "cupping", "relation": "adjacent-domain", "theme": "olive-oil-sensory", "axis": null, "pole": null}
+    },
+    {
+      "bundle": "article",
+      "sector": "Technology",
+      "title": "Roast curves for small-batch chocolate",
+      "body": "Bean-to-bar chocolate makers roast cacao gently: typical profiles run between 110 and 140 °C for twenty to forty minutes. Within that window the roast decides whether a bean's fruit survives. A light roast keeps the acidity and red-fruit notes of a fine-flavour Trinitario; a heavier one builds brownie and toasted-nut notes through Maillard reactions while driving off the acetic acid left over from fermentation. Makers log probe temperature every thirty seconds and plot it as a curve, adjusting the drum's heat so the beans neither stall nor scorch. Most roast whole beans in small drum roasters, then crack them, winnow away the shells and grind the nibs into liquor.",
+      "eval": {"kind": "adjacent", "mimics": "roasting", "relation": "adjacent-domain", "theme": "chocolate-roasting", "axis": null, "pole": null}
+    },
+    {
+      "bundle": "article",
+      "sector": "Society",
+      "title": "Why kombucha left the kitchen counter",
+      "body": "Kombucha — sweetened tea fermented by a gelatinous mat of bacteria and yeast called a SCOBY — spent decades as a home-brewing curiosity passed between friends in jars. The commercial boom of the 2010s turned it into a supermarket category, and with it came a regulatory headache: fermentation keeps producing alcohol in the bottle, and several brands had products pulled for exceeding the 0.5% limit for non-alcoholic drinks. Producers responded by pasteurising, filtering out yeasts, or blending fermented base with fresh juice, each of which changes the taste. Home brewers argue the shelf versions have lost the sour, vinegary edge that made the drink; the sales figures suggest most buyers prefer it gentler.",
+      "eval": {"kind": "adjacent", "mimics": "fermentation", "relation": "adjacent-domain", "theme": "kombucha-regulation", "axis": null, "pole": null}
+    },
+    {
+      "bundle": "article",
+      "sector": "Society",
+      "title": "How maple syrup grades were rewritten",
+      "body": "Until the mid-2010s, how a bottle of maple syrup was graded depended on which side of a border the sugarhouse stood: the darkest table syrup was Grade B across much of the United States, Canada No. 2 or No. 3 to the north, and Vermont kept stricter density rules and grade names of its own. The international standard adopted since then replaced that patchwork with four Grade A colour classes — Golden Delicate, Amber Rich, Dark Robust and Very Dark Strong — measured by light transmittance through a sample. Colour tracks the season: early sap tends to make pale, delicate syrup, and as the weather warms, microbial activity in the sap produces darker, more caramelised batches. A sugarhouse cooperative in the Beauce grades every barrel with a comparator kit before sale.",
+      "eval": {"kind": "adjacent", "mimics": "grading", "relation": "adjacent-domain", "theme": "maple-syrup-grading", "axis": null, "pole": null}
+    },
+    {
+      "bundle": "article",
+      "sector": "Art",
+      "title": "The Empty House on Larch Street",
+      "body": "The wallpaper in the back bedroom has a paler rectangle where a picture hung for forty years. Pencil lines climb the kitchen doorframe, each one dated in a child's uneven hand, the last stopping at shoulder height in 1987. The stair rail is worn smooth in one place only, the spot where a hand always turned at the landing. In the garden the plum tree still leans toward a fence that was taken down long ago. Nothing here is broken. Everything has simply been used, worn to the shape of habits that no longer have anyone to perform them, and the rooms keep those shapes the way wet sand keeps the print of a tide that has gone out.",
+      "eval": {"kind": "pole", "mimics": null, "relation": null, "theme": "Art", "axis": "recollection-anticipation", "pole": "a"}
+    },
+    {
+      "bundle": "article",
+      "sector": "Art",
+      "title": "Letters in a Biscuit Tin",
+      "body": "The tin held shortbread once; the lid still shows a faded Highland stag. Under the lid are letters tied in bundles with kitchen string, the envelopes softened almost to cloth by handling. The stamps carry a king's profile and prices no post office has charged in decades. One letter has been folded and unfolded so often that the creases have worn through, and the word at the centre of the page is gone, a small window of light where a sentence used to be. Pressed between two of them is a brown flower, its petals thin as onion skin. The ink has turned the colour of rust, and the handwriting slopes in a style no school teaches any more.",
+      "eval": {"kind": "pole", "mimics": null, "relation": null, "theme": "Art", "axis": "recollection-anticipation", "pole": "a"}
+    },
+    {
+      "bundle": "article",
+      "sector": "Philosophy",
+      "title": "The Branch Line Through the Mill Town",
+      "body": "The rails still run beside the river, but grass grows between the ties, and the signal arms are rusted in the raised position they held when the last freight train left. The mill's brick chimney stands with the company name painted down one side in letters taller than a house, flaking now to a faint white. On the platform a poster for excursion fares to the coast has been bleached by sun to a pale blue. Swallows nest in the weighbridge office, where a calendar from 1962 hangs open at October, and the clock above the door stopped at four twenty on some afternoon nobody marked.",
+      "eval": {"kind": "pole", "mimics": null, "relation": null, "theme": "Philosophy", "axis": "recollection-anticipation", "pole": "a"}
+    },
+    {
+      "bundle": "article",
+      "sector": "Philosophy",
+      "title": "Seed Trays on a February Windowsill",
+      "body": "In February the windowsill fills with seed trays, each square of compost pressed with a fingertip and given a single tomato seed. For days nothing shows. Then the soil cracks, a pale hook pushes through, and two leaves unfold toward the glass. The labels say which variety will climb the canes by June and which will ripen first in August. Beyond the window the frost still grips the beds, but the canes are already bundled by the shed, a coil of hose lies ready by the tap, and the seed catalogue on the table is folded open at next year's melons, circled in pencil.",
+      "eval": {"kind": "pole", "mimics": null, "relation": null, "theme": "Philosophy", "axis": "recollection-anticipation", "pole": "b"}
+    },
+    {
+      "bundle": "article",
+      "sector": "Art",
+      "title": "Platform Four Before the Night Train",
+      "body": "The board flips to the 23:40 for the coast, platform four, on time. A trolley of mailbags stands at the edge, roped and tagged for stations along the route. The rails begin to hum long before any light shows down the line, a thin note rising through the steel, and the pigeons on the canopy lift off all at once. A guard checks his watch, then checks it again. Somewhere beyond the bend the headlamp must already be sweeping the cuttings, and in a few minutes the doors will slide open on carriages warm and lit, berths made up for a journey that ends at dawn beside the sea.",
+      "eval": {"kind": "pole", "mimics": null, "relation": null, "theme": "Art", "axis": "recollection-anticipation", "pole": "b"}
+    },
+    {
+      "bundle": "article",
+      "sector": "Philosophy",
+      "title": "The Hill Before the Eclipse",
+      "body": "On the hill above the town the telescopes stand on their tripods by eight, lenses capped, pointed at a patch of sky where nothing has yet happened. At eleven fifty-two, the charts say, the edge of the moon will first touch the sun. A box of cardboard viewers sits open on the grass beside a thermos. By noon a strange flat light will lie across the fields, the birds will fall silent, and the air will cool by several degrees within minutes. Until then the sky is ordinary and blue, and every lens on the hill points at the same empty place in it.",
+      "eval": {"kind": "pole", "mimics": null, "relation": null, "theme": "Philosophy", "axis": "recollection-anticipation", "pole": "b"}
+    },
+    {
+      "bundle": "article",
+      "sector": "Philosophy",
+      "title": "The Stone in the Coat Pocket",
+      "body": "She keeps a smooth grey stone in the left pocket of her coat and has never told anyone why. Walking, reading, lying awake at night, her thumb finds it and turns it, tracing the single rough notch along one edge. The stone has no value and no story she would say aloud. It is not lucky and not a gift. It is simply hers, warm from her hand, and its small weight against her hip is the surest thing she knows about who she is on any given day: a secret the size of a walnut that answers to her name and to nobody else's.",
+      "eval": {"kind": "pole", "mimics": null, "relation": null, "theme": "Philosophy", "axis": "self-world", "pole": "a"}
+    },
+    {
+      "bundle": "article",
+      "sector": "Art",
+      "title": "Underwater, One More Length",
+      "body": "Underwater, the pool goes silent except for the pulse in his ears. He holds his breath for one more length, then one more, watching bubbles leave his mouth and wobble upward toward the light. Down here nobody can call his name or ask what he does for a living. There is only the body: the ache gathering in the lungs, the cool pressure on the eardrums, the strange calm that settles just before the need for air turns urgent. He thinks of one thing only, a thing he has never said aloud to anyone and never needs to. Then he surfaces, and the echo of the hall rushes back in.",
+      "eval": {"kind": "pole", "mimics": null, "relation": null, "theme": "Art", "axis": "self-world", "pole": "a"}
+    },
+    {
+      "bundle": "article",
+      "sector": "Philosophy",
+      "title": "A Face in the Train Window",
+      "body": "When the train enters the tunnel the window turns black and gives back a face. She studies it the way she would study a stranger's: the crease between the brows, the mouth set a little harder than she would choose. Is that what shows? She tries a smile and watches it arrive a fraction late, as though the face were deciding on its own. Behind it, the name on her bank card, the signature on her lease, the voice she uses on the phone all seem like coats hung over something that has no name at all. She keeps looking until the tunnel ends and daylight takes the face away.",
+      "eval": {"kind": "pole", "mimics": null, "relation": null, "theme": "Philosophy", "axis": "self-world", "pole": "a"}
+    },
+    {
+      "bundle": "article",
+      "sector": "Art",
+      "title": "Saturday Market on the Cathedral Square",
+      "body": "By eight the square is full. Fishmongers shout prices over crates of ice, a brass band tunes up by the fountain, and two neighbours argue cheerfully about a parking space while their children chase pigeons between the stalls. A delivery van inches through the crowd, its driver greeting stallholders by name. Pensioners compare tomatoes, students hand out leaflets for a strike, and a tourist couple asks directions in three languages at once. Every voice is pitched to carry over the rest, and the noise rises off the stones like heat until the cathedral bell strikes noon and, for a moment, the whole square turns to listen.",
+      "eval": {"kind": "pole", "mimics": null, "relation": null, "theme": "Art", "axis": "self-world", "pole": "b"}
+    },
+    {
+      "bundle": "article",
+      "sector": "Philosophy",
+      "title": "Night Shift at the Container Port",
+      "body": "Cranes the height of apartment blocks swing containers off a ship registered in Liberia, loaded in Busan, bound for warehouses in six countries. Crews shout across the quay in Tagalog, Portuguese and Polish while the radio crackles with the harbour pilot's calls. Lorry drivers queue at the gates with paperwork in plastic sleeves, phoning depots three time zones away. Each steel box holds a shipment bound for strangers: shoes for a shop in Lyon, a school's new chairs, spare parts for a farmer near Kraków. By dawn the ship rides higher in the water, lighter by a thousand boxes, and the quay is loud with a fresh shift calling up to the crane cabs overhead.",
+      "eval": {"kind": "pole", "mimics": null, "relation": null, "theme": "Philosophy", "axis": "self-world", "pole": "b"}
+    },
+    {
+      "bundle": "article",
+      "sector": "Art",
+      "title": "Derby Day in the North Stand",
+      "body": "Forty thousand voices fill the ground before kickoff. A father lifts his daughter onto his shoulders so she can see the pitch, and the man beside them, a stranger, passes along a flask of soup. When the home side scores in the twentieth minute the whole terrace surges forward, and for a few seconds strangers are hugging strangers without asking their names. Songs travel from block to block, each section picking up the line and handing it on. Vendors climb the steps with trays of pies, calling prices. Across the pitch the away fans answer with a chant of their own, and the noise between the two ends never quite stops.",
+      "eval": {"kind": "pole", "mimics": null, "relation": null, "theme": "Art", "axis": "self-world", "pole": "b"}
+    },
+    {
+      "bundle": "article",
+      "sector": "Philosophy",
+      "title": "A Proof on the Blackboard",
+      "body": "The lecturer writes the first line at the top left of the board: let n be the smallest number for which the claim fails. Each line beneath depends only on the lines above it. Nothing is assumed that has not been stated, and nothing is stated that is not needed. Halfway down, a contradiction appears, and the chalk underlines it once. The argument can be followed the way a hand follows a banister, step after step, with no gap anywhere for doubt to slip through. At the bottom right sits a small square, inked solid: the sign that what had to be shown has been shown.",
+      "eval": {"kind": "pole", "mimics": null, "relation": null, "theme": "Philosophy", "axis": "order-dissolution", "pole": "a"}
+    },
+    {
+      "bundle": "article",
+      "sector": "Art",
+      "title": "Salt Crystals Under a Hand Lens",
+      "body": "A drop of brine left on a glass slide overnight becomes a field of cubes. Under the hand lens each one is a small exact box, its faces flat, its edges meeting at right angles, its corners sharp enough to catch the lamp. The larger crystals grow as stepped hoppers, every face a staircase of smaller squares descending toward its centre. Sodium and chlorine alternate in every direction, one of each, without exception, and that alternation shows in a shape a child can draw. Break a crystal and it splits along the same planes into smaller cubes, and those into smaller cubes again, all the way down.",
+      "eval": {"kind": "pole", "mimics": null, "relation": null, "theme": "Art", "axis": "order-dissolution", "pole": "a"}
+    },
+    {
+      "bundle": "article",
+      "sector": "Philosophy",
+      "title": "The Formal Garden Seen From the Terrace",
+      "body": "From the terrace the whole garden reads at a glance. A gravel walk runs from the steps to the far fountain along a single axis, and every hedge on the left of it has its twin on the right, clipped to the same height and the same square shoulder. The beds are laid out as nested rectangles; the pleached limes stand exactly six paces apart. Each path that branches off meets a cross-walk at a right angle and arrives somewhere definite: a bench, an urn, a gate. Nothing in the plan is accidental, and anyone standing at the fountain can name the position of every tree without turning around.",
+      "eval": {"kind": "pole", "mimics": null, "relation": null, "theme": "Philosophy", "axis": "order-dissolution", "pole": "a"}
+    },
+    {
+      "bundle": "article",
+      "sector": "Art",
+      "title": "Fog Over the Estuary",
+      "body": "Fog rolls in off the estuary and the far bank goes first, then the moored boats, then the end of the jetty underfoot. Sounds lose their sources: a bell somewhere to the left, or behind, or overhead. Water and air turn the same grey, and the gulls fly through both. A post becomes a heron and then a post again. The lamps along the quay smear into soft globes without edges, and the path that ran straight a minute ago now bends, or seems to, toward water that may be grass. Nothing holds still long enough to be named.",
+      "eval": {"kind": "pole", "mimics": null, "relation": null, "theme": "Art", "axis": "order-dissolution", "pole": "b"}
+    },
+    {
+      "bundle": "article",
+      "sector": "Philosophy",
+      "title": "A Drop of Ink in a Glass of Water",
+      "body": "A single drop of ink touches the water and opens. It sinks in a slow plume that splits into two, then four, curling filaments that loop and fold, branching and unbranching, until the glass holds a black weather of its own. No line stays a line. Edges feather into smoke, smoke thins to a tint, and the tint spreads into a cloudy blue with no shape at all. Tap the table and the whole column shivers, its threads braiding into knots that unravel the moment they form. Within a minute there is no drop anywhere, only water a little darker everywhere.",
+      "eval": {"kind": "pole", "mimics": null, "relation": null, "theme": "Philosophy", "axis": "order-dissolution", "pole": "b"}
+    },
+    {
+      "bundle": "article",
+      "sector": "Art",
+      "title": "The Hotel Stair That Ends in a River",
+      "body": "The hotel corridor is longer on the way back than on the way in, and the carpet pattern has changed from roses to fish. A door marked 12 opens onto a beach at night. The staircase beside it goes down three flights and ends, without any landing, in a slow brown river where the lobby piano drifts by, still playing. A coat hangs from the ceiling with its pockets full of warm sand. The numbers on the doors trade places whenever they are looked at directly. Every exit leads back into the lobby, where the clock has run off its face and pooled on the desk, and nobody notices.",
+      "eval": {"kind": "pole", "mimics": null, "relation": null, "theme": "Art", "axis": "order-dissolution", "pole": "b"}
+    },
+    {
+      "bundle": "article",
+      "sector": "Art",
+      "title": "Color Constancy and the Curator's Lamp",
+      "body": "A painting has no single colour. The red of a robe under north daylight is not the red under a tungsten spotlight, yet the visual system insists they are the same — a correction that the neuroscience of colour constancy now models in some detail. Museums both exploit the correction and fight it. Low-lux LED lighting protects fugitive pigments but flattens the warm glazes old masters built for candle and window. Conservators and vision scientists increasingly work side by side, measuring spectra on the canvas and responses in the eye, to decide which painting the visitor should see: the one the artist made, or the one that survives.",
+      "eval": {"kind": "abstract", "mimics": null, "relation": null, "theme": "Art", "axis": null, "pole": null, "second": "Science"}
+    },
+    {
+      "bundle": "article",
+      "sector": "Art",
+      "title": "The Value of the Unfinished Score",
+      "body": "Composers leave fragments: a sketched development section, a coda in pencil, a movement abandoned at bar ninety. Performers and editors face a choice that is aesthetic before it is scholarly — complete the work in a plausible style, or play the fragment and let the silence stand. The completed version offers resolution; the fragment offers something rarer, the audible edge of a process. Concert programmers have grown bolder about the second option, and audiences, trained by decades of ruins in galleries and drafts in archives, seem ready to hear a piece that simply stops.",
+      "eval": {"kind": "abstract", "mimics": null, "relation": null, "theme": "Art", "axis": null, "pole": null}
+    },
+    {
+      "bundle": "event",
+      "sector": "Art",
+      "title": "Open Studio Week: Drawing as Thinking",
+      "body": "Five days of open studios, talks and live drawing sessions across twelve artist-run spaces in a converted textile quarter. The programme treats drawing as a way of thinking rather than a preparatory step: sketchbooks shown alongside finished work, a panel on the diagram as an art form, and a marathon session in which twenty draughtspeople document the same street corner from dawn to dusk. Organised by the Weft Collective; free admission, with evening talks recorded and published online.",
+      "eval": {"kind": "abstract", "mimics": null, "relation": null, "theme": "Art", "axis": null, "pole": null}
+    },
+    {
+      "bundle": "profile",
+      "sector": "Art",
+      "title": "Ilse Marquardt",
+      "body": "Painter and printmaker based in Leipzig. Marquardt's large-format woodcuts translate satellite images of river deltas into slow, hand-carved surfaces, a practice she describes as dragging the fast eye back to the speed of the hand. Her series \"Silt Archive\" toured four European exhibition halls in 2025 and is held in the collection of the Ostrand Foundation. She teaches relief printmaking at an independent academy and writes occasional essays on the ethics of working from aerial and surveillance imagery.",
+      "eval": {"kind": "abstract", "mimics": null, "relation": null, "theme": "Art", "axis": null, "pole": null}
+    },
+    {
+      "bundle": "article",
+      "sector": "Science",
+      "title": "Living Clocks and the Problem of Phase",
+      "body": "Nearly every cell in the body keeps time. Circadian rhythms, driven by a loop of proteins that switch their own genes on and off over roughly twenty-four hours, set the timing of hormone release, body temperature and cell division. The difficulty for researchers is not detecting the rhythm but measuring its phase. Two tissues in the same organism can drift hours apart, and a blood sample drawn at the wrong time of day can quietly mislead a clinical trial. Chronobiologists now argue that the hour of sampling deserves the status of a controlled variable, recorded as carefully as dose and as routinely as age.",
+      "eval": {"kind": "abstract", "mimics": null, "relation": null, "theme": "Science", "axis": null, "pole": null}
+    },
+    {
+      "bundle": "article",
+      "sector": "Science",
+      "title": "Deep Time in a Grain of Zircon",
+      "body": "The oldest surviving fragments of the Earth's crust are zircon crystals no wider than a hair, recovered from the Jack Hills of Western Australia. Uranium trapped in their lattice decays to lead at a fixed rate, and the ratio between the two dates the oldest grains to more than four billion years. Their oxygen chemistry hints that liquid water existed at the surface far earlier than once supposed. What makes zircon so valuable is its stubbornness: it survives erosion, burial and partial melting, carrying its age through every turn of the rock cycle like a sealed envelope.",
+      "eval": {"kind": "abstract", "mimics": null, "relation": null, "theme": "Science", "axis": null, "pole": null}
+    },
+    {
+      "bundle": "event",
+      "sector": "Science",
+      "title": "Summer School on Experimental Design in the Life Sciences",
+      "body": "A two-week residential school for doctoral students and early-career researchers in the life sciences, focused on designing experiments that actually answer the question they were meant to answer. Morning sessions cover power analysis, randomisation and blinding, pre-registration, and the recurring failure modes of animal and cell-culture studies. Afternoons are given to workshops in which participants redesign one of their own planned experiments with feedback from faculty statisticians. Hosted at the Ardley Lake Field Station; places are limited to forty, with bursaries for applicants from underfunded labs.",
+      "eval": {"kind": "abstract", "mimics": null, "relation": null, "theme": "Science", "axis": null, "pole": null}
+    },
+    {
+      "bundle": "article",
+      "sector": "Philosophy",
+      "title": "What We Owe to Promises Made Long Ago",
+      "body": "A promise binds the one who made it, but people change. If a commitment made at twenty constrains a person of fifty who no longer shares the reasons behind it, whose will is being honoured? Philosophers divide sharply. Some hold that the obligation is exactly what gives a life its continuity — that keeping faith with earlier commitments is part of what it means to remain one agent across time. Others argue that obligations should track present values, and that rigid fidelity to a vanished earlier self can become its own quiet form of self-betrayal.",
+      "eval": {"kind": "abstract", "mimics": null, "relation": null, "theme": "Philosophy", "axis": null, "pole": null}
+    },
+    {
+      "bundle": "article",
+      "sector": "Philosophy",
+      "title": "The Problem of Other Minds, Revisited",
+      "body": "We attribute experience to other beings on the strength of behaviour, testimony and analogy with ourselves, yet none of these amounts to proof. The classic problem of other minds was long a sceptic's puzzle. It has turned practical as machines produce fluent language and as animal cognition research credits octopuses, bees and crows with richer inner lives than earlier science allowed. A workable answer may not require certainty. It may be enough to specify which evidence would make denial unreasonable, and to accept that the line will move as the evidence accumulates.",
+      "eval": {"kind": "abstract", "mimics": null, "relation": null, "theme": "Philosophy", "axis": null, "pole": null}
+    },
+    {
+      "bundle": "profile",
+      "sector": "Philosophy",
+      "title": "Dr. Amara Velloso",
+      "body": "Philosopher of biology. Velloso works on the concept of the individual organism — where one living thing ends and another begins in colonies, symbioses and microbiomes. Her monograph \"Borders of the Organism\" (2023) drew on years of fieldwork alongside marine biologists studying corals and siphonophores, and argues that biological individuality comes in degrees rather than kinds. She holds a joint appointment in philosophy and evolutionary biology at the Brandt Institute for the Life Sciences and edits the journal Living Boundaries.",
+      "eval": {"kind": "abstract", "mimics": null, "relation": null, "theme": "Philosophy", "axis": null, "pole": null, "second": "Science"}
+    },
+    {
+      "bundle": "article",
+      "sector": "Technology",
+      "title": "What a Commit History Knows",
+      "body": "A version-control history is an odd kind of record. It stores every change to a codebase in sequence, with author and timestamp, yet it rarely explains why. Engineers who inherit old systems read commit logs the way historians read parish registers: inferring intention from sparse entries, reconstructing debates from the shape of reversions. The deeper question is epistemic. A repository can be complete and still uninformative, because knowledge of software lives partly in the heads of the people who wrote it. Writing better commit messages is a technical habit; recognising what they can never hold is a philosophical one.",
+      "eval": {"kind": "abstract", "mimics": null, "relation": null, "theme": "Technology", "axis": null, "pole": null, "second": "Philosophy"}
+    },
+    {
+      "bundle": "article",
+      "sector": "Technology",
+      "title": "The Long Tail of Legacy Infrastructure",
+      "body": "Critical systems run on code older than the engineers maintaining them. Payroll, air-traffic and benefits platforms still depend on mainframe software written decades ago, wrapped in successive layers of middleware so that modern interfaces can call it. Replacing these systems is rarely a technical impossibility; it is a risk calculation. Every rewrite must reproduce undocumented behaviours that downstream processes quietly rely on. The pragmatic path many organisations take is strangulation: building new components around the old core and retiring its functions one at a time, until nothing calls it any more.",
+      "eval": {"kind": "abstract", "mimics": null, "relation": null, "theme": "Technology", "axis": null, "pole": null}
+    },
+    {
+      "bundle": "profile",
+      "sector": "Technology",
+      "title": "Rena Okonkwo-Hale",
+      "body": "Hardware engineer and writer. After fifteen years designing low-power radios for environmental sensors, Okonkwo-Hale now leads a small open-hardware lab focused on repairable electronics. Her guide \"Screws, Not Glue\" (2025) became a reference text in the right-to-repair movement, and her lab publishes full schematics and teardown notes for every device it builds. She lectures on design for disassembly and advises municipal recycling programmes on the handling of electronic waste.",
+      "eval": {"kind": "abstract", "mimics": null, "relation": null, "theme": "Technology", "axis": null, "pole": null}
+    },
+    {
+      "bundle": "article",
+      "sector": "Society",
+      "title": "The Library as Shelter and Square",
+      "body": "Libraries were built to lend books; in many towns they have become the last indoor public space where no purchase is required. On an ordinary weekday the same room serves as job centre, homework club, cooling shelter and internet café. Librarians report that their work increasingly resembles social work, often with little training for it. Funding formulas, however, still count loans. A library measured by circulation looks like an institution in decline; measured by the hours of shelter, help and company it provides, it may be the busiest civic building a town has.",
+      "eval": {"kind": "abstract", "mimics": null, "relation": null, "theme": "Society", "axis": null, "pole": null}
+    },
+    {
+      "bundle": "article",
+      "sector": "Society",
+      "title": "Trust and the Informal Economy",
+      "body": "A large share of the world's work happens without written contracts. Street vending, domestic labour and rotating savings clubs run on reputation, kinship and repeated dealing rather than on courts. Economists once treated this informal economy as a transitional stage that development would absorb. The evidence suggests otherwise: informal arrangements persist alongside formal ones, and often outperform them where state institutions are distant or distrusted. Policies that try to formalise these networks by decree tend to destroy the trust that made them work, without supplying a replacement.",
+      "eval": {"kind": "abstract", "mimics": null, "relation": null, "theme": "Society", "axis": null, "pole": null}
+    },
+    {
+      "bundle": "event",
+      "sector": "Society",
+      "title": "Walls That Speak: A Festival of Neighbourhood Murals",
+      "body": "A week-long festival in which residents of six neighbourhoods co-design and paint large murals with invited artists. Each wall begins with a listening session where residents bring photographs, stories and local landmarks; artists then develop designs that are put to a vote at a neighbourhood assembly. The programme includes walking tours, a symposium on public art and urban renewal, and workshops for teenagers on scaffold safety and spray technique. Organised by the Common Ground Arts Trust; all events are free and open to residents of every age.",
+      "eval": {"kind": "abstract", "mimics": null, "relation": null, "theme": "Society", "axis": null, "pole": null, "second": "Art"}
+    }
+  ]
+}

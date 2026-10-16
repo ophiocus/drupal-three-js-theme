@@ -15,8 +15,9 @@ performance_mode: "mutagen"
 nodejs_version: "20"
 corepack_enable: false
 
-# Atlas access is via HTTPS (Guzzle) rather than the PHP MongoDB
-# driver, so no ext-mongodb is required in the web image.
+# World descriptors + vectors live in Drupal's own database
+# (world_signature_descriptor); no external store or sidecar. Atlas and
+# the RESTHeart sidecar were retired in 2026-10 (see docs/SHIP.md §A1).
 
 # Vite dev server exposure (npm run dev runs on container port 5173,
 # DDEV-router exposes it on https://drupal-three-js-theme.ddev.site:5173)
@@ -28,13 +29,11 @@ web_extra_exposed_ports:
 
 # Sandbox property credentials. Empty in committed config; engineer
 # overrides locally via .ddev/.env or `ddev config --web-environment-add`.
+# The embedding service (WORLD_EMBED_URL/_MODEL/_DIM, see docs/SHIP.md
+# §A2) is machine-specific and lives only in .ddev/.env; unset, the
+# world falls back to the dev TF-IDF embedder.
 web_environment:
     - ANTHROPIC_API_KEY=
-    - MONGODB_ATLAS_URI=
-    - WORLD_SIGNATURE_DATABASE=drupal_three_js_theme_world
-    - WORLD_GATEWAY_URL=http://restheart:8080
-    - WORLD_GATEWAY_USER=admin
-    - WORLD_GATEWAY_PASSWORD=secret
 
 hooks:
     post-start:

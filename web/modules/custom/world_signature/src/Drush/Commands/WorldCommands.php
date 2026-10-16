@@ -16,10 +16,10 @@ use Drupal\world_signature\Service\EmbedRunner;
 use Drupal\world_signature\Service\EntityFactsReader;
 use Drupal\world_signature\Service\SignatureWriter;
 use Drupal\world_signature\Service\SnapshotPublisher;
-use Drupal\world_signature\Service\WorldSearchClient;
 use Drupal\world_signature\Signature\Signature;
 use Drupal\world_signature\Signature\SignatureExtractor;
 use Drupal\world_signature\Signature\SignatureSemantic;
+use Drupal\world_signature\Store\DescriptorStoreInterface;
 use Drush\Attributes\Command;
 use Drush\Commands\DrushCommands;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -27,9 +27,9 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 /**
  * Drush commands for the cypher.
  *
- *   drush world:publish    Force-rebuild every descriptor and push
- *                          to the gateway. Cron-equivalent on demand.
- *   drush world:validate   Health-check the cypher (gateway reachable,
+ *   drush world:publish    Force-rebuild every descriptor and upsert it
+ *                          to the descriptor store. Cron-equivalent on demand.
+ *   drush world:validate   Health-check the cypher (descriptor store reachable,
  *                          metaphors registered, queue config in place,
  *                          field installed on participating bundles).
  *   drush world:test       Run the pipeline end-to-end on one entity
@@ -44,7 +44,7 @@ final class WorldCommands extends DrushCommands {
     private readonly SignatureExtractor $extractor,
     private readonly SignatureWriter $writer,
     private readonly DescriptorBuilder $descriptorBuilder,
-    private readonly WorldSearchClient $searchClient,
+    private readonly DescriptorStoreInterface $descriptorStore,
     private readonly SnapshotPublisher $publisher,
     private readonly AssetSnapshotBuilder $assetBuilder,
     private readonly MetaphorPluginManager $metaphorManager,
@@ -64,7 +64,7 @@ final class WorldCommands extends DrushCommands {
       $container->get('world_signature.signature_extractor'),
       $container->get('world_signature.signature_writer'),
       $container->get('world_signature.descriptor_builder'),
-      $container->get('world_signature.world_search_client'),
+      $container->get('world_signature.descriptor_store'),
       $container->get('world_signature.snapshot_publisher'),
       $container->get('world_signature.asset_snapshot_builder'),
       $container->get('plugin.manager.world_signature.metaphor'),
@@ -77,15 +77,17 @@ final class WorldCommands extends DrushCommands {
   }
 
   /**
-   * Force-rebuild every descriptor and push it to the gateway.
+   * Force-rebuild every descriptor and upsert it to the descriptor store.
    *
    * Walks every entity type that has at least one registered
    * Metaphor plugin, runs the full signature pipeline on each
    * entity, persists field_world_signature, and upserts the
-   * descriptor to the gateway.
+   * descriptor to the store.
    *
-   * Use cases: post-deploy reindex, model-version migration, or
-   * recovery after the gateway has been wiped.
+   * Use cases: post-deploy reindex, refilling an empty store.
+   * Embeddings survive when the source text is unchanged (see
+   * SignatureWriter); entities whose text changed lose theirs until
+   * the next `drush world:embed`, which also refills the store.
    */
   #[Command(name: 'world:publish', aliases: ['wp', 'wpub'])]
   public function publish(): int {
@@ -154,7 +156,7 @@ final class WorldCommands extends DrushCommands {
    * Health-check the cypher.
    *
    * Reports on:
-   *   - gateway reachability
+   *   - descriptor store reachability
    *   - registered Metaphor plugins
    *   - queue config in place
    *   - field_world_signature installed on participating bundles
@@ -164,13 +166,13 @@ final class WorldCommands extends DrushCommands {
   public function validate(): int {
     $issues = [];
 
-    $this->line('-- Gateway --');
-    if ($this->searchClient->ping()) {
-      $this->line(' ✓ gateway reachable');
+    $this->line('-- Descriptor store --');
+    if ($this->descriptorStore->ping()) {
+      $this->line(sprintf(' ✓ descriptor store reachable (%s)', (new \ReflectionClass($this->descriptorStore))->getShortName()));
     }
     else {
-      $issues[] = 'gateway unreachable';
-      $this->line(' ✗ gateway unreachable');
+      $issues[] = 'descriptor store unreachable';
+      $this->line(' ✗ descriptor store unreachable (run `drush updb` if the table is missing)');
     }
 
     $this->line('-- Metaphor plugins --');
@@ -224,7 +226,7 @@ final class WorldCommands extends DrushCommands {
    * Run the full pipeline on one entity for visual inspection.
    *
    * Loads the given entity, runs facts → signature → descriptor →
-   * gateway upsert, and prints the resulting descriptor as JSON.
+   * descriptor store upsert, and prints the resulting descriptor as JSON.
    *
    * @param string $entityType
    *   Entity type machine id (e.g. node).
@@ -272,12 +274,14 @@ final class WorldCommands extends DrushCommands {
 
     $signature = $this->extractor->extract($facts);
     $this->writer->write($entity, $signature);
+    // Publish what was stored: write() keeps an unchanged embedding.
+    $signature = $this->writer->read($entity) ?? $signature;
 
     $pluginId = sprintf('%s:%s', $entityType, $entity->bundle());
     $metaphor = $this->metaphorManager->createInstance($pluginId);
 
     $descriptor = $this->descriptorBuilder->build($entity, $facts, $signature, $metaphor);
-    $this->searchClient->upsert($descriptor);
+    $this->descriptorStore->upsert($descriptor);
 
     return $returnDescriptor ? $descriptor : NULL;
   }
@@ -285,7 +289,7 @@ final class WorldCommands extends DrushCommands {
   /**
    * `drush world:embed` — compute semantic embeddings for the whole
    * corpus and write them into each entity's signature, then
-   * re-publish so the gateway descriptors carry the vectors.
+   * re-publish so the stored descriptors carry the vectors.
    *
    * BETA 2 stage. Embedding *processing* is external (docs/BOUNDARY.md):
    * with WORLD_EMBED_URL set this calls the configured embedding
@@ -302,7 +306,7 @@ final class WorldCommands extends DrushCommands {
    *      local TF-IDF fallback).
    *   3. For each entity: re-extract its signature, inject the
    *      embedding into the semantic layer, write the field, and
-   *      re-upsert the descriptor to the gateway.
+   *      re-upsert the descriptor to the descriptor store.
    *
    * After this, `drush world:relayout` (or the next snapshot build
    * in semantic mode) projects the vectors to 2D positions.
@@ -346,7 +350,7 @@ final class WorldCommands extends DrushCommands {
    * world positions and store the layout, then activate semantic
    * mode.
    *
-   * BETA 2 stage. Reads embeddings from the gateway descriptors
+   * BETA 2 stage. Reads embeddings from the stored descriptors
    * (written by `drush world:embed`), runs classical MDS to get a
    * deterministic (x, z) per entity, derives EMERGENT sector
    * centroids + radii from where each region's members landed, and
@@ -356,9 +360,9 @@ final class WorldCommands extends DrushCommands {
    */
   #[Command(name: 'world:relayout', aliases: ['wrl'])]
   public function relayout(): int {
-    $descriptors = $this->searchClient->findAll();
+    $descriptors = $this->descriptorStore->findAll();
     if ($descriptors === []) {
-      $this->logger()->warning('No descriptors in the gateway. Run world:publish first.');
+      $this->logger()->warning('No descriptors in the descriptor store. Run world:embed first.');
       return DrushCommands::EXIT_FAILURE;
     }
 

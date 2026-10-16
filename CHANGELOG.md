@@ -6,6 +6,55 @@ this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased] — v0.1 in progress
 
+### Changed — descriptor store moves into Drupal's database (2026-10)
+
+- **Atlas retired.** It had no active cluster, and every `world:embed`
+  was waiting 10 s per entity on dead gateway upserts. Descriptors and
+  vectors now live in `world_signature_descriptor` (created by
+  `world_signature_update_11001`), vectors packed as float32.
+- **`DescriptorStoreInterface`** (`world_signature.descriptor_store`)
+  fronts the store; every caller (EmbedRunner, ExtractSignature, drush
+  commands, WorldController) depends on it. Default backend
+  `DatabaseDescriptorStore`: `nearest()` is exact cosine in PHP with
+  `bundle` / `sector` / `type` / `status` / `lang` filters (~12 ms at
+  344 entities). `WorldSearchClient` (RESTHeart → MongoDB) implements
+  the same interface as a swap-in backend.
+- **RESTHeart sidecar removed from DDEV**; `MONGODB_ATLAS_URI` and
+  `WORLD_GATEWAY_*` dropped from `config.yaml`. `/world/health` now
+  reports `store` (was `gateway`); `/world/descriptor/{id}` errors are
+  `store_error`.
+- **Fix: saves no longer strip vectors from the store.** The save-time
+  job and `world:publish` built the descriptor from the freshly
+  extracted signature (embedding `NULL`) even when `SignatureWriter`
+  had kept the embedding on the field; they now publish what was
+  stored (`SignatureWriter::read()`).
+
+### Changed — local embedding service (2026-10)
+
+- **`RemoteEmbeddingProvider` speaks to a local Ollama.** `WORLD_EMBED_DIM`
+  is now sent as the OpenAI-style `dimensions` field and enforced: every
+  returned vector must have that width, or the pass throws and the
+  manager falls back to TF-IDF instead of storing a mixed-width corpus.
+  `modelVersion()` carries the width (`remote:qwen3-embedding:4b@1024`),
+  so a width change marks the corpus stale. Timeout 30 → 120 s for local
+  cold loads. Unit-tested in `RemoteEmbeddingProviderTest`.
+- **Default local model: `qwen3-embedding:4b` at 1024.** Chosen by a
+  bake-off against bge-m3, qwen3-embedding:8b and the TF-IDF fallback on
+  the testbed (344 docs): theme precision@5 0.62 vs 0.48 (bge-m3) and
+  0.25 (TF-IDF); inner-mind anchor-pole AUC 1.0 vs 0.96 and 0.44. The 8b
+  bought nothing over the 4b. Config is machine-specific and lives in
+  `.ddev/.env` (`docs/SHIP.md` §A2).
+
+### Added — opt-in content packs
+
+- **`drush world:seed:pack <name>` / `world:seed:pack-purge <name>`** load
+  `world_seed/data/packs/<name>.json` on top of the canonical seed,
+  tracked under their own state key. Two evaluation packs ship:
+  `bakeoff-crosscut` (64 coffee pieces whose theme cuts across regions,
+  paraphrase pairs, long-form) and `bakeoff-hard` (58 lexical traps,
+  adjacent domains, abstract essays, inner-mind pole pieces), each record
+  carrying `eval` labels the seeder ignores.
+
 ### Added (v0.4 — real .glb pipeline + information LOD + hover redesign)
 
 The v0.4 release thesis: "the forest becomes real and gains

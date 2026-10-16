@@ -101,9 +101,9 @@ Local development and production use the same shape:
 
 | Service | Sandbox (DDEV) | Production (tecnocratica VPS) |
 | --- | --- | --- |
-| **MongoDB Atlas cluster** | M0 free tier (one shared sandbox cluster) | One cluster per client/theme deployment |
-| **RESTHeart gateway** | Container in DDEV (`ddev get` add-on or custom service in `.ddev/docker-compose.restheart.yaml`) | Sidecar container in the property's compose stack |
-| **Embedding generation** | Atlas-managed (Voyage) — fires on insert into a Vector Search-indexed collection. No separate embedder service. | Same — Atlas handles it server-side. |
+| **Descriptor + vector store** *(since 2026-10-14; Atlas retired)* | `world_signature_descriptor` table in the DDEV MariaDB | Same table in the property's own database |
+| **RESTHeart gateway** *(retired from DDEV 2026-10-14)* | — (was `.ddev/docker-compose.restheart.yaml`) | Only if the optional MongoDB backend is wired |
+| **Embedding generation** | `RemoteEmbeddingProvider` → local Ollama (`qwen3-embedding:4b` @1024, `.ddev/.env`); TF-IDF fallback when unset. *(Atlas-managed Voyage on insert never shipped.)* | An embedding service reachable from the property (`WORLD_EMBED_*`) |
 | **LLM operations** (chatvatars, query translation in v0.0.3+) | `drupal/ai` + `drupal/ai_provider_anthropic` from Drupal | Same |
 
 ## 3. Test split
@@ -130,8 +130,8 @@ PR.
 | 5 | All code operations under DDEV | No bare-host fallback. | Single source of truth for tool versions; matches the webrunners stack working norm. |
 | **Embedding epic** | | | |
 | E1 | Embedding source | Voyage AI for production (`voyage-multilingual-2`); local sentence-transformers for sandbox. Both behind the same `EmbedderInterface`. *Pending user confirmation that "Claude" was shorthand for "Anthropic-aligned" — Anthropic does not offer first-party embeddings as of 2026-05-05.* | Closest-to-Claude posture that exists today; ships free in dev, paid in prod with a swap. |
-| E2 | Vector storage | **MongoDB Atlas** (`$vectorSearch` aggregation, Atlas-managed Voyage embeddings on insert). One cluster per client / per theme deployment for tenant isolation. | Purpose-built filter/projection language; scales independently of MariaDB; per-tenant isolation is a hard requirement once the cypher becomes a service offering. |
-| E2a | Atlas access path | **RESTHeart sidecar** as the gateway. Drupal speaks Guzzle/HTTPS to RESTHeart; RESTHeart routes per-tenant to the right Atlas cluster. *(Pivot recorded 2026-05-07; Atlas App Services was sunset 2025-09-30, killing the original Function-as-bridge plan.)* | Multi-tenant routing, central auth, observability gateway, no `ext-mongodb` in DDEV. Direct `mongodb/mongodb` PHP driver kept on file as the second-fallback. |
+| E2 | Vector storage | **Drupal's own database** *(superseded 2026-10-14; was MongoDB Atlas)*: descriptors + float32 vectors in `world_signature_descriptor` behind `DescriptorStoreInterface`, exact cosine `nearest()` in PHP. Atlas had no active cluster; the store was only ever a mirror of `field_world_signature` and nothing called `$vectorSearch`. | One store, no sidecar or second backup, written in the same request as the entity (no silent mirror drift). Per-tenant isolation becomes per-site database. Swap-in paths kept behind the interface: RESTHeart → self-hosted MongoDB 8.2+ with mongot, or a MariaDB 11.8 `VECTOR` + HNSW column at ~10k+ entities. |
+| E2a | Atlas access path | *(superseded 2026-10-14 — see E2.)* Was: **RESTHeart sidecar** as the gateway, Drupal speaking Guzzle/HTTPS to RESTHeart, RESTHeart routing per-tenant to an Atlas cluster *(pivot recorded 2026-05-07 after Atlas App Services was sunset 2025-09-30)*. The client survives as `WorldSearchClient`, an alternative `DescriptorStoreInterface` backend. | Multi-tenant routing, central auth, observability gateway, no `ext-mongodb` in DDEV. |
 | E3 | Indexing strategy | Async via `advancedqueue`. | Editor save is fast; vector arrives seconds later; resilient to embedder outages. |
 | E4 | Search API surface | Both — Drupal route (`/api/world/search?q=...`) + JSON:API resource. | One backend, two surfaces. |
 | E5 | Search type | Hybrid (BM25 + vector rerank). | Modern default; better recall on uncommon proper nouns. |
@@ -553,6 +553,10 @@ Code's MCP logs (settings → MCP Servers → server name →
 
 ## 4a. External service version notes — RESTHeart-mediated stack
 
+> **Superseded 2026-10-14** for the default stack: Atlas retired, the
+> store moved into Drupal's database (see E2 and ARCHITECTURE.md §9).
+> The notes below describe the optional MongoDB backend.
+>
 > **Architecture pivot recorded 2026-05-07.** Atlas App Services
 > (and its Custom HTTPS Endpoints + Functions) was sunset on
 > **2025-09-30**. The original Sprint 3b-2 design that bridged

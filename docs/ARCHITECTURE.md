@@ -339,7 +339,16 @@ by integration tests, not unit tests.
 
 ## 9. Data gateway — RESTHeart, multi-tenant by design
 
-> **Status:** locked 2026-05-07. Replaces the original
+> **Status: superseded 2026-10-14.** Atlas was retired (no active
+> cluster) and the descriptor store moved into Drupal's own database:
+> `world_signature_descriptor`, behind `DescriptorStoreInterface`
+> (`world_signature.descriptor_store`), with exact cosine `nearest()`
+> in PHP. The RESTHeart sidecar is gone from DDEV. This section stays
+> as the design of the optional MongoDB backend — `WorldSearchClient`
+> still implements the interface; point the service alias at it and
+> run a self-hosted MongoDB 8.2+ with mongot. See PROTOCOL.md E2.
+>
+> *Original status:* locked 2026-05-07. Replaces the original
 > Atlas-App-Services-Function plan, which became unviable when
 > MongoDB sunset App Services on 2025-09-30.
 

@@ -14,6 +14,7 @@ use Drupal\world_signature\Plugin\MetaphorPluginManager;
 use Drupal\world_signature\Signature\Signature;
 use Drupal\world_signature\Signature\SignatureExtractor;
 use Drupal\world_signature\Signature\SignatureSemantic;
+use Drupal\world_signature\Store\DescriptorStoreInterface;
 
 /**
  * EmbedRunner — single source of truth for "embed the whole corpus and
@@ -43,7 +44,7 @@ final class EmbedRunner {
     private readonly SignatureExtractor $extractor,
     private readonly SignatureWriter $writer,
     private readonly DescriptorBuilder $descriptorBuilder,
-    private readonly WorldSearchClient $searchClient,
+    private readonly DescriptorStoreInterface $descriptorStore,
     private readonly MetaphorPluginManager $metaphorManager,
     private readonly EmbeddingManager $embeddingManager,
     private readonly StateInterface $state,
@@ -114,7 +115,7 @@ final class EmbedRunner {
     $embeddedAt = time();
 
     // Pass 3: inject the vector into each signature, write back,
-    // re-upsert the descriptor so the gateway carries the vector.
+    // re-upsert the descriptor so the descriptor store carries the vector.
     $written = 0;
     $errors = 0;
     foreach ($work as $descriptorId => $w) {
@@ -143,7 +144,7 @@ final class EmbedRunner {
         $descriptor = $this->descriptorBuilder->build(
           $w['entity'], $w['facts'], $signature, $metaphor,
         );
-        $this->searchClient->upsert($descriptor);
+        $this->descriptorStore->upsert($descriptor);
         $written++;
       }
       catch (\Throwable $e) {
@@ -265,7 +266,7 @@ final class EmbedRunner {
 
   /**
    * Phase 3 — write a single descriptor's signature + upsert to the
-   * gateway. Reloads the entity from the batch context's bare ids so
+   * descriptor store. Reloads the entity from the batch context's bare ids so
    * the cross-request serialisation cost stays small.
    *
    * Returns TRUE on success, FALSE on no-vector or thrown error
@@ -304,7 +305,7 @@ final class EmbedRunner {
       $pluginId = sprintf('%s:%s', $w['entityType'], $entity->bundle());
       $metaphor = $this->metaphorManager->createInstance($pluginId);
       $descriptor = $this->descriptorBuilder->build($entity, $facts, $signature, $metaphor);
-      $this->searchClient->upsert($descriptor);
+      $this->descriptorStore->upsert($descriptor);
       return TRUE;
     }
     catch (\Throwable $e) {
