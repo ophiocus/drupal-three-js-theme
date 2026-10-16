@@ -196,8 +196,7 @@ running them interchangeably on the same install.
 
 - Atmosphere registry, lazy-import, palette overrides — all the
   switching plumbing.
-- **A second skin** — `inner-mind` (`src/world/runtime/atmospheres/
-  inner-mind/`): procedural thought-crystals / psyche-orbs / ripple-rings
+- **A second skin** — `inner-mind` (`src/atmospheres/inner-mind/`): procedural thought-crystals / psyche-orbs / ripple-rings
   in acid hues over a hue-cycling background + multicoloured motes.
 - **Inner-mind design pass — the surrounding zodiac** (`zodiac.ts`): the
   navigable centre reads as a star system; the *unreachable* outer orbit

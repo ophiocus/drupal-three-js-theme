@@ -41,8 +41,10 @@ size from `ArticleBuilder`) remain consistent across atmospheres
 unless a specific atmosphere overrides them.
 
 Atmospheres are **optional**. With none selected, the world
-falls back to the default SmartObject Builders shipped in
-`src/world/runtime/smart-objects/builders/`. Adopting an
+falls back to the default SmartObject Builders the theme hands
+the runtime (`src/builders/`, passed as `builders:` in `main.ts`),
+then to the runtime's own `FallbackBuilder`
+(`src/world/runtime/smart-objects/builders/`). Adopting an
 atmosphere is purely additive.
 
 ## The pipeline — six stages
@@ -191,10 +193,12 @@ surface.
 > module interface + central registry; SceneManager no longer knows any
 > atmosphere by name.
 
-**Artifact:** `src/world/runtime/atmospheres/<key>/`
+**Artifact:** `src/atmospheres/<key>/` — theme content, outside the
+runtime tree (`src/world/`), which keeps only the contract and the
+registry.
 
 ```
-src/world/runtime/atmospheres/<key>/
+src/atmospheres/<key>/
 ├── index.ts        ← export default <AtmosphereModule>
 ├── audio.ts        ← buildSoundscape(ctx, master) → Soundscape (optional)
 ├── projection.ts   ← computeLayout support (optional)
@@ -225,8 +229,10 @@ atmosphere sees the same hook signature — no more per-atmosphere
 signature drift.
 
 **Central catalog** — `src/world/runtime/atmospheres/registry.ts`
-holds an insertion-ordered map of lazy loaders. Adding a new
-atmosphere requires exactly one edit here:
+holds an insertion-ordered map of lazy loaders; it is the runtime's
+mechanism and names no atmosphere. The theme registers its own in
+`src/atmospheres/index.ts`, which `main.ts` imports before mount.
+Adding a new atmosphere requires exactly one edit there:
 
 ```ts
 registerAtmosphereLoader("underwater", async () =>
@@ -377,8 +383,9 @@ drupal-three-js-theme/
 │               ├── manifest.json      ← stage 5 output
 │               ├── <element>.glb      ← stage 4 downloads
 │               └── ...
-├── src/world/runtime/
+├── src/
 │   └── atmospheres/
+│       ├── index.ts                   ← stage 6 registration (one line)
 │       └── <name>/
 │           ├── index.ts               ← stage 6 entry point
 │           ├── manifest.ts
@@ -422,9 +429,11 @@ For every shipped property:
 Concretely, on top of v0.1.2's SmartObject system:
 
 - **New top-level concept** — Atmosphere lives in `docs/atmospheres/`,
-  `src/world/runtime/atmospheres/`, `web/themes/custom/drupal_threejs/assets/atmospheres/`.
+  `src/atmospheres/` (the runtime keeps only the contract and registry
+  in `src/world/runtime/atmospheres/`),
+  `web/themes/custom/drupal_threejs/assets/atmospheres/`.
 - **Existing Builders become "default atmosphere."** Today's
-  `ArticleBuilder` (cube + word-count side) renders any article
+  `ArticleBuilder` (`src/builders/`, cube + word-count side) renders any article
   the active atmosphere doesn't claim.
 - **Manifesto unchanged.** Atmospheres declare their Components
   against the same `world_signature.manifesto.component_types`

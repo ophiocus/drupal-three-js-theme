@@ -2,7 +2,7 @@
 
 **Status:** design (2026-05-30, v2 — paradigm shift)
 **Relates to:** `docs/INTERPRETATION_ENGINE.md` · `docs/TOOLBOX_AND_STAGE.md` ·
-`web/modules/custom/world_signature/` · `src/world/runtime/atmospheres/inner-mind/`
+`web/modules/custom/world_signature/` · `src/atmospheres/inner-mind/`
 
 > The corpus has gravity. It already gathers around things — taxonomy
 > terms, author themes, named concepts that recur across nodes. **A

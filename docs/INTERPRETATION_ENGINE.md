@@ -6,7 +6,7 @@
 (data-polled gravity attractors, the discrete-point complement to
 the directional axes designed here) · `docs/TOOLBOX_AND_STAGE.md`
 (editor surface) · `world` content type · atmospheres ·
-`web/.../src/Embedding/` · `src/world/runtime/atmospheres/inner-mind/`
+`web/.../src/Embedding/` · `src/atmospheres/inner-mind/`
 
 > Implementation status (May 2026): MDS-3D projector + anchored
 > projector both shipped. EmbedRunner Pass 4 embeds atmosphere pole

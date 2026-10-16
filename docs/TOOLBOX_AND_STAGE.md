@@ -78,6 +78,47 @@ ESLint is not adopted in this phase (the project has no eslint config
 today; adding it is a separate decision). When ESLint lands,
 `no-restricted-imports` replaces the script — same rule, prettier UX.
 
+### 1.4 The second enforced rule — the runtime boundary
+
+The toolbox rule bites at the `three` import line. A second rule, cut
+in fbb8c5a, bites at the seam between the world runtime and the Drupal
+binding. `src/` is laid out in layers:
+
+```
+src/toolbox/      three.js barrel + lab equipment (rule §1.3)
+src/shared/       pieces both sides use (LoaderOverlay)
+src/world/        the runtime — descriptor contract, vantage(), runtime/
+src/binding/      the Drupal side — transport, URL grammar, FirstVisitOverlay
+src/atmospheres/  the theme's atmospheres (forest, inner-mind + StageEditor)
+src/builders/     the theme's default builders (ArticleBuilder)
+src/main.ts       composition root: hands binding + content to the runtime
+```
+
+- `scripts/check-runtime-boundary.mjs` — Node script that walks
+  **`src/world/` only** (comments ignored, so rationale can still name
+  routes) and exits non-zero on any of:
+  1. a relative import that resolves outside `src/world/`,
+     `src/toolbox/` or `src/shared/` — never into `binding/`,
+     `atmospheres/`, `builders/` or `main.ts`;
+  2. a `fetch(` call — every request goes through the `WorldTransport`
+     the host hands `SceneManager` (`src/world/runtime/wire.ts`);
+  3. a Drupal route or setting in a string — `/world/card|snapshot|edit|admin`,
+     `/themes/`, `/sector/…`, `/node/…`, or `drupalSettings`. URL
+     shapes come from the `RouteCodec` (`src/world/routes.ts`).
+  Run as `npm run check:runtime`; chained into `prebuild` after the
+  toolbox check, so `vite build` fails on violation.
+- The Drupal implementations of both seams live in `src/binding/`:
+  `drupal-transport.ts` (snapshot URL, `?atmosphere=`, `?lang=`,
+  `/world/card/<type>/<id>/<mode>`, theme asset base)
+  and `drupal-routes.ts` (path ⇄ `Route`). See `ARCHITECTURE.md` §7.
+- **Which atmospheres exist is theme content.** The runtime keeps the
+  registry mechanism and the `AtmosphereModule` contract
+  (`src/world/runtime/atmospheres/`); the theme registers its own in
+  `src/atmospheres/index.ts`, which `main.ts` imports before mount. The
+  add-an-atmosphere recipe (`ATMOSPHERES.md` stage 6) is one
+  `registerAtmosphereLoader(...)` line there, plus the module under
+  `src/atmospheres/<key>/`.
+
 ---
 
 ## 2. The Stage GUI — in-canvas, three layers

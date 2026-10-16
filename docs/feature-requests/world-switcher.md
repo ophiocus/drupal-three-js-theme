@@ -219,9 +219,14 @@ The authored, persistent flip remains `drush world:switch`.
 ### Files
 - `src/world/runtime/SceneManager.ts` — world-layer group, `buildScene`,
   `switchAtmosphere`, light/compass handles.
-- `src/world/runtime/atmospheres/forest/index.ts` + `pollen.ts` +
+- `src/atmospheres/forest/index.ts` + `pollen.ts` +
   `scenery.ts` — disposable env contract.
-- `src/world/runtime/atmospheres/inner-mind/` — new stub.
+- `src/atmospheres/inner-mind/` — new stub.
+- `src/atmospheres/index.ts` — registers both with the runtime's
+  registry (`src/world/runtime/atmospheres/registry.ts`).
+
+(Paths as of the runtime/binding seam, fbb8c5a: atmosphere content left
+`src/world/runtime/atmospheres/`; only the registry and its types stayed.)
 - `web/modules/custom/world_signature/src/Drush/Commands/WorldCommands.php`
   — `world:switch`.
 - `web/modules/custom/world_signature/src/Service/SnapshotPublisher.php`

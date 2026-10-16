@@ -324,8 +324,9 @@ The renderer exposes pure functions against the descriptor:
 
 - `entityPosition(entity, snapshot) → Vec3` — deterministic position
   from id and sector.
-- `vantage(url, snapshot) → Vantage` — URI → camera position +
-  lookAt + sector + mode + cardId.
+- `vantage(url, snapshot, routes) → Vantage` — URI → camera position +
+  lookAt + sector + mode + cardId. The URL grammar comes in as a
+  `RouteCodec` (below).
 - `mapping(signature) → PhysicalProperties` — per-theme function
   mapping the four signature layers to size, color, light, etc.
   Defaults supplied; overridable per theme.
@@ -336,6 +337,45 @@ seven invariants in `test/vantage.test.ts`.
 The non-pure surface (animations, render loop, DOM overlay,
 BloomEventBus, History API) lives in `src/world/runtime/` — exercised
 by integration tests, not unit tests.
+
+### 7.1 The runtime / binding seam
+
+`src/world/` is the runtime and carries no Drupal knowledge. It
+reaches the server through exactly two seams, both handed to
+`SceneManager` by the host:
+
+- **`WorldTransport`** (`src/world/runtime/wire.ts`) — every request.
+  `loadSnapshot({ atmosphere?, fresh })` returns the raw snapshot
+  (`RawSnapshot`, `DescriptorShape`, `Palette` live in the same file —
+  the wire half of the §3 contract); `cardUrl(entityId, viewMode)`
+  says where an entity's card lives (null = no card);
+  `fetchHtml(url)` fetches card and surface HTML; `assetUrl(path)`
+  resolves textures and sounds. The runtime never calls `fetch()`.
+- **`RouteCodec`** (`src/world/routes.ts`) — every URL shape.
+  `parse(path) → Route` and `format(route) → path` over a small
+  vocabulary (`front`, `section`, `detail`, `listing`, `unknown`).
+  Detail routes carry the snapshot's entity key (`"node-19"`), so the
+  runtime never splits ids. The codec must round-trip: `vantage()`
+  relies on `format(parse(p))` being canonical to keep the
+  URI ⇄ world arrow commuting.
+
+The Drupal implementations live in `src/binding/`:
+`drupal-transport.ts` (snapshot URL, `?atmosphere=` and `?lang=`
+query, `/world/card/<type>/<id>/<mode>`, the theme's asset base) and
+`drupal-routes.ts` (`/`, `/sector/<tid>`, `/node/<nid>`, … ⇄ `Route`).
+
+**`src/main.ts` is the composition root.** It builds a
+`DrupalTransport` and passes it with `drupalRoutes` and the default
+builders (`builders: () => [new ArticleBuilder()]`, from
+`src/builders/`) to `SceneManager`, imports `src/atmospheres/index.ts`
+so the theme's atmospheres register before mount, and mounts the
+Drupal-only `FirstVisitOverlay` (`src/binding/`). Nothing else
+wires the two sides together.
+
+The seam is enforced, not advised: `scripts/check-runtime-boundary.mjs`
+runs in `prebuild` and fails the build if `src/world/` imports outside
+`world/`, `toolbox/` or `shared/`, calls `fetch()`, or names a Drupal
+route or `drupalSettings`. See `TOOLBOX_AND_STAGE.md` §1.4.
 
 ## 9. Data gateway — RESTHeart, multi-tenant by design
 
